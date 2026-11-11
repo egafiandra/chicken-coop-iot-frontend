@@ -100,8 +100,14 @@ yang memang menunggu diisi admin:
 7. **Log aktivitas** (`#/logs`) — timeline jejak perubahan admin.
 8. **Pengaturan** (`#/settings`) — profil admin, status sistem, toggle tema, reset data.
 
-Tambahan lintas halaman: **dark mode** (toggle di topbar + Pengaturan), sidebar rail
-bergrup, breadcrumb, toast, modal dengan backdrop blur, `prefers-reduced-motion`.
+Tambahan lintas halaman: **dua tema** (daylight / midnight, toggle di topbar + Pengaturan),
+navigasi horizontal di topbar (bukan sidebar), hero band dengan ring kesehatan,
+toast, modal dengan backdrop blur, `prefers-reduced-motion`.
+
+Catatan teknis: `main.mjs` meng-import `state.mjs` **dengan query versi**
+(`./state.mjs?v=...`). Tanpa itu browser menyajikan `state.mjs` dari cache dan
+perubahan state tidak pernah terlihat. Naikkan versi di **kedua** tempat sekaligus:
+query di `admin.html` dan query import di `src/admin/main.mjs`.
 
 ### P1 — belum dikerjakan
 

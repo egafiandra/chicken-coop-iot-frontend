@@ -64,7 +64,7 @@ export function createAdminState() {
       egg: { enabled: true, thresholdGram: 50 },
     },
     ui: { userSearch: '', userRole: 'all', coopFilter: 'all', modal: null },
-    theme: 'light',
+    theme: 'daylight',
     nextUserId: 5,
     nextAuditId: 5,
   };
@@ -275,7 +275,7 @@ export function summarize(state) {
 }
 
 export function toggleTheme(state) {
-  return { ...state, theme: state.theme === 'dark' ? 'light' : 'dark' };
+  return { ...state, theme: state.theme === 'midnight' ? 'daylight' : 'midnight' };
 }
 
 export function resetAdminDemo(state) {

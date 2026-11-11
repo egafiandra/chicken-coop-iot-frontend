@@ -20,7 +20,7 @@ import {
   toggleTheme,
   toggleUserActive,
   updateUser,
-} from './state.mjs';
+} from './state.mjs?v=20261123';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
@@ -50,15 +50,10 @@ const P = {
   check: '<path d="m5 12.8 4.6 4.6L19 7"/>',
   sun: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.4v2.4M12 19.2v2.4M2.4 12h2.4M19.2 12h2.4M5.4 5.4l1.7 1.7M16.9 16.9l1.7 1.7M18.6 5.4l-1.7 1.7M7.1 16.9l-1.7 1.7"/>',
   moon: '<path d="M20 14.4A8.4 8.4 0 0 1 9.6 4a8.6 8.6 0 1 0 10.4 10.4Z"/>',
-  egg: '<path d="M12 3.2c-3.6 0-6.6 5.8-6.6 10.4a6.6 6.6 0 0 0 13.2 0C18.6 9 15.6 3.2 12 3.2Z"/>',
-  weight: '<path d="M5.4 4.4h13.2l1.8 15.4H3.6L5.4 4.4Z"/><path d="M12 8.6v3.6l2.6 1.6"/>',
-  water: '<path d="M12 3.2S6.4 10 6.4 13.8a5.6 5.6 0 0 0 11.2 0C17.6 10 12 3.2 12 3.2Z"/>',
-  feed: '<path d="M4.2 10.4h15.6l-1.4 9.4H5.6L4.2 10.4Z"/><path d="M7.4 7.2c1-2 2.8-2 3.8 0M13 7.2c1-2 2.8-2 3.8 0"/>',
-  light: '<path d="M9.4 18.2h5.2M10.4 20.8h3.2M8.6 14.6a6.6 6.6 0 1 1 6.8 0c-.9.7-1.2 1.4-1.4 2.4h-4c-.2-1-.5-1.7-1.4-2.4Z"/>',
-  music: '<path d="M9.4 17.6V5.2l11-2v12"/><circle cx="6.6" cy="17.8" r="2.8"/><circle cx="17.6" cy="15.6" r="2.8"/>',
-  pin: '<path d="M12 21s7-6.1 7-11.2A7 7 0 0 0 5 9.8C5 14.9 12 21 12 21Z"/><circle cx="12" cy="9.6" r="2.6"/>',
-  shield: '<path d="M12 2.8 4.6 6v6c0 4.6 3.1 7.8 7.4 9.2 4.3-1.4 7.4-4.6 7.4-9.2V6L12 2.8Z"/><path d="m8.8 12 2.2 2.2 4.2-4.4"/>',
+  up: '<path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/>',
+  down: '<path d="M12 5v14M5.5 12.5 12 19l6.5-6.5"/>',
   bell: '<path d="M18 15.6V10a6 6 0 1 0-12 0v5.6L4.4 18h15.2L18 15.6Z"/><path d="M10.4 21h3.2"/>',
+  shield: '<path d="M12 2.8 4.6 6v6c0 4.6 3.1 7.8 7.4 9.2 4.3-1.4 7.4-4.6 7.4-9.2V6L12 2.8Z"/><path d="m8.8 12 2.2 2.2 4.2-4.4"/>',
 };
 
 const TYPE_ICON = { esp: 'chip', sensor: 'activity', actuator: 'sliders', camera: 'camera' };
@@ -70,22 +65,14 @@ function icon(name, cls = '') {
 /* ---------- halaman ---------- */
 
 const NAV = [
-  { group: 'Ringkasan', items: [
-    { id: 'dashboard', label: 'Dashboard', icon: 'grid', title: 'Dashboard', lede: 'Ringkasan seluruh kandang, perangkat, dan pengguna dalam satu tampilan.' },
-  ] },
-  { group: 'Kelola', items: [
-    { id: 'users', label: 'Pengguna', icon: 'users', title: 'Pengguna', lede: 'Kelola akun pengguna dan admin, peran, serta kandang yang mereka pantau.' },
-    { id: 'coops', label: 'Kandang & perangkat', icon: 'coop', title: 'Kandang & perangkat', lede: 'Data induk kandang, node ESP, sensor, dan aktuator yang terdaftar.' },
-    { id: 'rules', label: 'Aturan & otomasi', icon: 'sliders', title: 'Aturan & otomasi', lede: 'Ambang sensor, jadwal aktuator, dan notifikasi yang dibaca panel pengguna.' },
-  ] },
-  { group: 'Sistem', items: [
-    { id: 'cameras', label: 'Kamera & model', icon: 'camera', title: 'Kamera & model', lede: 'Sumber stream, ambang keyakinan, dan aksi trigger untuk deteksi YOLO.' },
-    { id: 'logs', label: 'Log aktivitas', icon: 'logs', title: 'Log aktivitas', lede: 'Jejak setiap perubahan konfigurasi yang dilakukan admin.' },
-    { id: 'settings', label: 'Pengaturan', icon: 'gear', title: 'Pengaturan', lede: 'Profil admin, mode data, dan status sistem.' },
-  ] },
+  { id: 'dashboard', label: 'Dashboard', icon: 'grid', title: 'Dashboard', lede: 'Ringkasan seluruh kandang, perangkat, dan pengguna dalam satu tampilan.' },
+  { id: 'users', label: 'Pengguna', icon: 'users', title: 'Pengguna', lede: 'Kelola akun pengguna dan admin, peran, serta kandang yang mereka pantau.' },
+  { id: 'coops', label: 'Kandang', icon: 'coop', title: 'Kandang & perangkat', lede: 'Data induk kandang, node ESP, sensor, dan aktuator yang terdaftar.' },
+  { id: 'rules', label: 'Aturan', icon: 'sliders', title: 'Aturan & otomasi', lede: 'Ambang sensor, jadwal aktuator, dan notifikasi yang dibaca panel pengguna.' },
+  { id: 'cameras', label: 'Kamera', icon: 'camera', title: 'Kamera & model', lede: 'Sumber stream, ambang keyakinan, dan aksi trigger untuk deteksi YOLO.' },
+  { id: 'logs', label: 'Log', icon: 'logs', title: 'Log aktivitas', lede: 'Jejak setiap perubahan konfigurasi yang dilakukan admin.' },
+  { id: 'settings', label: 'Pengaturan', icon: 'gear', title: 'Pengaturan', lede: 'Profil admin, mode data, dan status sistem.' },
 ];
-
-const PAGES = NAV.flatMap((group) => group.items);
 
 const cur = () => normalizeAdminPage(window.location.hash.replace(/^#\/?/, ''));
 const coopName = (id) => state.coops.find((c) => c.id === id)?.name || 'Tanpa kandang';
@@ -95,68 +82,49 @@ function head(title, detail, extra = '') {
   return `<div class="card-head"><div><h2>${title}</h2>${detail ? `<p>${detail}</p>` : ''}</div>${extra}</div>`;
 }
 
-function link(text, href, page) {
-  return `<a class="card-link" href="${href}" data-page="${page}">${text}${icon('arrow')}</a>`;
-}
+const link = (text, href, page) => `<a class="card-link" href="${href}" data-page="${page}">${text}${icon('arrow')}</a>`;
 
-function empty(title, detail, iconName = 'info') {
-  return `<div class="empty"><span class="empty-icon">${icon(iconName)}</span><h3>${title}</h3><p>${detail}</p></div>`;
-}
+const empty = (title, detail, iconName = 'info') =>
+  `<div class="empty"><span class="empty-icon">${icon(iconName)}</span><h3>${title}</h3><p>${detail}</p></div>`;
 
 const CHIP = { online: ['ok', 'Online'], offline: ['bad', 'Offline'], warning: ['warn', 'Perlu cek'], aktif: ['ok', 'Aktif'], nonaktif: ['neutral', 'Nonaktif'] };
 const chip = (s) => { const [t, l] = CHIP[s] || ['neutral', s]; return `<span class="chip chip--${t}">${l}</span>`; };
 
-/* ---------- sparkline & donut ---------- */
+/* ---------- sparkline & ring ---------- */
 
 function spark(values, color) {
-  const w = 82, h = 28, min = Math.min(...values), max = Math.max(...values), span = max - min || 1;
-  const pts = values.map((v, i) => [
-    (i * w) / (values.length - 1),
-    h - 3 - ((v - min) / span) * (h - 8),
-  ]);
+  const w = 76, h = 26, min = Math.min(...values), max = Math.max(...values), span = max - min || 1;
+  const pts = values.map((v, i) => [(i * w) / (values.length - 1), h - 3 - ((v - min) / span) * (h - 8)]);
   const line = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
-  const area = `0,${h} ${line} ${w},${h}`;
-  const id = `sp${Math.round(min * 97 + max * 13)}${values.length}`;
+  const id = `g${Math.round(min * 89 + max * 7)}${values.length}${color.replace(/\W/g, '')}`;
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" aria-hidden="true">
     <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${color}" stop-opacity=".26"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+      <stop offset="0%" stop-color="${color}" stop-opacity=".28"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/>
     </linearGradient></defs>
-    <polygon points="${area}" fill="url(#${id})"/>
+    <polygon points="0,${h} ${line} ${w},${h}" fill="url(#${id})"/>
     <polyline points="${line}" fill="none" stroke="${color}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`;
 }
 
-function donut(online, warning, offline) {
+function ring(online, warning, offline, size = 96) {
   const total = online + warning + offline || 1;
-  const R = 34, C = 2 * Math.PI * R;
-  const seg = [
-    { n: online, color: 'var(--ok-dot)' },
-    { n: warning, color: 'var(--warn-dot)' },
-    { n: offline, color: 'var(--bad-dot)' },
-  ];
-  let offset = 0;
-  const arcs = seg.filter((s) => s.n > 0).map((s) => {
-    const len = (s.n / total) * C;
-    const el = `<circle cx="44" cy="44" r="${R}" fill="none" stroke="${s.color}" stroke-width="9"
-      stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}"
-      stroke-linecap="round" transform="rotate(-90 44 44)"/>`;
-    offset += len;
+  const R = size / 2 - 7, C = 2 * Math.PI * R, c = size / 2;
+  const seg = [[online, '#7fd6a0'], [warning, '#e9c06a'], [offline, '#e88a72']];
+  let off = 0;
+  const arcs = seg.filter(([n]) => n > 0).map(([n, col]) => {
+    const len = (n / total) * C;
+    const el = `<circle cx="${c}" cy="${c}" r="${R}" fill="none" stroke="${col}" stroke-width="7"
+      stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}"
+      stroke-linecap="round" transform="rotate(-90 ${c} ${c})"/>`;
+    off += len;
     return el;
   }).join('');
-  const pct = Math.round((online / total) * 100);
-  return `<div class="health">
-    <div class="health-ring">
-      <svg width="88" height="88" viewBox="0 0 88 88" aria-hidden="true">
-        <circle cx="44" cy="44" r="${R}" fill="none" stroke="var(--surface-3)" stroke-width="9"/>
-        ${arcs}
-      </svg>
-      <div class="health-center"><b>${pct}%</b><span>sehat</span></div>
-    </div>
-    <div class="legend">
-      <div class="legend-row"><i style="background:var(--ok-dot)"></i><span>Online</span><b>${online}</b></div>
-      <div class="legend-row"><i style="background:var(--warn-dot)"></i><span>Perlu cek</span><b>${warning}</b></div>
-      <div class="legend-row"><i style="background:var(--bad-dot)"></i><span>Offline</span><b>${offline}</b></div>
-    </div>
+  return `<div class="hero-ring-wrap">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">
+      <circle cx="${c}" cy="${c}" r="${R}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="7"/>
+      ${arcs}
+    </svg>
+    <div class="hero-ring-center"><b>${Math.round((online / total) * 100)}%</b><span>sehat</span></div>
   </div>`;
 }
 
@@ -164,43 +132,28 @@ function donut(online, warning, offline) {
 
 function renderGate() {
   app.innerHTML = `<div class="gate">
-    <aside class="gate-art">
-      <div class="gate-brandline">
-        <span class="rail-mark">${icon('coop')}</span>
-        <div><span class="rail-name">Kandang</span><span class="rail-sub">Panel administrasi</span></div>
+    <div class="gate-card">
+      <div class="gate-top">
+        <span class="brand-mark">${icon('coop')}</span>
+        <span><span class="brand-name">Kandang</span><span class="brand-sub">Panel administrasi</span></span>
       </div>
-      <div>
-        <h1 class="gate-title">Kelola kandang <em>tanpa ribet.</em></h1>
-        <p class="gate-lede">Satu tempat untuk mengatur pengguna, memantau perangkat, dan menyetel aturan otomasi yang dibaca panel monitoring.</p>
-        <div class="gate-points">
-          <div class="gate-point">${icon('users')}Manajemen pengguna dan peran</div>
-          <div class="gate-point">${icon('chip')}Status node ESP dan sensor</div>
-          <div class="gate-point">${icon('sliders')}Ambang dan jadwal otomasi</div>
-        </div>
+      <h1>Kelola kandang <em>tanpa ribet.</em></h1>
+      <p class="gate-lede">Satu tempat untuk mengatur pengguna, memantau perangkat, dan menyetel aturan otomasi yang dibaca panel monitoring.</p>
+      <div class="gate-options">
+        <button class="gate-option" type="button" data-action="enter-admin">
+          <span class="gate-option-top"><span class="gate-option-ico">${icon('shield')}</span><span class="tag tag--admin">Admin</span></span>
+          <strong>Masuk sebagai Admin</strong>
+          <p>Kelola pengguna, kandang, perangkat, dan aturan otomasi.</p>
+          <span class="gate-go">Buka panel ${icon('arrow')}</span>
+        </button>
+        <a class="gate-option" href="./index.html#/home">
+          <span class="gate-option-top"><span class="gate-option-ico">${icon('activity')}</span><span class="tag tag--user">Pengguna</span></span>
+          <strong>Buka panel Pengguna</strong>
+          <p>Monitoring kandang, kontrol IoT, kamera, dan riwayat.</p>
+          <span class="gate-go">Monitoring ${icon('arrow')}</span>
+        </a>
       </div>
-      <div class="gate-point">${icon('shield')}Mode simulasi — belum ada backend</div>
-    </aside>
-
-    <div class="gate-panel">
-      <div class="gate-card">
-        <h2>Masuk sebagai admin</h2>
-        <p>Pilih peran untuk membuka panel. Panel pengguna tetap memakai halaman monitoring yang sudah ada.</p>
-        <div class="gate-options">
-          <button class="gate-option gate-option--primary" type="button" data-action="enter-admin">
-            <span class="gate-option-ico">${icon('shield')}</span>
-            <span class="gate-option-copy"><strong>Masuk sebagai Admin</strong>
-              <span>Kelola pengguna, kandang, perangkat, dan aturan otomasi.</span></span>
-            <span class="gate-go">${icon('arrow')}</span>
-          </button>
-          <a class="gate-option" href="./index.html#/home">
-            <span class="gate-option-ico">${icon('activity')}</span>
-            <span class="gate-option-copy"><strong>Buka panel Pengguna</strong>
-              <span>Monitoring kandang, kontrol IoT, kamera, dan riwayat.</span></span>
-            <span class="gate-go">${icon('arrow')}</span>
-          </a>
-        </div>
-        <div class="gate-foot">${icon('info')}<span>Semua data adalah contoh yang ditandai simulasi. Belum ada autentikasi, backend, atau koneksi perangkat nyata.</span></div>
-      </div>
+      <div class="gate-foot">${icon('info')}<span>Mode simulasi. Semua data adalah contoh yang ditandai simulasi — belum ada autentikasi, backend, atau koneksi perangkat nyata.</span></div>
     </div>
   </div>`;
   app.querySelector('[data-action="enter-admin"]')?.focus();
@@ -213,15 +166,18 @@ function renderDashboard() {
   const open = state.alerts.filter((a) => !a.acknowledged);
 
   const kpi = [
-    { label: 'Total kandang', value: s.totalCoops, note: `${s.activeCoops} aktif · ${s.flockTotal} ekor`, tone: 'var(--brand-2)', icon: 'coop', series: [3, 3, 2, 3, 3, 3] },
-    { label: 'Perangkat online', value: `${s.online}<small>/${s.totalDevices}</small>`, note: `${s.warning} perlu dicek · ${s.offline} offline`, tone: 'var(--ok-dot)', icon: 'chip', series: [2, 3, 3, 4, 3, s.online] },
-    { label: 'Pengguna aktif', value: `${s.activeUsers}<small>/${s.totalUsers}</small>`, note: 'Termasuk akun admin', tone: 'var(--info-dot)', icon: 'users', series: [1, 2, 2, 3, 3, s.activeUsers] },
-    { label: 'Alert terbuka', value: s.openAlerts, note: 'Belum ditandai dibaca', tone: 'var(--bad-dot)', icon: 'warn', series: [5, 4, 4, 3, 3, s.openAlerts] },
+    { label: 'Total kandang', value: s.totalCoops, note: `${s.activeCoops} aktif · ${s.flockTotal} ekor`, tone: 'var(--pine)', bg: 'var(--pine-tint)', icon: 'coop', series: [3, 3, 2, 3, 3, 3], delta: '+1', dir: 'up' },
+    { label: 'Perangkat online', value: `${s.online}<small>/${s.totalDevices}</small>`, note: `${s.warning} perlu dicek · ${s.offline} offline`, tone: 'var(--ok-fg)', bg: 'var(--ok-bg)', icon: 'chip', series: [2, 3, 3, 4, 3, s.online], delta: `${s.offline} mati`, dir: s.offline > 0 ? 'down' : 'flat' },
+    { label: 'Pengguna aktif', value: `${s.activeUsers}<small>/${s.totalUsers}</small>`, note: 'Termasuk akun admin', tone: 'var(--sky)', bg: 'var(--sky-tint)', icon: 'users', series: [1, 2, 2, 3, 3, s.activeUsers], delta: `${s.totalUsers - s.activeUsers} nonaktif`, dir: 'flat' },
+    { label: 'Alert terbuka', value: s.openAlerts, note: 'Belum ditandai dibaca', tone: 'var(--bad-fg)', bg: 'var(--bad-bg)', icon: 'warn', series: [5, 4, 4, 3, 3, s.openAlerts], delta: 'turun', dir: 'down' },
   ];
 
-  const kpiCards = kpi.map((k) => `<article class="kpi" style="--kpi-tone:${k.tone}">
-    <div class="kpi-top"><span class="kpi-chip">${icon(k.icon)}</span></div>
-    <div class="kpi-label">${k.label}</div>
+  const kpiCards = kpi.map((k) => `<article class="kpi" style="--tone:${k.tone};--tone-bg:${k.bg}">
+    <div class="kpi-head">
+      <span class="kpi-icon">${icon(k.icon)}</span>
+      <span class="kpi-delta${k.dir === 'down' ? ' is-down' : k.dir === 'flat' ? ' is-flat' : ''}">${k.dir === 'up' ? icon('up') : k.dir === 'down' ? icon('down') : ''}${k.delta}</span>
+    </div>
+    <span class="kpi-label">${k.label}</span>
     <div class="kpi-value">${k.value}</div>
     <div class="kpi-foot"><span class="kpi-note">${k.note}</span>${spark(k.series, k.tone)}</div>
   </article>`).join('');
@@ -266,20 +222,38 @@ function renderDashboard() {
   </div>`).join('');
 
   return `<div class="stack">
+    <section class="hero">
+      <div>
+        <span class="hero-eyebrow">${icon('activity')}Ringkasan operasional</span>
+        <h1 id="page-title" tabindex="-1">Semua kandang terkendali.</h1>
+        <p class="hero-sub">${s.totalDevices} perangkat terdaftar di ${s.totalCoops} kandang, ${s.activeUsers} pengguna aktif, dan ${s.openAlerts} alert menunggu tindakan.</p>
+        <div class="hero-stats">
+          <span class="hero-stat"><b>${s.flockTotal}</b> ekor tercatat</span>
+          <span class="hero-stat"><b>${s.online}/${s.totalDevices}</b> perangkat online</span>
+          <span class="hero-stat"><b>${s.openAlerts}</b> alert terbuka</span>
+        </div>
+      </div>
+      <div class="hero-ring">${ring(s.online, s.warning, s.offline)}</div>
+    </section>
+
     <div class="kpi-grid">${kpiCards}</div>
 
-    <div class="split-a">
+    <div class="duo">
       <section class="card">
         ${head('Kandang terdaftar', 'Populasi dan kesehatan perangkat tiap kandang.', link('Kelola', '#/coops', 'coops'))}
         <div class="coop-grid">${coopCards}</div>
       </section>
       <section class="card">
         ${head('Kesehatan perangkat', `${s.totalDevices} perangkat terdaftar.`)}
-        ${donut(s.online, s.warning, s.offline)}
+        <div class="legend">
+          <div class="legend-row"><i style="background:var(--ok-dot)"></i><span>Online</span><b>${s.online}</b></div>
+          <div class="legend-row"><i style="background:var(--warn-dot)"></i><span>Perlu cek</span><b>${s.warning}</b></div>
+          <div class="legend-row"><i style="background:var(--bad-dot)"></i><span>Offline</span><b>${s.offline}</b></div>
+        </div>
       </section>
     </div>
 
-    <div class="split-b">
+    <div class="duo-eq">
       <section class="card">
         ${head('Status perangkat', 'Lima perangkat terakhir yang melapor.', link('Lihat semua', '#/coops', 'coops'))}
         <div class="row-list">${devRows}</div>
@@ -292,12 +266,12 @@ function renderDashboard() {
 
     <section class="card">
       ${head('Aktivitas admin', 'Perubahan konfigurasi terakhir.', link('Buka log', '#/logs', 'logs'))}
-      <div class="split-b" style="gap:22px">
+      <div class="duo-eq" style="gap:20px">
         <div class="timeline">${tl}</div>
         <div class="audit-summary">
           <div class="audit-stat"><b>${state.auditLog.length}</b><span>total catatan</span></div>
           <div class="audit-stat"><b>${new Set(state.auditLog.map((e) => e.actor)).size}</b><span>aktor berbeda</span></div>
-          <div class="audit-stat"><b>${state.rules.temperature.enabled ? 'Aktif' : 'Nonaktif'}</b><span>aturan ambang suhu</span></div>
+          <div class="audit-stat"><b>${Object.values(state.rules).filter((r) => r.enabled).length}/${Object.keys(state.rules).length}</b><span>aturan aktif</span></div>
         </div>
       </div>
     </section>
@@ -539,8 +513,9 @@ function renderLogs() {
 
 function renderSettings() {
   const s = summarize(state);
+  const dark = state.theme === 'midnight';
   return `<div class="stack">
-    <div class="split-b">
+    <div class="duo-eq">
       <section class="card">
         ${head('Profil admin', 'Akun yang dipakai di sesi ini.')}
         <div class="form-grid">
@@ -562,9 +537,9 @@ function renderSettings() {
     <section class="card">
       ${head('Tampilan', 'Tema panel admin.')}
       <div class="row">
-        <span class="row-icon">${icon(state.theme === 'dark' ? 'moon' : 'sun')}</span>
-        <span class="row-copy"><strong>Tema ${state.theme === 'dark' ? 'gelap' : 'terang'}</strong><small>Pilihan disimpan selama sesi berlangsung.</small></span>
-        <button class="switch" type="button" data-action="toggle-theme" aria-pressed="${state.theme === 'dark'}"><i></i>${state.theme === 'dark' ? 'Gelap' : 'Terang'}</button>
+        <span class="row-icon">${icon(dark ? 'moon' : 'sun')}</span>
+        <span class="row-copy"><strong>Tema ${dark ? 'midnight' : 'daylight'}</strong><small>Pilihan disimpan selama sesi berlangsung.</small></span>
+        <button class="switch" type="button" data-action="toggle-theme" aria-pressed="${dark}"><i></i>${dark ? 'Midnight' : 'Daylight'}</button>
       </div>
     </section>
   </div>`;
@@ -577,9 +552,9 @@ const VIEWS = {
   rules: renderRules, cameras: renderCameras, logs: renderLogs, settings: renderSettings,
 };
 
-function navLink(item, active) {
+function tab(item, active) {
   const on = item.id === active;
-  return `<a class="nav-item${on ? ' is-active' : ''}" href="#/${item.id}" data-page="${item.id}"${on ? ' aria-current="page"' : ''}>
+  return `<a class="tab${on ? ' is-active' : ''}" href="#/${item.id}" data-page="${item.id}"${on ? ' aria-current="page"' : ''}>
     ${icon(item.icon)}<span>${item.label}</span></a>`;
 }
 
@@ -589,53 +564,38 @@ function renderApp() {
   if (!state.session) { renderGate(); return; }
 
   const id = cur();
-  const page = PAGES.find((p) => p.id === id) || PAGES[0];
-  const nav = NAV.map((g) => `<div class="nav-group"><div class="nav-group-label">${g.group}</div>
-    ${g.items.map((i) => navLink(i, id)).join('')}</div>`).join('');
+  const page = NAV.find((p) => p.id === id) || NAV[0];
+  const dark = state.theme === 'midnight';
 
-  app.innerHTML = `<div class="shell">
-    <aside class="rail" id="nav" aria-label="Navigasi admin">
-      <a class="rail-brand" href="#/dashboard" data-page="dashboard" aria-label="Kandang admin, ke dashboard">
-        <span class="rail-mark">${icon('coop')}</span>
-        <span><span class="rail-name">Kandang</span><span class="rail-sub">Panel admin</span></span>
+  app.innerHTML = `<div class="topbar">
+    <div class="topbar-inner">
+      <button class="ghost-btn hamburger" type="button" data-menu-toggle aria-controls="nav" aria-expanded="${app.classList.contains('nav-open')}" aria-label="Buka navigasi">${icon('menu')}</button>
+      <a class="brand" href="#/dashboard" data-page="dashboard" aria-label="Kandang admin, ke dashboard">
+        <span class="brand-mark">${icon('coop')}</span>
+        <span><span class="brand-name">Kandang</span><span class="brand-sub">Panel admin</span></span>
       </a>
-      <div class="rail-scroll">${nav}</div>
-      <div class="rail-foot">
-        <div class="rail-user">
-          <span class="avatar">${initials(state.currentUser.name)}</span>
-          <span class="rail-user-copy"><strong>${state.currentUser.name}</strong><small>Administrator</small></span>
-          <button class="rail-exit" type="button" data-action="exit" aria-label="Keluar ke gerbang peran" title="Keluar">${icon('logout')}</button>
-        </div>
+      <nav class="navbar" id="nav" aria-label="Navigasi admin">${NAV.map((i) => tab(i, id)).join('')}</nav>
+      <div class="topbar-tools">
+        <span class="pill-sim"><i></i>Simulasi</span>
+        <button class="ghost-btn" type="button" data-action="toggle-theme" aria-label="Ganti tema" title="Ganti tema">${icon(dark ? 'sun' : 'moon')}</button>
+        <span class="me"><span class="avatar">${initials(state.currentUser.name)}</span><span>${state.currentUser.name}</span></span>
+        <button class="ghost-btn" type="button" data-action="exit" aria-label="Keluar ke gerbang peran" title="Keluar">${icon('logout')}</button>
       </div>
-    </aside>
-
-    <div class="scrim" data-close-menu aria-hidden="true"></div>
-
-    <div class="main">
-      <header class="topbar">
-        <div class="topbar-left">
-          <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-controls="nav" aria-expanded="${app.classList.contains('nav-open')}" aria-label="Buka navigasi">${icon('menu')}</button>
-          <div class="crumb"><span>Panel admin</span>${icon('arrow')}<b>${page.label}</b></div>
-        </div>
-        <div class="topbar-right">
-          <span class="role-pill">Admin</span>
-          <span class="live-pill"><i></i>Simulasi</span>
-          <button class="icon-btn" type="button" data-action="toggle-theme" aria-label="Ganti tema" title="Ganti tema">${icon(state.theme === 'dark' ? 'sun' : 'moon')}</button>
-        </div>
-      </header>
-
-      <main class="canvas" id="main" tabindex="-1">
-        <div class="page-head">
-          <div><h1 id="page-title" tabindex="-1">${page.title}</h1><p>${page.lede}</p></div>
-          
-        </div>
-        ${VIEWS[id]()}
-      </main>
     </div>
+  </div>
 
-    ${state.ui.modal ? renderUserModal() : ''}
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  </div>`;
+  <div class="scrim" data-close-menu aria-hidden="true"></div>
+
+  <main class="canvas" id="main" tabindex="-1">
+    ${id === 'dashboard' ? '' : `<div class="card-head" style="margin-bottom:2px">
+      <div><h1 id="page-title" tabindex="-1" style="font-size:clamp(21px,2.4vw,27px);font-weight:750;letter-spacing:-.8px">${page.title}</h1>
+      <p>${page.lede}</p></div>
+    </div>`}
+    ${VIEWS[id]()}
+  </main>
+
+  ${state.ui.modal ? renderUserModal() : ''}
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 }
 
 /* ---------- interaksi ---------- */
@@ -700,7 +660,7 @@ app.addEventListener('click', (e) => {
   if (t.closest('[data-action="toggle-theme"]')) {
     state = toggleTheme(state);
     paint();
-    toast(state.theme === 'dark' ? 'Tema gelap aktif.' : 'Tema terang aktif.');
+    toast(state.theme === 'midnight' ? 'Tema midnight aktif.' : 'Tema daylight aktif.');
     return;
   }
 
