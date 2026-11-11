@@ -1246,10 +1246,14 @@ h1, h2, h3, p { margin: 0; }
     top: 0;
     left: 0;
     bottom: 0;
+    display: flex;
     flex-direction: column;
     align-items: stretch;
+    justify-content: flex-start;
     gap: 3px;
     width: min(84vw, 300px);
+    height: 100vh;
+    height: 100dvh;
     padding: 18px 14px;
     overflow-y: auto;
     background: var(--surface);
@@ -1260,7 +1264,7 @@ h1, h2, h3, p { margin: 0; }
   }
   #app.nav-open .navbar { transform: translateX(0); }
 
-  .tab { height: 44px; font-size: 13px; }
+  .tab { flex: 0 0 auto; height: 44px; font-size: 13px; }
   .tab.is-active { box-shadow: none; background: var(--pine-tint); }
 
   .scrim { display: block; }
@@ -1278,6 +1282,8 @@ h1, h2, h3, p { margin: 0; }
   .form-grid, .rule-fields { grid-template-columns: 1fr; }
   .hero { padding: 22px; border-radius: var(--r-lg); }
   .hero h1 { font-size: 23px; }
+  .hero-stats { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .hero-stat { justify-content: space-between; }
   .card { padding: 16px; border-radius: var(--r-md); }
   .card-pad { padding: 16px 16px 0; }
   .card-pad-x { padding: 0 16px; }

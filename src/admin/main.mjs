@@ -20,7 +20,7 @@ import {
   toggleTheme,
   toggleUserActive,
   updateUser,
-} from './state.mjs?v=20261123';
+} from './state.mjs?v=20261125';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
