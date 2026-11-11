@@ -597,7 +597,6 @@ h1, h2, h3, h4, p { margin: 0; }
 .chip--ok { color: var(--ok-fg); background: var(--ok-bg); }
 .chip--warn { color: var(--warn-fg); background: var(--warn-bg); }
 .chip--bad { color: var(--bad-fg); background: var(--bad-bg); }
-.chip--info { color: var(--info-fg); background: var(--info-bg); }
 .chip--neutral { color: var(--neutral-fg); background: var(--neutral-bg); }
 
 .tag {
