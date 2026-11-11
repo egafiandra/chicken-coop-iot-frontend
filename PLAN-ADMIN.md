@@ -24,6 +24,8 @@ src/main.mjs                (pengguna, tidak diubah)
 src/state.mjs               (pengguna, tidak diubah)
 src/styles.css              (pengguna, tidak diubah)
 
+pilih-peran.html            BARU  pintu masuk demo (pemilih peran)
+src/pilih-peran.css         BARU  style pemilih peran
 admin.html                  BARU  entry point admin
 src/admin/main.mjs          BARU  router + renderer admin
 src/admin/state.mjs         BARU  state admin (terpisah penuh dari state pengguna)
@@ -31,6 +33,11 @@ src/admin/styles.css        BARU  design system admin (mandiri)
 tests/admin.test.mjs        BARU  test state admin
 PLAN-ADMIN.md               BARU  dokumen ini
 ```
+
+`index.html` milik pengguna tidak punya tautan ke panel admin, jadi `admin.html`
+tidak akan ditemukan kalau hanya membuka `/`. `pilih-peran.html` dibuat sebagai
+pintu masuk demo: dua kartu besar, satu ke panel pengguna, satu ke panel admin.
+File ini statis murni (tanpa JavaScript) dan berdiri sendiri.
 
 Catatan penting: `admin.html` **tidak** meng-*link* `src/styles.css` milik pengguna.
 Panel admin punya design system mandiri (token, komponen, dark mode) agar bebas
@@ -151,8 +158,9 @@ node --test tests/state.test.mjs tests/admin.test.mjs
 python -m http.server 4173 --bind 127.0.0.1
 ```
 
-- Panel pengguna: `http://127.0.0.1:4173/`
+- Panel pengguna: `http://127.0.0.1:4173/index.html`
 - Panel admin: `http://127.0.0.1:4173/admin.html`
+- **Pintu masuk demo (mulai dari sini):** `http://127.0.0.1:4173/pilih-peran.html`
 
 Catatan: proyek ini belum punya `package.json`, jadi tidak ada perintah test kanonik.
 Jalankan `node --test` dengan path file eksplisit seperti di atas.

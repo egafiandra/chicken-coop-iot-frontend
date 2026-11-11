@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0e1512">
+    <meta name="description" content="Pilih peran untuk membuka panel monitoring kandang ayam.">
+    <title>Pilih Peran — Monitoring Kandang</title>
+    <link rel="stylesheet" href="./src/pilih-peran.css?v=20261119">
+  </head>
+  <body>
+    <main class="stage">
+      <header class="masthead">
+        <span class="mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3.2 10.4 8.8-6.9 8.8 6.9"/><path d="M5.4 9.6V20.4h13.2V9.6M9.6 20.4v-5.6h4.8v5.6"/>
+          </svg>
+        </span>
+        <span class="wordmark"><b>Kandang</b><span>Monitoring ayam</span></span>
+      </header>
+
+      <div class="content">
+        <h1 class="lede">Pilih peran untuk <em>masuk.</em></h1>
+        <p class="sub">Aplikasi ini dipakai dua peran. Pengguna memantau dan mengendalikan kandang, admin mengatur pengguna, perangkat, dan aturan otomasi yang dibaca panel pengguna.</p>
+
+        <div class="roles">
+          <a class="role role--user" href="./index.html#/home">
+            <span class="role-top">
+              <span class="role-icon" aria-hidden="true">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 12h3.6l2.6-6.6L13 18.6 15.6 12H21"/>
+                </svg>
+              </span>
+              <span class="role-badge">Pengguna</span>
+            </span>
+            <h2>Panel Pengguna</h2>
+            <p>Pantau kondisi kandang dan kendalikan perangkat.</p>
+            <ul class="role-list">
+              <li><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.8 4.6 4.6L19 7"/></svg>Monitoring suhu, kelembapan, pakan, air</li>
+              <li><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.8 4.6 4.6L19 7"/></svg>Kontrol valve, lampu, dan musik</li>
+              <li><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.8 4.6 4.6L19 7"/></svg>Kamera, deteksi YOLO, dan riwayat</li>
+            </ul>
+            <span class="role-go">Masuk sebagai pengguna
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12.5 6.5 19 12l-6.5 5.5"/></svg>
+            </span>
+          </a>
+
+          <a class="role role--admin" href="./admin.html">
+            <span class="role-top">
+              <span class="role-icon" aria-hidden="true">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2.8 4.6 6v6c0 4.6 3.1 7.8 7.4 9.2 4.3-1.4 7.4-4.6 7.4-9.2V6L12 2.8Z"/><path d="m8.8 12 2.2 2.2 4.2-4.4"/>
+                </svg>
+              </span>
+              <span class="role-badge">Admin</span>
+            </span>
+            <h2>Panel Admin</h2>
+            <p>Kelola pengguna, kandang, perangkat, dan aturan otomasi.</p>
+            <ul class="role-list">
+              <li><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.8 4.6 4.6L19 7"/></svg>Manajemen pengguna dan peran</li>
+              <li><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.8 4.6 4.6L19 7"/></svg>Status node ESP dan sensor</li>
+              <li><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.8 4.6 4.6L19 7"/></svg>Ambang sensor dan jadwal otomasi</li>
+            </ul>
+            <span class="role-go">Masuk sebagai admin
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12.5 6.5 19 12l-6.5 5.5"/></svg>
+            </span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="foot">
+        <span class="foot-item is-warn">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11.2v5M12 7.9h.01"/></svg>
+          Mode simulasi — belum ada backend atau perangkat nyata
+        </span>
+        <span class="foot-item">Semua data adalah contoh yang ditandai simulasi.</span>
+      </footer>
+    </main>
+  </body>
+</html>
