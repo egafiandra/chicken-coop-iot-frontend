@@ -11,20 +11,24 @@ Make the user-facing Smart Poultry dashboard feel fuller and more distinctive by
 
 Design Read: mobile-first poultry monitoring for coop users, with an illustrated farm landscape and calm operational hierarchy, dials ENERGY 2 / RHYTHM 2 / MOTION 1.
 
-The reference contributes its illustrated outdoor scene, layered information panel, and bottom navigation. Smart Poultry keeps its own forest-green and warm-neutral identity, with sky blue and field green used only in the coop illustration. Do not copy the reference app's branding, people, labels, or farm features.
+The reference contributes its illustrated outdoor scene, warm environmental masthead, 2×2 feature tiles, and bottom navigation. Smart Poultry keeps its own forest-green and warm-neutral identity, with sky blue and field green used only in the coop illustration. The environment card may use the reference's subtle cream-to-meadow gradient because it groups climate readings; do not copy the reference app's branding, people, labels, or farm features.
 
-Use a simple, original vector-style scene of a chicken coop, field, and a few chicken silhouettes. Do not add human characters, generated photos, or external image assets. Keep all text on solid surfaces for contrast.
+Use a simple, original vector-style scene of a chicken coop, field, and a few chicken silhouettes. Do not add human characters or images beyond the user-provided Stitch assets listed below. Keep all text on solid surfaces for contrast.
+
+## Stitch assets
+
+Use the user-provided Stitch ZIPs as local image sources, not as replacement application code. Copy three relevant poultry photos into `src/assets/stitch/`: the overhead coop image for the Home camera preview, the perch/feed-area image as a visual context strip on Controls, and the wide flock image on the Camera page. Keep the SVG landscape hero as the main Home illustration. Label every static camera image with the existing disconnected-camera status so it cannot be mistaken for live footage. Do not import the Stitch logo or the history/YOLO screen asset, and do not adopt the extra telemetry or controls in the generated code.
 
 ## Mobile home layout
 
 1. Compact Smart Poultry header with notification and profile shortcuts.
 2. Illustrated hero for the main coop, with a short greeting, the existing flock count of 12, and the existing connection state.
-3. Four concise monitoring summaries: temperature 28.4 °C, humidity 67%, feed available, and water valve state. Preserve the existing DEMO disclosure for fixture data.
-4. A device-status section for the fixed red + warm-white lamp and music state, with a clear link to Controls.
-5. A small camera status preview and the existing recent-notification preview. Keep them secondary to the coop summary.
+3. One warm environmental masthead that groups the current temperature 28.4 °C, humidity 67%, feed availability, and valve state; do not add a new sensor or derived status.
+4. A 2×2 quick-access grid linking to the existing Monitoring, Controls, Camera, and Notifications routes. The Camera tile uses the local Stitch photo and keeps the disconnected label.
+5. A device-status summary for lamp/music and the existing recent-notification preview.
 6. Persistent bottom navigation for Home, Monitoring, Controls, Camera, Notifications, and Profile.
 
-The hero illustration is the main visual anchor. Monitoring summaries use a compact two-column layout; supporting device and camera sections use quieter, varied layouts rather than identical repeated cards.
+The hero illustration is the main visual anchor. The environmental masthead groups readings instead of repeating four equal cards. Quick-access tiles use two columns on mobile and expand on wide screens; device and notification sections remain secondary.
 
 ## Wide-screen layout
 

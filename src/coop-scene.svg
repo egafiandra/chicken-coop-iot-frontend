@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="320" viewBox="0 0 720 320" role="img" aria-labelledby="coop-title coop-desc">
+  <title id="coop-title">Ilustrasi kandang ayam</title>
+  <desc id="coop-desc">Kandang kecil di antara lahan hijau dan beberapa ayam di bawah langit pagi.</desc>
+  <rect width="720" height="320" fill="#b8def0"/>
+  <circle cx="590" cy="70" r="34" fill="#f2c66e"/>
+  <path d="M62 74c12-18 36-18 48-2 18-8 40 2 41 18H55c-7-6-4-13 7-16Z" fill="#e9f4f5"/>
+  <path d="M415 48c8-12 25-12 33-1 13-5 28 2 28 13H410c-5-4-3-9 5-12Z" fill="#e9f4f5"/>
+  <path d="M0 196c87-52 168-55 258-14 73-45 163-51 244-10 79-35 143-35 218 3v145H0Z" fill="#91bd82"/>
+  <path d="M0 230c99-48 180-43 276-6 97-44 181-45 269-5 72-30 119-28 175-4v110H0Z" fill="#679665"/>
+  <path d="M0 274c117-28 216-17 321 15 115-29 233-25 399 4v36H0Z" fill="#3f7752"/>
+  <path d="M530 208V122l75-44 75 44v87Z" fill="#ead9b6" stroke="#31533d" stroke-width="5" stroke-linejoin="round"/>
+  <path d="m515 126 90-63 90 63Z" fill="#a65f45" stroke="#754936" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M580 208v-59c0-11 8-19 18-19s18 8 18 19v59Z" fill="#6b503b"/>
+  <rect x="544" y="139" width="23" height="22" rx="3" fill="#b8def0" stroke="#66836a" stroke-width="3"/>
+  <path d="M546 150h19M555.5 141v18" stroke="#66836a" stroke-width="2"/>
+  <path d="M472 210v51m33-51v57m33-54v52m33-50v49" stroke="#e6d59d" stroke-width="4"/>
+  <path d="M467 221h108M467 240h108" stroke="#e6d59d" stroke-width="4"/>
+  <path d="M82 230c24-30 42-34 61-35-13 21-29 31-61 35Zm24 20c17-24 31-28 49-29-9 18-25 27-49 29Zm414-12c20-25 36-29 53-30-10 19-25 27-53 30Z" fill="#315f43"/>
+  <g stroke="#715b3d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <g fill="#f8f1df">
+      <ellipse cx="250" cy="239" rx="31" ry="22"/><circle cx="276" cy="220" r="15"/><path d="m266 205 5-12 7 11 8-8 3 14Z" fill="#c95143" stroke="none"/><path d="m289 218 20 7-20 7Z" fill="#df9446" stroke="none"/><ellipse cx="250" cy="238" rx="17" ry="11" fill="#e8dcc0" stroke="none"/>
+      <ellipse cx="342" cy="253" rx="27" ry="19"/><circle cx="365" cy="236" r="13"/><path d="m357 222 5-10 6 9 7-7 2 12Z" fill="#c95143" stroke="none"/><path d="m377 234 17 6-17 6Z" fill="#df9446" stroke="none"/>
+      <ellipse cx="422" cy="237" rx="23" ry="17"/><circle cx="442" cy="222" r="11"/><path d="m435 211 4-9 5 8 6-6 2 10Z" fill="#c95143" stroke="none"/><path d="m452 221 15 5-15 5Z" fill="#df9446" stroke="none"/>
+    </g>
+    <g fill="none"><path d="m244 258-2 12m12-12 1 12m84 11-2 11m11-11 1 11m76-29-2 11m11-11 1 11"/></g>
+  </g>
+</svg>
