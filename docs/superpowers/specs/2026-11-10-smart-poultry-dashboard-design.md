@@ -1,7 +1,7 @@
 # Smart Poultry dashboard redesign
 
 Date: 2026-11-10
-Status: Design proposal approved in chat; awaiting written-spec review before implementation.
+Status: Implemented in the user-facing prototype; updated with the time-cycle and Nocturne theme direction from the latest Stitch export.
 
 ## Goal
 
@@ -9,26 +9,33 @@ Make the user-facing Smart Poultry dashboard feel fuller and more distinctive by
 
 ## Design direction
 
-Design Read: mobile-first poultry monitoring for coop users, with an illustrated farm landscape and calm operational hierarchy, dials ENERGY 2 / RHYTHM 2 / MOTION 1.
+Design Read: mobile-first poultry monitoring for coop users, with a real coop photograph and calm operational hierarchy, dials ENERGY 2 / RHYTHM 2 / MOTION 1.
 
-The reference contributes its illustrated outdoor scene, warm environmental masthead, 2×2 feature tiles, and bottom navigation. Smart Poultry keeps its own forest-green and warm-neutral identity, with sky blue and field green used only in the coop illustration. The environment card may use the reference's subtle cream-to-meadow gradient because it groups climate readings; do not copy the reference app's branding, people, labels, or farm features.
+The reference contributes its outdoor scene, warm environmental masthead, time-cycle treatment, 2×2 feature tiles, and bottom navigation. Smart Poultry keeps its forest-green and warm-neutral identity, adds the supplied Nocturne palette for night/dark mode, and uses a locally bundled CC0 poultry photograph in the hero. The environment card may use the reference's subtle cream-to-meadow gradient because it groups climate readings; do not copy the reference app's branding, people, labels, or out-of-scope farm features.
 
-Use a simple, original vector-style scene of a chicken coop, field, and a few chicken silhouettes. Do not add human characters or images beyond the user-provided Stitch assets listed below. Keep all text on solid surfaces for contrast.
+Use the locally bundled CC0 poultry photograph as the home hero. Do not add human characters or fabricate sensor imagery. Keep all text on solid surfaces for contrast.
 
 ## Stitch assets
 
-Use the user-provided Stitch ZIPs as local image sources, not as replacement application code. Copy three relevant poultry photos into `src/assets/stitch/`: the overhead coop image for the Home camera preview, the perch/feed-area image as a visual context strip on Controls, and the wide flock image on the Camera page. Keep the SVG landscape hero as the main Home illustration. Label every static camera image with the existing disconnected-camera status so it cannot be mistaken for live footage. Do not import the Stitch logo or the history/YOLO screen asset, and do not adopt the extra telemetry or controls in the generated code.
+Use the user-provided Stitch ZIPs as local design references, not as replacement application code. Keep the locally bundled Stitch context photos on Controls and Camera, and use the locally bundled CC0 poultry photo in the Home hero. Label every static camera image with the disconnected-camera status so it cannot be mistaken for live footage. Do not import the Stitch logo or history/YOLO treatments, and do not adopt the extra telemetry or controls in generated code.
 
 ## Mobile home layout
 
 1. Compact Smart Poultry header with notification and profile shortcuts.
-2. Illustrated hero for the main coop, with a short greeting, the existing flock count of 12, and the existing connection state.
+2. Compact photo hero for the main coop, with a short greeting, the existing flock count of 12, and the existing connection state.
 3. One warm environmental masthead that groups the current temperature 28.4 °C, humidity 67%, feed availability, and valve state; do not add a new sensor or derived status.
 4. A 2×2 quick-access grid linking to the existing Monitoring, Controls, Camera, and Notifications routes. The Camera tile uses the local Stitch photo and keeps the disconnected label.
-5. A device-status summary for lamp/music and the existing recent-notification preview.
+5. Keep lamp/music state and unread-notification count reachable through the existing Controls and Notifications routes; do not repeat large summary panels below quick access on mobile.
 6. Persistent bottom navigation for Home, Monitoring, Controls, Camera, Notifications, and Profile.
 
-The hero illustration is the main visual anchor. The environmental masthead groups readings instead of repeating four equal cards. Quick-access tiles use two columns on mobile and expand on wide screens; device and notification sections remain secondary.
+The photo hero is the main visual anchor. The environmental masthead groups readings instead of repeating four equal cards. Quick-access tiles use two columns on mobile and expand on wide screens. The compact mobile first view should show the hero, environment, and quick access without redundant lower panels.
+
+## Time and theme
+
+- Display the local device clock in 24-hour format and refresh it while the app is open.
+- Default theme follows local time automatically: Siang 06:00–16:59, Sore 17:00–19:59, Malam 20:00–05:59. Sore uses warm surfaces; Malam uses the supplied Nocturne palette.
+- A Dark Mode control can manually force Dark or Light. An Auto control returns to the time-based cycle. Persist the preference in local browser storage.
+- The clock and period label are display-only; they never alter fixture telemetry or claim live device data.
 
 ## Wide-screen layout
 
@@ -49,4 +56,5 @@ Retain the existing user sidebar and top bar. Expand the illustrated hero across
 - At 390 px, 715 px, and desktop widths, the layout has no horizontal overflow and controls remain usable.
 - All six user routes remain reachable; bottom navigation remains available on mobile.
 - Existing DEMO and connection-state disclosures remain accurate.
+- The clock matches the browser's local time, period/theme changes at the documented boundaries, and the Dark Mode/Auto controls persist and restore correctly.
 - No new telemetry values, admin content, or unsupported IoT behavior is introduced.

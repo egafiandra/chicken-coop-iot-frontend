@@ -23,6 +23,7 @@ Buka `http://127.0.0.1:4174`.
 - Halaman Kontrol dan Kamera memakai foto Stitch lokal; Kamera tetap berstatus belum terhubung. Tanpa YOLO.
 - Notifikasi dengan aksi tandai dibaca dan profil pengguna yang bisa diperbarui.
 - Navigasi bawah pada ponsel, navigasi samping pada layar lebar.
+- Jam lokal 24 jam diperbarui berkala. Tema otomatis mengikuti Siang/Sore/Malam; pilihan Terang/Gelap manual dan preferensi tersimpan lokal.
 
 Jumlah awal 12 ekor dan angka contoh untuk suhu, kelembapan, serta notifikasi tersedia agar tampilan dapat dicoba. Badge DEMO menandai data tersebut.
 

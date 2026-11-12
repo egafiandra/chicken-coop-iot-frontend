@@ -10,12 +10,13 @@ import {
   toggleControl,
   unreadCount,
   updateProfile,
-} from './state.mjs?v=user-app-33';
-import { getDemoLoginStatus, isValidDemoEmail } from './auth-demo.mjs?v=user-app-33';
-import { createAccountSession, navigateToAppRoute, resetDemoAccountSession, startDemoPreview, validateSignupInput } from './auth-flow.mjs?v=user-app-33';
-import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user-app-33';
-import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-33';
-import { renderMonitorDashboard } from './monitor-dashboard.mjs?v=user-app-33';
+} from './state.mjs?v=user-app-37';
+import { getDemoLoginStatus, isValidDemoEmail } from './auth-demo.mjs?v=user-app-37';
+import { createAccountSession, navigateToAppRoute, resetDemoAccountSession, startDemoPreview, validateSignupInput } from './auth-flow.mjs?v=user-app-37';
+import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user-app-37';
+import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-37';
+import { renderMonitorDashboard } from './monitor-dashboard.mjs?v=user-app-37';
+import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-37';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
@@ -27,6 +28,8 @@ let accounts = loadDemoAccounts(persistentAccountStorage, {
   legacyStorage: legacyAccountStorage,
   legacyKey: ACCOUNT_STORAGE_KEY,
 });
+const THEME_PREFERENCE_STORAGE_KEY = 'smart-poultry-theme-preference-v1';
+let themePreference = readSavedThemePreference();
 
 const pages = [
   { id: 'home', label: 'Beranda', mobileLabel: 'Home', icon: 'home', title: 'Ringkasan kandang', subtitle: 'Kondisi ayam dan perangkat.' },
@@ -51,6 +54,8 @@ const iconPaths = {
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
   arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
   logout: '<path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>',
+  moon: '<path d="M20.7 14.3A8 8 0 0 1 9.7 3.3 8 8 0 1 0 20.7 14.3Z"/>',
 };
 
 function icon(name, className = '') {
@@ -70,6 +75,91 @@ function getBrowserStorage(name) {
   } catch {
     return null;
   }
+}
+
+function readSavedThemePreference() {
+  try {
+    return normalizeThemePreference(getBrowserStorage('localStorage')?.getItem(THEME_PREFERENCE_STORAGE_KEY));
+  } catch {
+    return 'auto';
+  }
+}
+
+function saveThemePreference() {
+  try {
+    getBrowserStorage('localStorage')?.setItem(THEME_PREFERENCE_STORAGE_KEY, themePreference);
+  } catch {
+    return false;
+  }
+  return true;
+}
+
+function localTimeZoneLabel(date) {
+  const localOffset = -date.getTimezoneOffset();
+  if (localOffset === 420) return 'WIB';
+  if (localOffset === 480) return 'WITA';
+  if (localOffset === 540) return 'WIT';
+  try {
+    return new Intl.DateTimeFormat('id-ID', { timeZoneName: 'short' })
+      .formatToParts(date)
+      .find((part) => part.type === 'timeZoneName')?.value || '';
+  } catch {
+    return '';
+  }
+}
+
+function renderTimeThemeControls(date = new Date()) {
+  const theme = getTimeTheme(date, themePreference);
+  const clock = [theme.clock, localTimeZoneLabel(date)].filter(Boolean).join(' ');
+  const modeLabel = themePreference === 'auto' ? 'Otomatis' : 'Manual';
+  const readoutClass = `time-theme-readout${themePreference === 'auto' ? '' : ' is-manual'}`;
+  const readoutLabel = themePreference === 'auto'
+    ? `Siklus otomatis, ${theme.periodLabel}, ${clock}`
+    : `Kembali ke tema otomatis, sekarang ${theme.periodLabel} ${clock}`;
+  const readout = themePreference === 'auto'
+    ? `<div class="${readoutClass}" data-period="${theme.period}" data-mode="auto" aria-label="${readoutLabel}">`
+    : `<button class="${readoutClass}" data-period="${theme.period}" data-mode="${themePreference}" type="button" data-action="set-auto-theme" aria-label="${readoutLabel}" title="Kembali ke otomatis">`;
+  const closeReadout = themePreference === 'auto' ? '</div>' : '</button>';
+  return `<div class="time-theme-controls">${readout}<time class="live-clock" id="live-clock" datetime="${date.toISOString()}">${escapeHTML(clock)}</time><span class="time-period-label" id="time-period-label">${theme.periodLabel}</span><span class="time-mode-label" id="time-mode-label">${modeLabel}</span>${closeReadout}<button class="theme-mode-toggle${theme.colorMode === 'dark' ? ' is-active' : ''}" type="button" data-action="toggle-dark-mode" aria-pressed="${theme.colorMode === 'dark'}" aria-label="${theme.colorMode === 'dark' ? 'Matikan mode gelap' : 'Nyalakan mode gelap'}" title="Dark Mode"><span class="theme-mode-icon">${icon(theme.colorMode === 'dark' ? 'sun' : 'moon')}</span><span class="theme-mode-label">Dark Mode</span></button></div>`;
+}
+
+function applyTimeTheme(date = new Date()) {
+  const theme = getTimeTheme(date, themePreference);
+  const root = document.documentElement;
+  root.dataset.timePeriod = theme.period;
+  root.dataset.colorMode = theme.colorMode;
+  root.dataset.themePreference = themePreference;
+  root.style.colorScheme = theme.colorMode;
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  if (themeColor) themeColor.content = theme.colorMode === 'dark' ? '#0c1510' : theme.period === 'sore' ? '#fcf5e8' : '#faf9f4';
+
+  const clock = document.querySelector('#live-clock');
+  if (clock) {
+    clock.textContent = [theme.clock, localTimeZoneLabel(date)].filter(Boolean).join(' ');
+    clock.dateTime = date.toISOString();
+  }
+  const periodLabel = document.querySelector('#time-period-label');
+  if (periodLabel) periodLabel.textContent = theme.periodLabel;
+  const modeLabel = document.querySelector('#time-mode-label');
+  if (modeLabel) modeLabel.textContent = themePreference === 'auto' ? 'Otomatis' : 'Manual';
+  const readout = document.querySelector('.time-theme-readout');
+  if (readout) {
+    readout.dataset.period = theme.period;
+    readout.dataset.mode = themePreference;
+    readout.setAttribute('aria-label', themePreference === 'auto'
+      ? `Siklus otomatis, ${theme.periodLabel}, ${clock?.textContent || theme.clock}`
+      : `Kembali ke siklus otomatis, ${theme.periodLabel}, ${clock?.textContent || theme.clock}`);
+  }
+  const toggle = document.querySelector('.theme-mode-toggle');
+  if (toggle) {
+    const isDark = theme.colorMode === 'dark';
+    toggle.setAttribute('aria-pressed', String(isDark));
+    toggle.setAttribute('aria-label', isDark ? 'Matikan mode gelap' : 'Nyalakan mode gelap');
+    toggle.classList.toggle('is-active', isDark);
+    const toggleIcon = toggle.querySelector('.theme-mode-icon');
+    if (toggleIcon) toggleIcon.innerHTML = icon(isDark ? 'sun' : 'moon');
+  }
+  return theme;
 }
 
 function saveBrowserAccounts() {
@@ -107,7 +197,7 @@ function trendChart(title, values, labels, unit, color) {
     <svg class="trend-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Grafik ${title}">
       <line x1="${padding}" y1="40" x2="${width - padding}" y2="40" class="chart-gridline"/><line x1="${padding}" y1="78" x2="${width - padding}" y2="78" class="chart-gridline"/><line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" class="chart-gridline"/>
       <polyline points="${points}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      ${coordinates.map(([x, y], index) => `<circle cx="${x}" cy="${y}" r="4" fill="#fffefa" stroke="${color}" stroke-width="2"><title>${labels[index]}: ${values[index]} ${unit}</title></circle>`).join('')}
+      ${coordinates.map(([x, y], index) => `<circle cx="${x}" cy="${y}" r="4" fill="var(--surface)" stroke="${color}" stroke-width="2"><title>${labels[index]}: ${values[index]} ${unit}</title></circle>`).join('')}
     </svg>
     <div class="trend-axis"><span>${labels[0]}</span><span>${labels[labels.length - 1]}</span></div>
   </article>`;
@@ -235,6 +325,7 @@ function renderNavigation(activePage, mobile = false) {
 }
 
 function renderApp() {
+  applyTimeTheme();
   let pageId = currentPage();
   const publicRoute = pageId === 'login' || pageId === 'signup';
   if (!state.isAuthenticated && !publicRoute) {
@@ -255,8 +346,9 @@ function renderApp() {
   }
   const page = pages.find((item) => item.id === pageId) || pages[0];
   app.innerHTML = `<div class="app-shell"><aside class="sidebar" aria-label="Navigasi pengguna"><a class="brand" href="#/home" data-page="home"><span class="brand-name">Smart Poultry</span><span class="brand-caption">Monitoring ayam</span></a><div class="sidebar-label">Menu pengguna</div><nav class="nav-list">${renderNavigation(pageId)}</nav></aside>
-    <div class="main-area"><header class="topbar"><div class="page-context"><p>Monitoring kandang</p><h1 id="page-title" tabindex="-1">${page.title}</h1><span>${page.subtitle}</span></div><div class="topbar-meta"><span class="demo-badge" aria-label="Mode demo">DEMO</span>${pageId === 'home' ? '' : `<div class="connection-state"><span class="status-mark" aria-hidden="true"></span><span>${escapeHTML(getHomeDashboardModel(state).connectionLabel)}</span></div>`}${renderNotificationBell()}<a class="profile-shortcut" href="#/profile" data-page="profile" aria-label="Buka profil">${icon('user')}</a></div></header><main class="page-content" id="main-content" tabindex="-1">${renderers[pageId]()}</main></div>
+    <div class="main-area"><header class="topbar"><div class="page-context"><p>Monitoring kandang</p><h1 id="page-title" tabindex="-1">${page.title}</h1><span>${page.subtitle}</span></div><div class="topbar-meta"><span class="demo-badge" aria-label="Mode demo">DEMO</span>${pageId === 'home' ? '' : `<div class="connection-state"><span class="status-mark" aria-hidden="true"></span><span>${escapeHTML(getHomeDashboardModel(state).connectionLabel)}</span></div>`}${renderTimeThemeControls()}${renderNotificationBell()}<a class="profile-shortcut" href="#/profile" data-page="profile" aria-label="Buka profil">${icon('user')}</a></div></header><main class="page-content" id="main-content" tabindex="-1">${renderers[pageId]()}</main></div>
     <nav class="bottom-nav" aria-label="Navigasi utama">${renderNavigation(pageId, true)}</nav><div class="toast" id="toast" role="status" aria-live="polite"></div></div>`;
+  applyTimeTheme();
 }
 
 function showToast(message) {
@@ -469,6 +561,21 @@ app.addEventListener('submit', async (event) => {
 
 app.addEventListener('click', async (event) => {
   if (event.target.closest('[data-page]')) return;
+  if (event.target.closest('[data-action="set-auto-theme"]')) {
+    themePreference = 'auto';
+    saveThemePreference();
+    renderApp();
+    showToast('Tema otomatis mengikuti waktu perangkat.');
+    return;
+  }
+  if (event.target.closest('[data-action="toggle-dark-mode"]')) {
+    const currentMode = getTimeTheme(new Date(), themePreference).colorMode;
+    themePreference = currentMode === 'dark' ? 'light' : 'dark';
+    saveThemePreference();
+    renderApp();
+    showToast(themePreference === 'dark' ? 'Mode gelap diaktifkan.' : 'Mode terang manual diaktifkan.');
+    return;
+  }
   if (event.target.closest('[data-action="demo-preview"]')) {
     const preview = startDemoPreview(state);
     state = preview.state;
@@ -514,3 +621,8 @@ window.addEventListener('hashchange', () => {
 
 if (!window.location.hash) window.location.hash = '#/login';
 renderApp();
+window.setInterval(() => applyTimeTheme(), 15_000);
+window.addEventListener('focus', () => applyTimeTheme());
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) applyTimeTheme();
+});
