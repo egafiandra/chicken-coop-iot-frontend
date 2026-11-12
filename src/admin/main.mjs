@@ -20,7 +20,7 @@ import {
   toggleTheme,
   toggleUserActive,
   updateUser,
-} from './state.mjs?v=20261125';
+} from './state.mjs?v=20261129';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
@@ -92,36 +92,38 @@ const chip = (s) => { const [t, l] = CHIP[s] || ['neutral', s]; return `<span cl
 
 /* ---------- sparkline & ring ---------- */
 
-function spark(values, color) {
-  const w = 76, h = 26, min = Math.min(...values), max = Math.max(...values), span = max - min || 1;
-  const pts = values.map((v, i) => [(i * w) / (values.length - 1), h - 3 - ((v - min) / span) * (h - 8)]);
+function spark(values, color, idx = 0) {
+  const w = 78, h = 27, min = Math.min(...values), max = Math.max(...values), span = max - min || 1;
+  const pts = values.map((v, i) => [(i * w) / (values.length - 1), h - 3 - ((v - min) / span) * (h - 9)]);
   const line = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
-  const id = `g${Math.round(min * 89 + max * 7)}${values.length}${color.replace(/\W/g, '')}`;
-  return `<svg class="spark" viewBox="0 0 ${w} ${h}" aria-hidden="true">
+  const id = `sg${idx}${values.length}${Math.round(min * 31 + max * 17)}`;
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" style="--i:${idx}" aria-hidden="true">
     <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${color}" stop-opacity=".28"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+      <stop offset="0%" stop-color="${color}" stop-opacity=".30"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/>
     </linearGradient></defs>
     <polygon points="0,${h} ${line} ${w},${h}" fill="url(#${id})"/>
-    <polyline points="${line}" fill="none" stroke="${color}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`;
 }
 
-function ring(online, warning, offline, size = 96) {
+function ring(online, warning, offline, size = 104) {
   const total = online + warning + offline || 1;
-  const R = size / 2 - 7, C = 2 * Math.PI * R, c = size / 2;
-  const seg = [[online, '#7fd6a0'], [warning, '#e9c06a'], [offline, '#e88a72']];
+  const R = size / 2 - 8, C = 2 * Math.PI * R, c = size / 2;
+  const seg = [[online, '#6ee7b7'], [warning, '#fbbf24'], [offline, '#fb7185']];
   let off = 0;
-  const arcs = seg.filter(([n]) => n > 0).map(([n, col]) => {
+  const arcs = seg.filter(([n]) => n > 0).map(([n, col], i) => {
     const len = (n / total) * C;
-    const el = `<circle cx="${c}" cy="${c}" r="${R}" fill="none" stroke="${col}" stroke-width="7"
+    const el = `<circle cx="${c}" cy="${c}" r="${R}" fill="none" stroke="${col}" stroke-width="8"
       stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}"
-      stroke-linecap="round" transform="rotate(-90 ${c} ${c})"/>`;
+      stroke-linecap="round" transform="rotate(-90 ${c} ${c})"
+      style="animation: ring-in 900ms cubic-bezier(.32,.72,0,1) ${i * 140}ms both"/>`;
     off += len;
     return el;
   }).join('');
   return `<div class="hero-ring-wrap">
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">
-      <circle cx="${c}" cy="${c}" r="${R}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="7"/>
+      <style>@keyframes ring-in{from{stroke-dasharray:0 ${C.toFixed(2)}}}</style>
+      <circle cx="${c}" cy="${c}" r="${R}" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="8"/>
       ${arcs}
     </svg>
     <div class="hero-ring-center"><b>${Math.round((online / total) * 100)}%</b><span>sehat</span></div>
@@ -131,11 +133,12 @@ function ring(online, warning, offline, size = 96) {
 /* ---------- gerbang ---------- */
 
 function renderGate() {
-  app.innerHTML = `<div class="gate">
+  app.innerHTML = `<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="gate">
     <div class="gate-card">
       <div class="gate-top">
-        <span class="brand-mark">${icon('coop')}</span>
-        <span><span class="brand-name">Kandang</span><span class="brand-sub">Panel administrasi</span></span>
+        <span class="rail-mark">${icon('coop')}</span>
+        <span class="rail-word"><b>Kandang</b><span>Panel administrasi</span></span>
       </div>
       <h1>Kelola kandang <em>tanpa ribet.</em></h1>
       <p class="gate-lede">Satu tempat untuk mengatur pengguna, memantau perangkat, dan menyetel aturan otomasi yang dibaca panel monitoring.</p>
@@ -166,20 +169,20 @@ function renderDashboard() {
   const open = state.alerts.filter((a) => !a.acknowledged);
 
   const kpi = [
-    { label: 'Total kandang', value: s.totalCoops, note: `${s.activeCoops} aktif · ${s.flockTotal} ekor`, tone: 'var(--pine)', bg: 'var(--pine-tint)', icon: 'coop', series: [3, 3, 2, 3, 3, 3], delta: '+1', dir: 'up' },
-    { label: 'Perangkat online', value: `${s.online}<small>/${s.totalDevices}</small>`, note: `${s.warning} perlu dicek · ${s.offline} offline`, tone: 'var(--ok-fg)', bg: 'var(--ok-bg)', icon: 'chip', series: [2, 3, 3, 4, 3, s.online], delta: `${s.offline} mati`, dir: s.offline > 0 ? 'down' : 'flat' },
-    { label: 'Pengguna aktif', value: `${s.activeUsers}<small>/${s.totalUsers}</small>`, note: 'Termasuk akun admin', tone: 'var(--sky)', bg: 'var(--sky-tint)', icon: 'users', series: [1, 2, 2, 3, 3, s.activeUsers], delta: `${s.totalUsers - s.activeUsers} nonaktif`, dir: 'flat' },
-    { label: 'Alert terbuka', value: s.openAlerts, note: 'Belum ditandai dibaca', tone: 'var(--bad-fg)', bg: 'var(--bad-bg)', icon: 'warn', series: [5, 4, 4, 3, 3, s.openAlerts], delta: 'turun', dir: 'down' },
+    { label: 'Total kandang', value: s.totalCoops, note: `${s.activeCoops} aktif · ${s.flockTotal} ekor`, tone: 'var(--violet)', bg: 'var(--violet-tint)', icon: 'coop', series: [3, 3, 2, 3, 3, 3], delta: '+1', dir: 'up' },
+    { label: 'Perangkat online', value: `${s.online}<small>/${s.totalDevices}</small>`, note: `${s.warning} perlu dicek · ${s.offline} offline`, tone: 'var(--mint)', bg: 'var(--mint-tint)', icon: 'chip', series: [2, 3, 3, 4, 3, s.online], delta: `${s.offline} mati`, dir: s.offline > 0 ? 'down' : 'flat' },
+    { label: 'Pengguna aktif', value: `${s.activeUsers}<small>/${s.totalUsers}</small>`, note: 'Termasuk akun admin', tone: 'var(--cyan)', bg: 'var(--cyan-tint)', icon: 'users', series: [1, 2, 2, 3, 3, s.activeUsers], delta: `${s.totalUsers - s.activeUsers} nonaktif`, dir: 'flat' },
+    { label: 'Alert terbuka', value: s.openAlerts, note: 'Belum ditandai dibaca', tone: 'var(--rose)', bg: 'var(--rose-tint)', icon: 'warn', series: [5, 4, 4, 3, 3, s.openAlerts], delta: 'turun', dir: 'down' },
   ];
 
-  const kpiCards = kpi.map((k) => `<article class="kpi" style="--tone:${k.tone};--tone-bg:${k.bg}">
+  const kpiCards = kpi.map((k, i) => `<article class="kpi rise" style="--i:${i + 1};--tone:${k.tone};--tone-bg:${k.bg}">
     <div class="kpi-head">
       <span class="kpi-icon">${icon(k.icon)}</span>
       <span class="kpi-delta${k.dir === 'down' ? ' is-down' : k.dir === 'flat' ? ' is-flat' : ''}">${k.dir === 'up' ? icon('up') : k.dir === 'down' ? icon('down') : ''}${k.delta}</span>
     </div>
     <span class="kpi-label">${k.label}</span>
     <div class="kpi-value">${k.value}</div>
-    <div class="kpi-foot"><span class="kpi-note">${k.note}</span>${spark(k.series, k.tone)}</div>
+    <div class="kpi-foot"><span class="kpi-note">${k.note}</span>${spark(k.series, k.tone, i)}</div>
   </article>`).join('');
 
   const coopCards = state.coops.map((c) => {
@@ -222,7 +225,7 @@ function renderDashboard() {
   </div>`).join('');
 
   return `<div class="stack">
-    <section class="hero">
+    <section class="hero rise" style="--i:0">
       <div>
         <span class="hero-eyebrow">${icon('activity')}Ringkasan operasional</span>
         <h1 id="page-title" tabindex="-1">Semua kandang terkendali.</h1>
@@ -238,7 +241,7 @@ function renderDashboard() {
 
     <div class="kpi-grid">${kpiCards}</div>
 
-    <div class="duo">
+    <div class="duo rise" style="--i:5">
       <section class="card">
         ${head('Kandang terdaftar', 'Populasi dan kesehatan perangkat tiap kandang.', link('Kelola', '#/coops', 'coops'))}
         <div class="coop-grid">${coopCards}</div>
@@ -253,7 +256,7 @@ function renderDashboard() {
       </section>
     </div>
 
-    <div class="duo-eq">
+    <div class="duo-eq rise" style="--i:6">
       <section class="card">
         ${head('Status perangkat', 'Lima perangkat terakhir yang melapor.', link('Lihat semua', '#/coops', 'coops'))}
         <div class="row-list">${devRows}</div>
@@ -264,9 +267,9 @@ function renderDashboard() {
       </section>
     </div>
 
-    <section class="card">
+    <section class="card rise" style="--i:7">
       ${head('Aktivitas admin', 'Perubahan konfigurasi terakhir.', link('Buka log', '#/logs', 'logs'))}
-      <div class="duo-eq" style="gap:20px">
+      <div class="duo-eq" style="gap:22px">
         <div class="timeline">${tl}</div>
         <div class="audit-summary">
           <div class="audit-stat"><b>${state.auditLog.length}</b><span>total catatan</span></div>
@@ -292,7 +295,7 @@ function renderUsers() {
     <td><span class="cell-sub">${u.lastActive}</span></td>
     <td class="is-right"><div class="cell-actions">
       <button class="btn btn--sm" type="button" data-action="edit-user" data-user-id="${u.id}">Ubah</button>
-      <button class="btn btn--sm btn--danger" type="button" data-action="toggle-user" data-user-id="${u.id}"${u.id === state.currentUser.id ? ' disabled title="Akun yang sedang dipakai"' : ''}>${u.active ? 'Nonaktifkan' : 'Aktifkan'}</button>
+      <button class="btn btn--sm ${u.active ? 'btn--danger' : 'btn--ok'}" type="button" data-action="toggle-user" data-user-id="${u.id}"${u.id === state.currentUser.id ? ' disabled title="Akun yang sedang dipakai"' : ''}>${u.active ? 'Nonaktifkan' : 'Aktifkan'}</button>
     </div></td>
   </tr>`).join('') : `<tr><td colspan="6">${empty('Pengguna tidak ditemukan', 'Ubah kata kunci atau filter peran.', 'users')}</td></tr>`;
 
@@ -300,7 +303,7 @@ function renderUsers() {
     .map(([k, l]) => `<button type="button" class="${state.ui.userRole === k ? 'is-on' : ''}" data-action="user-role" data-role="${k}" aria-pressed="${state.ui.userRole === k}">${l}</button>`).join('');
 
   return `<div class="stack">
-    <section class="card card--flush">
+    <section class="card card--flush rise" style="--i:0">
       <div class="card-pad">${head('Daftar pengguna', `${users.length} dari ${state.users.length} akun ditampilkan.`,
         `<button class="btn btn--primary" type="button" data-action="new-user">${icon('plus')}Tambah pengguna</button>`)}</div>
       <div class="card-pad-x">
@@ -389,11 +392,11 @@ function renderCoops() {
   </tr>`).join('') : `<tr><td colspan="5">${empty('Belum ada perangkat', 'Perangkat muncul setelah node ESP terhubung.', 'chip')}</td></tr>`;
 
   return `<div class="stack">
-    <section class="card">
+    <section class="card rise" style="--i:0">
       ${head('Kandang', 'Data induk yang dipakai panel pengguna.')}
       <div class="coop-grid">${cards}</div>
     </section>
-    <section class="card card--flush">
+    <section class="card card--flush rise" style="--i:1">
       <div class="card-pad">${head('Perangkat terdaftar', `${devs.length} perangkat ditampilkan.`)}</div>
       <div class="card-pad-x">
         <div class="toolbar">
@@ -422,8 +425,8 @@ const num = (s, f, label, val, unit, hint = '') => `<label class="field"><span c
 const timeF = (s, f, label, val) => `<label class="field"><span class="label">${label}</span>
   <input type="time" value="${val}" data-action="rule-text" data-section="${s}" data-field="${f}" aria-label="${label}"></label>`;
 
-function ruleCard(id, title, detail, enabled, fields) {
-  return `<article class="card rule-card${enabled ? '' : ' is-off'}">
+function ruleCard(id, title, detail, enabled, fields, idx = 0) {
+  return `<article class="card rule-card rise${enabled ? '' : ' is-off'}" style="--i:${idx}">
     <div class="rule-head"><div><h3>${title}</h3><p>${detail}</p></div>
       <button class="switch" type="button" data-action="toggle-rule" data-section="${id}" aria-pressed="${enabled}"><i></i>${enabled ? 'Aktif' : 'Nonaktif'}</button>
     </div>
@@ -434,31 +437,31 @@ function ruleCard(id, title, detail, enabled, fields) {
 function renderRules() {
   const r = state.rules;
   return `<div class="stack">
-    <div class="note">${icon('info')}<span>Nilai di halaman ini adalah konfigurasi yang nantinya dibaca panel pengguna. Masih simulasi — mengubah nilai tidak mengirim perintah ke perangkat.</span></div>
+    <div class="note rise" style="--i:0">${icon('info')}<span>Nilai di halaman ini adalah konfigurasi yang nantinya dibaca panel pengguna. Masih simulasi — mengubah nilai tidak mengirim perintah ke perangkat.</span></div>
     <div class="rule-grid">
       ${ruleCard('temperature', 'Ambang suhu', 'Penanda suhu di luar batas di panel pengguna.', r.temperature.enabled,
-        num('temperature', 'min', 'Minimum', r.temperature.min, '°C') + num('temperature', 'max', 'Maksimum', r.temperature.max, '°C'))}
+        num('temperature', 'min', 'Minimum', r.temperature.min, '°C') + num('temperature', 'max', 'Maksimum', r.temperature.max, '°C'), 1)}
       ${ruleCard('humidity', 'Ambang kelembapan', 'Batas kelembapan udara kandang.', r.humidity.enabled,
-        num('humidity', 'min', 'Minimum', r.humidity.min, '%') + num('humidity', 'max', 'Maksimum', r.humidity.max, '%'))}
+        num('humidity', 'min', 'Minimum', r.humidity.min, '%') + num('humidity', 'max', 'Maksimum', r.humidity.max, '%'), 2)}
       ${ruleCard('feed', 'Notifikasi pakan', 'Peringatan saat tempat pakan kosong.', r.feed.enabled,
         `<label class="field field-full"><span class="label">Perilaku</span>
           <select class="select" data-action="rule-text" data-section="feed" data-field="notifyWhenEmpty">
             <option value="true"${r.feed.notifyWhenEmpty ? ' selected' : ''}>Kirim notifikasi saat kosong</option>
             <option value="false"${!r.feed.notifyWhenEmpty ? ' selected' : ''}>Hanya catat di riwayat</option>
-          </select><span class="hint">Panel pengguna menampilkan alert pakan habis.</span></label>`)}
+          </select><span class="hint">Panel pengguna menampilkan alert pakan habis.</span></label>`, 3)}
       ${ruleCard('waterValve', 'Otomasi valve air', 'Buka valve bila kelembapan turun di bawah batas.', r.waterValve.enabled,
-        num('waterValve', 'openBelow', 'Buka di bawah', r.waterValve.openBelow, '% kelembapan'))}
+        num('waterValve', 'openBelow', 'Buka di bawah', r.waterValve.openBelow, '% kelembapan'), 4)}
       ${ruleCard('lighting', 'Jadwal lampu', 'Waktu nyala dan warna lampu kandang.', r.lighting.enabled,
         timeF('lighting', 'onTime', 'Nyala', r.lighting.onTime) + timeF('lighting', 'offTime', 'Padam', r.lighting.offTime) +
         `<label class="field field-full"><span class="label">Warna lampu</span>
           <select class="select" data-action="rule-color" data-section="lighting" data-field="color">
             <option value="warm-white"${r.lighting.color === 'warm-white' ? ' selected' : ''}>Warm white</option>
             <option value="red"${r.lighting.color === 'red' ? ' selected' : ''}>Merah</option>
-          </select><span class="hint">Pilihan sama dengan panel pengguna.</span></label>`)}
+          </select><span class="hint">Pilihan sama dengan panel pengguna.</span></label>`, 5)}
       ${ruleCard('music', 'Jadwal musik klasik', 'Pemutaran musik pada rentang waktu tertentu.', r.music.enabled,
-        timeF('music', 'onTime', 'Mulai', r.music.onTime) + timeF('music', 'offTime', 'Selesai', r.music.offTime))}
+        timeF('music', 'onTime', 'Mulai', r.music.onTime) + timeF('music', 'offTime', 'Selesai', r.music.offTime), 6)}
       ${ruleCard('egg', 'Ambang indikasi telur', 'Selisih berat minimum agar dicatat sebagai indikasi.', r.egg.enabled,
-        num('egg', 'thresholdGram', 'Selisih minimum', r.egg.thresholdGram, 'gram', 'belum konfirmasi telur'))}
+        num('egg', 'thresholdGram', 'Selisih minimum', r.egg.thresholdGram, 'gram', 'belum konfirmasi telur'), 7)}
     </div>
   </div>`;
 }
@@ -477,7 +480,7 @@ function renderCameras() {
   </tr>`).join('');
 
   return `<div class="stack">
-    <section class="card card--flush">
+    <section class="card card--flush rise" style="--i:0">
       <div class="card-pad">${head('Kamera terdaftar', 'Sumber stream dan aturan deteksi.')}</div>
       <div class="tbl-wrap">
         <table class="tbl">
@@ -486,7 +489,7 @@ function renderCameras() {
         </table>
       </div>
     </section>
-    <section class="card">
+    <section class="card rise" style="--i:1">
       ${head('Belum tersedia', 'Cakupan prototipe front-end.')}
       ${empty('Stream video belum aktif', 'Panel pengguna masih memakai placeholder kamera. Preview stream, unggah model, dan pengujian keyakinan belum diimplementasikan.', 'camera')}
     </section>
@@ -502,7 +505,7 @@ function renderLogs() {
     <time>${e.time}</time>
   </div>`).join('');
   return `<div class="stack">
-    <section class="card">
+    <section class="card rise" style="--i:0">
       ${head('Log aktivitas admin', `${state.auditLog.length} catatan, semua ditandai simulasi.`)}
       <div class="timeline">${tl}</div>
     </section>
@@ -513,9 +516,9 @@ function renderLogs() {
 
 function renderSettings() {
   const s = summarize(state);
-  const dark = state.theme === 'midnight';
+  const dark = state.theme === 'night';
   return `<div class="stack">
-    <div class="duo-eq">
+    <div class="duo-eq rise" style="--i:0">
       <section class="card">
         ${head('Profil admin', 'Akun yang dipakai di sesi ini.')}
         <div class="form-grid">
@@ -534,12 +537,12 @@ function renderSettings() {
         </div>
       </section>
     </div>
-    <section class="card">
+    <section class="card rise" style="--i:1">
       ${head('Tampilan', 'Tema panel admin.')}
       <div class="row">
         <span class="row-icon">${icon(dark ? 'moon' : 'sun')}</span>
-        <span class="row-copy"><strong>Tema ${dark ? 'midnight' : 'daylight'}</strong><small>Pilihan disimpan selama sesi berlangsung.</small></span>
-        <button class="switch" type="button" data-action="toggle-theme" aria-pressed="${dark}"><i></i>${dark ? 'Midnight' : 'Daylight'}</button>
+        <span class="row-copy"><strong>Tema ${dark ? 'night' : 'aurora'}</strong><small>Pilihan disimpan selama sesi berlangsung.</small></span>
+        <button class="switch" type="button" data-action="toggle-theme" aria-pressed="${dark}"><i></i>${dark ? 'Night' : 'Aurora'}</button>
       </div>
     </section>
   </div>`;
@@ -552,10 +555,10 @@ const VIEWS = {
   rules: renderRules, cameras: renderCameras, logs: renderLogs, settings: renderSettings,
 };
 
-function tab(item, active) {
+function railItem(item, active) {
   const on = item.id === active;
-  return `<a class="tab${on ? ' is-active' : ''}" href="#/${item.id}" data-page="${item.id}"${on ? ' aria-current="page"' : ''}>
-    ${icon(item.icon)}<span>${item.label}</span></a>`;
+  return `<a class="rail-item${on ? ' is-active' : ''}" href="#/${item.id}" data-page="${item.id}"${on ? ' aria-current="page"' : ''} title="${item.label}">
+    ${icon(item.icon)}<span class="rail-label">${item.label}</span></a>`;
 }
 
 function renderApp() {
@@ -565,37 +568,58 @@ function renderApp() {
 
   const id = cur();
   const page = NAV.find((p) => p.id === id) || NAV[0];
-  const dark = state.theme === 'midnight';
+  const dark = state.theme === 'night';
 
-  app.innerHTML = `<div class="topbar">
-    <div class="topbar-inner">
-      <button class="ghost-btn hamburger" type="button" data-menu-toggle aria-controls="nav" aria-expanded="${app.classList.contains('nav-open')}" aria-label="Buka navigasi">${icon('menu')}</button>
-      <a class="brand" href="#/dashboard" data-page="dashboard" aria-label="Kandang admin, ke dashboard">
-        <span class="brand-mark">${icon('coop')}</span>
-        <span><span class="brand-name">Kandang</span><span class="brand-sub">Panel admin</span></span>
+  app.innerHTML = `<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
+  <div class="shell">
+    <aside class="rail" id="nav" aria-label="Navigasi admin">
+      <a class="rail-logo" href="#/dashboard" data-page="dashboard" aria-label="Kandang admin, ke dashboard">
+        <span class="rail-mark">${icon('coop')}</span>
+        <span class="rail-word"><b>Kandang</b><span>Panel admin</span></span>
       </a>
-      <nav class="navbar" id="nav" aria-label="Navigasi admin">${NAV.map((i) => tab(i, id)).join('')}</nav>
-      <div class="topbar-tools">
-        <span class="pill-sim"><i></i>Simulasi</span>
-        <button class="ghost-btn" type="button" data-action="toggle-theme" aria-label="Ganti tema" title="Ganti tema">${icon(dark ? 'sun' : 'moon')}</button>
-        <span class="me"><span class="avatar">${initials(state.currentUser.name)}</span><span>${state.currentUser.name}</span></span>
-        <button class="ghost-btn" type="button" data-action="exit" aria-label="Keluar ke gerbang peran" title="Keluar">${icon('logout')}</button>
+      <nav class="rail-nav">
+        ${NAV.slice(0, 4).map((i) => railItem(i, id)).join('')}
+        <span class="rail-sep" aria-hidden="true"></span>
+        ${NAV.slice(4).map((i) => railItem(i, id)).join('')}
+      </nav>
+      <div class="rail-foot">
+        <button class="rail-item" type="button" data-action="toggle-theme" title="Ganti tema">
+          ${icon(dark ? 'sun' : 'moon')}<span class="rail-label">Tema ${dark ? 'night' : 'aurora'}</span></button>
+        <button class="rail-item" type="button" data-action="exit" title="Keluar">
+          ${icon('logout')}<span class="rail-label">Keluar</span></button>
+        <div class="rail-user">
+          <span class="avatar">${initials(state.currentUser.name)}</span>
+          <span class="rail-user-copy"><strong>${state.currentUser.name}</strong><small>Administrator</small></span>
+        </div>
       </div>
+    </aside>
+
+    <div class="scrim" data-close-menu aria-hidden="true"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-controls="nav" aria-expanded="${app.classList.contains('nav-open')}" aria-label="Buka navigasi">${icon('menu')}</button>
+          <div class="crumb"><span>Panel admin</span>${icon('arrow')}<b>${page.label}</b></div>
+        </div>
+        <div class="topbar-right">
+          <span class="pill-sim"><i></i>Simulasi</span>
+          <button class="icon-btn" type="button" data-action="toggle-theme" aria-label="Ganti tema" title="Ganti tema">${icon(dark ? 'sun' : 'moon')}</button>
+        </div>
+      </header>
+
+      <main class="canvas" id="main" tabindex="-1">
+        ${id === 'dashboard' ? '' : `<div class="page-head rise" style="--i:0">
+          <div><h1 id="page-title" tabindex="-1">${page.title}</h1><p>${page.lede}</p></div>
+        </div>`}
+        ${VIEWS[id]()}
+      </main>
     </div>
-  </div>
 
-  <div class="scrim" data-close-menu aria-hidden="true"></div>
-
-  <main class="canvas" id="main" tabindex="-1">
-    ${id === 'dashboard' ? '' : `<div class="card-head" style="margin-bottom:2px">
-      <div><h1 id="page-title" tabindex="-1" style="font-size:clamp(21px,2.4vw,27px);font-weight:750;letter-spacing:-.8px">${page.title}</h1>
-      <p>${page.lede}</p></div>
-    </div>`}
-    ${VIEWS[id]()}
-  </main>
-
-  ${state.ui.modal ? renderUserModal() : ''}
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>`;
+    ${state.ui.modal ? renderUserModal() : ''}
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>`;
 }
 
 /* ---------- interaksi ---------- */
@@ -660,7 +684,7 @@ app.addEventListener('click', (e) => {
   if (t.closest('[data-action="toggle-theme"]')) {
     state = toggleTheme(state);
     paint();
-    toast(state.theme === 'midnight' ? 'Tema midnight aktif.' : 'Tema daylight aktif.');
+    toast(state.theme === 'night' ? 'Tema night aktif.' : 'Tema aurora aktif.');
     return;
   }
 
