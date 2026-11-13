@@ -30,7 +30,7 @@ import {
   toggleUserActive,
   unreadNotificationCount,
   updateUser,
-} from './state.mjs?v=20261139';
+} from './state.mjs?v=20261140';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
@@ -675,8 +675,8 @@ function renderApp() {
         <span class="rail-mark">${icon('coop')}</span>
         <span class="rail-word"><b>Kandang</b><span>Panel admin</span></span>
       </a>
-      <button class="rail-toggle" type="button" data-rail-toggle aria-controls="nav" aria-expanded="${railExpanded}" aria-label="${railExpanded ? 'Ciutkan sidebar' : 'Lebarkan sidebar'}" title="${railExpanded ? 'Ciutkan sidebar' : 'Lebarkan sidebar'}">
-        ${icon(railExpanded ? 'chevron-l' : 'chevron-r')}
+      <button class="rail-toggle" type="button" data-rail-toggle aria-controls="nav" aria-expanded="${railExpanded}" aria-label="${railExpanded ? 'Kecilkan sidebar' : 'Lebarkan sidebar'}" title="${railExpanded ? 'Kecilkan sidebar' : 'Lebarkan sidebar'}">
+        ${icon(railExpanded ? 'chevron-l' : 'chevron-r')}<span class="rail-toggle-text">${railExpanded ? 'Kecilkan sidebar' : 'Lebarkan sidebar'}</span>
       </button>
       <nav class="rail-nav">
         ${NAV.slice(0, 4).map((i) => railItem(i, id)).join('')}

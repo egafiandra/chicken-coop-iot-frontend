@@ -248,29 +248,49 @@ h1, h2, h3, p { margin: 0; }
 .shell.rail-open .rail-user-copy { opacity: 1; transform: none; }
 
 .rail-toggle {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 30px;
   height: 30px;
   margin: 6px 0 10px;
+  padding: 0;
   border: 1px solid var(--line);
   border-radius: 9px;
   color: var(--ink-3);
   background: var(--surface-2);
+  font-size: 10.5px;
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
   cursor: pointer;
   transition: color 180ms var(--ease), background-color 180ms var(--ease),
-              border-color 180ms var(--ease), transform 180ms var(--ease);
+              border-color 180ms var(--ease), transform 180ms var(--ease),
+              width 260ms var(--ease), height 260ms var(--ease);
 }
-.rail-toggle .icon { width: 15px; height: 15px; }
+.rail-toggle .icon { width: 15px; height: 15px; flex: 0 0 auto; }
+.rail-toggle-text {
+  opacity: 0;
+  transition: opacity 160ms var(--ease) 40ms;
+}
 .rail-toggle:hover {
   color: var(--violet);
   border-color: color-mix(in srgb, var(--violet) 32%, var(--line));
   background: var(--violet-tint);
-  transform: scale(1.06);
 }
 .rail-toggle:active { transform: scale(.96); }
-/* saat ciut, tombol sejajar ikon di tengah */
+/* saat ciut: tombol jadi ikon persegi di tengah */
 .shell:not(.rail-open) .rail-toggle { align-self: center; }
+/* saat lebar: tombol melebar penuh dengan tulisan */
+.shell.rail-open .rail-toggle {
+  align-self: stretch;
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  justify-content: flex-start;
+}
+.shell.rail-open .rail-toggle-text { opacity: 1; }
 
 .rail-logo {
   display: flex;
@@ -1888,6 +1908,20 @@ h1, h2, h3, p { margin: 0; }
 @media (max-width: 900px) {
   .menu-btn { display: grid; }
 
+  /* tablet: kartu KPI dirapatkan sedikit, tetap 2 kolom */
+  .kpi { padding: 15px; border-radius: var(--r-lg); }
+  .kpi-head { margin-bottom: 10px; }
+  .kpi-icon { width: 29px; height: 29px; border-radius: 9px; }
+  .kpi-icon .icon { width: 14px; height: 14px; }
+  .kpi-label { font-size: 10px; }
+  .kpi-value { font-size: 25px; letter-spacing: -1.2px; }
+  .kpi-value small { font-size: 11px; }
+  .kpi-note { font-size: 9px; }
+  .spark { width: 58px; height: 21px; }
+  .card { padding: 16px; }
+  .page-head h1 { font-size: 23px; }
+  .hero h1 { font-size: 27px; }
+
   /* HP/tablet kecil: sidebar jadi drawer. Tombol ciut/lebar diganti
      hamburger karena drawer selalu menampilkan teks. */
   .rail {
@@ -1944,8 +1978,23 @@ h1, h2, h3, p { margin: 0; }
 }
 
 @media (max-width: 640px) {
-  .kpi-grid, .coop-grid, .act-grid { grid-template-columns: 1fr; }
+  /* KPI: 2 kolom per baris, kartu lebih ringkas */
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .coop-grid, .act-grid { grid-template-columns: 1fr; }
   .form-grid, .rule-fields { grid-template-columns: 1fr; }
+  .kpi { padding: 12px; border-radius: var(--r-lg); gap: 2px; }
+  .kpi-head { margin-bottom: 8px; gap: 6px; }
+  .kpi-icon { width: 26px; height: 26px; border-radius: 8px; }
+  .kpi-icon .icon { width: 13px; height: 13px; }
+  .kpi-delta { font-size: 8.5px; padding: 2px 6px; gap: 3px; }
+  .kpi-delta .icon { width: 8px; height: 8px; }
+  .kpi-label { font-size: 9.5px; }
+  .kpi-value { font-size: 21px; letter-spacing: -1px; }
+  .kpi-value small { font-size: 10px; }
+  .kpi-foot { margin-top: 7px; gap: 6px; }
+  .kpi-note { font-size: 8.5px; line-height: 1.35; }
+  .spark { width: 46px; height: 18px; }
+
   .hero { padding: 22px 18px; border-radius: var(--r-xl); gap: 18px; }
   .hero h1 { font-size: 23px; letter-spacing: -1px; line-height: 1.15; }
   .hero-stats { display: grid; grid-template-columns: 1fr; gap: 8px; }
@@ -1975,7 +2024,6 @@ h1, h2, h3, p { margin: 0; }
 
   .tl-row { grid-template-columns: 15px minmax(0, 1fr); }
   .tl-row time { grid-column: 2; }
-  .kpi-value { font-size: 26px; }
   .page-head h1 { font-size: 21px; }
   .page-head { gap: 10px; }
 
@@ -1985,14 +2033,22 @@ h1, h2, h3, p { margin: 0; }
   .notif-row > .chip, .notif-row > .btn { grid-column: 2; justify-self: start; }
 }
 
-/* HP kecil: rapatkan lagi, pastikan tak ada teks terpotong */
+/* HP kecil: KPI tetap 2 kolom, kartu & font lebih rapat lagi */
 @media (max-width: 420px) {
   .canvas { padding-left: 12px; padding-right: 12px; }
   .topbar { height: 54px; padding: 0 12px; gap: 8px; }
+  .kpi-grid { gap: 8px; }
+  .kpi { padding: 10px; border-radius: var(--r-md); }
+  .kpi-icon { width: 23px; height: 23px; border-radius: 7px; }
+  .kpi-icon .icon { width: 12px; height: 12px; }
+  .kpi-label { font-size: 9px; }
+  .kpi-value { font-size: 18px; letter-spacing: -.8px; }
+  .kpi-value small { font-size: 9px; }
+  .kpi-note { font-size: 8px; }
+  .spark { display: none; }
   .hero { padding: 18px 15px; }
   .hero h1 { font-size: 20px; }
   .hero-stat { font-size: 10px; padding: 6px 10px; }
-  .kpi-value { font-size: 24px; }
   .card { padding: 13px; }
   .card-head h2 { font-size: 12.5px; }
   .page-head h1 { font-size: 19px; }
