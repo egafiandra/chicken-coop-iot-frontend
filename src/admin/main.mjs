@@ -8,12 +8,17 @@ import {
   enterAsAdmin,
   exitSession,
   filterUsers,
+  getTimeTheme,
+  markAllNotificationsRead,
+  markNotificationRead,
   normalizeAdminPage,
   openModal,
   resetAdminDemo,
-  setActuatorColor,
+  resolveTheme,
   setCoopFilter,
+  setMusicVolume,
   setRuleValue,
+  setThemePreference,
   setUserRoleFilter,
   setUserSearch,
   summarize,
@@ -23,8 +28,9 @@ import {
   toggleRule,
   toggleTheme,
   toggleUserActive,
+  unreadNotificationCount,
   updateUser,
-} from './state.mjs?v=20261131';
+} from './state.mjs?v=20261132';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
@@ -77,6 +83,7 @@ const NAV = [
   { id: 'users', label: 'Pengguna', icon: 'users', title: 'Pengguna', lede: 'Kelola akun pengguna dan admin, peran, serta kandang yang mereka pantau.' },
   { id: 'coops', label: 'Kandang', icon: 'coop', title: 'Kandang & perangkat', lede: 'Data induk kandang, node ESP, sensor, dan aktuator yang terdaftar.' },
   { id: 'control', label: 'Kontrol', icon: 'power', title: 'Kontrol perangkat', lede: 'Nyalakan atau matikan valve air, lampu kandang, dan musik langsung dari panel admin.' },
+  { id: 'notifications', label: 'Notifikasi', icon: 'bell', title: 'Notifikasi', lede: 'Pemberitahuan kandang yang juga tampil di panel pengguna.' },
   { id: 'rules', label: 'Aturan', icon: 'sliders', title: 'Aturan & otomasi', lede: 'Ambang sensor, jadwal aktuator, dan notifikasi yang dibaca panel pengguna.' },
   { id: 'cameras', label: 'Kamera', icon: 'camera', title: 'Kamera & model', lede: 'Sumber stream, ambang keyakinan, dan aksi trigger untuk deteksi YOLO.' },
   { id: 'logs', label: 'Log', icon: 'logs', title: 'Log aktivitas', lede: 'Jejak setiap perubahan konfigurasi yang dilakukan admin.' },
@@ -471,13 +478,9 @@ function renderControl() {
         subtitle: 'Nyalakan pencahayaan kandang.',
         children: `<div class="act-meta">
           <div class="act-row"><span>Status</span><b>${a.lighting.on ? 'Menyala' : 'Mati'}</b></div>
-          <div class="act-row"><span>Warna</span><b>${a.lighting.color === 'red' ? 'Merah' : 'Warm white'}</b></div>
+          <div class="act-row"><span>Mode cahaya</span><b>Merah + warm white</b></div>
         </div>
-        <fieldset class="color-choice">
-          <legend>Warna lampu</legend>
-          <label class="color-option"><input type="radio" name="act-color" value="red" data-action="act-color" ${a.lighting.color === 'red' ? 'checked' : ''}><span class="swatch swatch-red"></span>Merah</label>
-          <label class="color-option"><input type="radio" name="act-color" value="warm-white" data-action="act-color" ${a.lighting.color === 'warm-white' ? 'checked' : ''}><span class="swatch swatch-warm"></span>Warm white</label>
-        </fieldset>`,
+        <p class="act-locked">${icon('info')}Mode cahaya dikunci di panel pengguna.</p>`,
       })}
       ${actuatorCard({
         key: 'music', title: 'Musik klasik', iconName: 'music', on: a.music.on, tone: 'var(--violet)',
@@ -485,9 +488,46 @@ function renderControl() {
         children: `<div class="act-meta">
           <div class="act-row"><span>Status</span><b>${a.music.on ? 'Memutar' : 'Berhenti'}</b></div>
           <div class="act-row"><span>Playlist</span><b>${a.music.track}</b></div>
-        </div>`,
+        </div>
+        <form class="vol-form" data-action="submit-volume">
+          <label class="vol-label" for="act-volume">Volume (%)</label>
+          <div class="vol-row">
+            <input id="act-volume" name="volume" type="number" inputmode="numeric" min="0" max="100" step="1" value="${a.music.volume}" required>
+            <button class="btn btn--sm" type="submit">Simpan</button>
+          </div>
+        </form>`,
       })}
     </div>
+  </div>`;
+}
+
+/* ---------- notifikasi ---------- */
+
+function renderNotifications() {
+  const unread = unreadNotificationCount(state);
+  const KIND_ICON = { feed: 'activity', sensor: 'activity', control: 'light' };
+
+  const rows = state.notifications.length
+    ? state.notifications.map((n) => `<div class="notif-row${n.read ? ' is-read' : ''}">
+        <span class="notif-icon">${icon(KIND_ICON[n.kind] || 'bell')}</span>
+        <div class="notif-copy">
+          <strong>${n.title}</strong>
+          <p>${n.message}</p>
+          <time>${n.time}</time>
+        </div>
+        ${n.read
+          ? '<span class="chip chip--neutral">Dibaca</span>'
+          : `<button class="btn btn--sm" type="button" data-action="mark-notif" data-notif-id="${n.id}">Tandai dibaca</button>`}
+      </div>`).join('')
+    : empty('Belum ada notifikasi', 'Pemberitahuan kandang akan muncul di sini.', 'bell');
+
+  return `<div class="stack">
+    <section class="card rise" style="--i:0">
+      ${head('Pemberitahuan kandang', `${unread} belum dibaca dari ${state.notifications.length} notifikasi.`,
+        unread ? '<button class="btn btn--sm" type="button" data-action="mark-all-notif">Tandai semua dibaca</button>' : '')}
+      <div class="notif-list">${rows}</div>
+    </section>
+    <div class="note rise" style="--i:1">${icon('info')}<span>Notifikasi ini adalah data yang sama dengan yang tampil di halaman Notifikasi panel pengguna.</span></div>
   </div>`;
 }
 
@@ -590,7 +630,9 @@ function renderLogs() {
 
 function renderSettings() {
   const s = summarize(state);
-  const dark = state.theme === 'night';
+  const t = getTimeTheme(new Date(), 'auto');
+  const auto = state.themePreference === 'auto';
+  const effective = resolveTheme(state);
   return `<div class="stack">
     <div class="duo-eq rise" style="--i:0">
       <section class="card">
@@ -612,11 +654,18 @@ function renderSettings() {
       </section>
     </div>
     <section class="card rise" style="--i:1">
-      ${head('Tampilan', 'Tema panel admin.')}
-      <div class="row">
-        <span class="row-icon">${icon(dark ? 'moon' : 'sun')}</span>
-        <span class="row-copy"><strong>Tema ${dark ? 'night' : 'aurora'}</strong><small>Pilihan disimpan selama sesi berlangsung.</small></span>
-        <button class="switch" type="button" data-action="toggle-theme" aria-pressed="${dark}"><i></i>${dark ? 'Night' : 'Aurora'}</button>
+      ${head('Tampilan', 'Ikuti siklus hari seperti panel pengguna, atau pilih manual.')}
+      <div class="segmented" role="group" aria-label="Preferensi tema">
+        <button type="button" class="${auto ? 'is-on' : ''}" data-action="theme-auto" aria-pressed="${auto}">Otomatis</button>
+        <button type="button" class="${!auto ? 'is-on' : ''}" data-action="theme-manual" aria-pressed="${!auto}">Manual</button>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <span class="row-icon">${icon(effective === 'night' ? 'moon' : 'sun')}</span>
+        <span class="row-copy">
+          <strong>Tema ${effective === 'night' ? 'night' : 'aurora'}${auto ? ' (otomatis)' : ''}</strong>
+          <small>${auto ? `Sekarang ${t.periodLabel} — tema mengikuti jam perangkat.` : 'Tema manual, tidak mengikuti jam.'}</small>
+        </span>
+        ${auto ? '' : `<button class="switch" type="button" data-action="toggle-theme" aria-pressed="${effective === 'night'}"><i></i>${effective === 'night' ? 'Night' : 'Aurora'}</button>`}
       </div>
     </section>
   </div>`;
@@ -626,7 +675,8 @@ function renderSettings() {
 
 const VIEWS = {
   dashboard: renderDashboard, users: renderUsers, coops: renderCoops, control: renderControl,
-  rules: renderRules, cameras: renderCameras, logs: renderLogs, settings: renderSettings,
+  notifications: renderNotifications, rules: renderRules, cameras: renderCameras,
+  logs: renderLogs, settings: renderSettings,
 };
 
 function railItem(item, active) {
@@ -636,13 +686,14 @@ function railItem(item, active) {
 }
 
 function renderApp() {
-  document.documentElement.dataset.theme = state.theme;
+  const effectiveTheme = resolveTheme(state);
+  document.documentElement.dataset.theme = effectiveTheme;
 
   if (!state.session) { renderGate(); return; }
 
   const id = cur();
   const page = NAV.find((p) => p.id === id) || NAV[0];
-  const dark = state.theme === 'night';
+  const dark = effectiveTheme === 'night';
 
   app.innerHTML = `<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
@@ -819,6 +870,23 @@ app.addEventListener('click', (e) => {
     return;
   }
 
+  const mn = t.closest('[data-action="mark-notif"]');
+  if (mn) { act(() => markNotificationRead(state, mn.dataset.notifId), 'Notifikasi ditandai dibaca.'); return; }
+
+  if (t.closest('[data-action="mark-all-notif"]')) {
+    act(() => markAllNotificationsRead(state), 'Semua notifikasi ditandai dibaca.');
+    return;
+  }
+
+  if (t.closest('[data-action="theme-auto"]')) {
+    act(() => setThemePreference(state, 'auto'), 'Tema mengikuti siklus siang/sore/malam.');
+    return;
+  }
+  if (t.closest('[data-action="theme-manual"]')) {
+    act(() => setThemePreference(state, 'manual'), 'Tema manual aktif.');
+    return;
+  }
+
   if (t.closest('[data-action="reset-admin"]')) {
     state = resetAdminDemo(state);
     paint();
@@ -852,14 +920,18 @@ app.addEventListener('change', (e) => {
     let v = x.value;
     if (x.dataset.field === 'notifyWhenEmpty') v = v === 'true';
     act(() => setRuleValue(state, x.dataset.section, x.dataset.field, v), 'Aturan disimpan.');
-    return;
   }
-
-  const ac = e.target.closest('[data-action="act-color"]');
-  if (ac) { act(() => setActuatorColor(state, ac.value), 'Warna lampu diperbarui.'); }
 });
 
 app.addEventListener('submit', (e) => {
+  const volForm = e.target.closest('[data-action="submit-volume"]');
+  if (volForm) {
+    e.preventDefault();
+    const value = new FormData(volForm).get('volume');
+    act(() => setMusicVolume(state, value), 'Volume musik disimpan.');
+    return;
+  }
+
   const form = e.target.closest('[data-action="submit-user"]');
   if (!form) return;
   e.preventDefault();

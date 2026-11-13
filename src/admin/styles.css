@@ -1483,6 +1483,74 @@ h1, h2, h3, p { margin: 0; }
 .swatch-red { background: #e0512f; }
 .swatch-warm { background: #f4d79a; }
 
+.act-locked {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  color: var(--ink-3);
+  font-size: 10px;
+  line-height: 1.5;
+}
+.act-locked .icon { width: 13px; height: 13px; flex: 0 0 auto; }
+
+.vol-form { display: grid; gap: 6px; margin-top: 12px; }
+.vol-label { color: var(--ink-3); font-size: 10px; font-weight: 650; }
+.vol-row { display: flex; gap: 8px; }
+.vol-row input {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--ink);
+  background: var(--surface-2);
+  font-size: 12px;
+  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+}
+.vol-row input:focus {
+  border-color: var(--violet);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--violet-tint);
+}
+
+/* ---------- notifikasi ---------- */
+
+.notif-list { display: grid; gap: 9px; }
+
+.notif-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  transition: border-color 180ms var(--ease), background-color 180ms var(--ease);
+}
+.notif-row:hover { border-color: var(--line-strong); background: var(--surface-3); }
+.notif-row.is-read { opacity: .62; }
+
+.notif-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: 9px;
+  color: var(--violet);
+  background: var(--violet-tint);
+}
+.notif-icon .icon { width: 15px; height: 15px; }
+[data-theme="night"] .notif-icon { color: var(--violet-2); }
+
+.notif-copy { min-width: 0; }
+.notif-copy strong { display: block; color: var(--ink); font-size: 12px; font-weight: 670; }
+.notif-copy p { margin-top: 3px; color: var(--ink-3); font-size: 10.5px; line-height: 1.55; }
+.notif-copy time { display: block; margin-top: 5px; color: var(--muted); font-size: 9.5px; }
+
 /* ---------- rules ---------- */
 
 .rule-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; align-items: stretch; }

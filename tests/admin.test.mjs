@@ -10,12 +10,17 @@ import {
   enterAsAdmin,
   exitSession,
   filterUsers,
+  getTimeTheme,
+  markAllNotificationsRead,
+  markNotificationRead,
   normalizeAdminPage,
   openModal,
   resetAdminDemo,
-  setActuatorColor,
+  resolveTheme,
   setCoopFilter,
+  setMusicVolume,
   setRuleValue,
+  setThemePreference,
   setUserRoleFilter,
   setUserSearch,
   summarize,
@@ -24,6 +29,7 @@ import {
   toggleDeviceState,
   toggleRule,
   toggleUserActive,
+  unreadNotificationCount,
   updateUser,
 } from '../src/admin/state.mjs';
 
@@ -217,11 +223,66 @@ test('aktuator tak dikenal ditolak', () => {
   assert.throws(() => toggleActuator(createAdminState(), 'kamera'), /Aktuator tidak dikenal/);
 });
 
-test('warna lampu aktuator memakai whitelist yang sama dengan aturan', () => {
+test('lampu memakai mode tetap seperti panel pengguna (tidak bisa pilih warna)', () => {
   const base = createAdminState();
-  assert.equal(setActuatorColor(base, 'red').actuators.lighting.color, 'red');
-  assert.equal(setActuatorColor(base, 'warm-white').actuators.lighting.color, 'warm-white');
-  assert.throws(() => setActuatorColor(base, 'biru'), /tidak didukung/);
+  assert.equal(base.actuators.lighting.mode, 'red-and-warm-white');
+  // tidak ada lagi field warna yang bisa diubah dari admin
+  assert.equal('color' in base.actuators.lighting, false);
+});
+
+test('volume musik memvalidasi angka bulat 0-100', () => {
+  const base = createAdminState();
+  assert.equal(base.actuators.music.volume, 45);
+  assert.equal(setMusicVolume(base, 70).actuators.music.volume, 70);
+  assert.equal(setMusicVolume(base, '30').actuators.music.volume, 30);
+  assert.equal(setMusicVolume(base, 0).actuators.music.volume, 0);
+  assert.equal(setMusicVolume(base, 100).actuators.music.volume, 100);
+  assert.throws(() => setMusicVolume(base, 101), /antara 0 dan 100/);
+  assert.throws(() => setMusicVolume(base, -1), /antara 0 dan 100/);
+  assert.throws(() => setMusicVolume(base, 45.5), /angka bulat/);
+  assert.throws(() => setMusicVolume(base, 'abc'), /angka bulat/);
+});
+
+test('notifikasi admin mencerminkan data pengguna dan bisa ditandai', () => {
+  const base = createAdminState();
+  assert.equal(base.notifications.length, 3);
+  assert.equal(unreadNotificationCount(base), 2);
+
+  const one = markNotificationRead(base, 'notice-1');
+  assert.equal(unreadNotificationCount(one), 1);
+  assert.equal(one.notifications.find((n) => n.id === 'notice-1').read, true);
+
+  const all = markAllNotificationsRead(base);
+  assert.equal(unreadNotificationCount(all), 0);
+  assert.equal(all.notifications.every((n) => n.read), true);
+
+  assert.throws(() => markNotificationRead(base, 'tidak-ada'), /Notifikasi tidak dikenal/);
+});
+
+test('tema otomatis mengikuti siklus siang/sore/malam seperti pengguna', () => {
+  const siang = getTimeTheme(new Date(2026, 0, 1, 10, 0), 'auto');
+  assert.equal(siang.period, 'siang');
+  assert.equal(siang.colorMode, 'light');
+
+  const sore = getTimeTheme(new Date(2026, 0, 1, 18, 0), 'auto');
+  assert.equal(sore.period, 'sore');
+  assert.equal(sore.colorMode, 'light');
+
+  const malam = getTimeTheme(new Date(2026, 0, 1, 22, 0), 'auto');
+  assert.equal(malam.period, 'malam');
+  assert.equal(malam.colorMode, 'dark');
+});
+
+test('preferensi tema otomatis/manual menentukan tema efektif', () => {
+  const base = createAdminState();
+  assert.equal(base.themePreference, 'manual');
+  assert.equal(resolveTheme(base), 'aurora', 'manual harus pakai tema tersimpan');
+
+  const auto = setThemePreference(base, 'auto');
+  assert.equal(resolveTheme(auto, new Date(2026, 0, 1, 22, 0)), 'night');
+  assert.equal(resolveTheme(auto, new Date(2026, 0, 1, 10, 0)), 'aurora');
+
+  assert.throws(() => setThemePreference(base, 'kadang'), /Preferensi tema tidak dikenal/);
 });
 
 test('matikan semua aktuator mematikan ketiganya sekaligus', () => {

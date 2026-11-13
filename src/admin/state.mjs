@@ -1,4 +1,4 @@
-const ADMIN_PAGES = new Set(['dashboard', 'users', 'coops', 'control', 'rules', 'cameras', 'logs', 'settings']);
+const ADMIN_PAGES = new Set(['dashboard', 'users', 'coops', 'control', 'notifications', 'rules', 'cameras', 'logs', 'settings']);
 const ROLES = new Set(['admin', 'pengguna']);
 const LIGHT_COLORS = new Set(['red', 'warm-white']);
 const DEVICE_STATES = new Set(['online', 'offline', 'warning']);
@@ -36,6 +36,12 @@ const SEED_ALERTS = [
   { id: 'al-3', level: 'info', title: 'Firmware usang', detail: 'Sensor Berat Load Cell masih v1.1.4, tersedia v1.2.0.', coopId: 'coop-1', time: '09:40', acknowledged: false, simulated: true },
 ];
 
+const SEED_NOTIFICATIONS = [
+  { id: 'notice-1', title: 'Tempat pakan', message: 'Pakan tersedia.', time: '08:13', read: false, kind: 'feed', simulated: true },
+  { id: 'notice-2', title: 'Kondisi kandang', message: 'Suhu 28.4 °C, kelembapan 67%.', time: '08:20', read: false, kind: 'sensor', simulated: true },
+  { id: 'notice-3', title: 'Lampu kandang', message: 'Lampu dalam keadaan mati.', time: '07:55', read: true, kind: 'control', simulated: true },
+];
+
 const SEED_AUDIT = [
   { id: 'au-1', actor: 'Dalfa Pratama', action: 'Mengubah ambang suhu', target: 'Kandang Utama', time: '10:05', simulated: true },
   { id: 'au-2', actor: 'Dalfa Pratama', action: 'Menonaktifkan pengguna', target: 'Sari Wulandari', time: '09:31', simulated: true },
@@ -66,10 +72,12 @@ export function createAdminState() {
     ui: { userSearch: '', userRole: 'all', coopFilter: 'all', modal: null },
     actuators: {
       waterValve: { on: false, flowLpm: 0 },
-      lighting: { on: false, color: 'warm-white' },
-      music: { on: false, track: 'Klasik' },
+      lighting: { on: false, mode: 'red-and-warm-white' },
+      music: { on: false, track: 'Klasik', volume: 45 },
     },
+    notifications: SEED_NOTIFICATIONS.map((item) => ({ ...item })),
     theme: 'aurora',
+    themePreference: 'manual',
     nextUserId: 5,
     nextAuditId: 5,
   };
@@ -301,13 +309,15 @@ export function toggleActuator(state, key) {
   return logAudit(next, on ? 'Menyalakan aktuator' : 'Mematikan aktuator', detail);
 }
 
-export function setActuatorColor(state, color) {
-  if (!LIGHT_COLORS.has(color)) throw new Error(`Warna lampu tidak didukung: ${color}`);
+export function setMusicVolume(state, value) {
+  const volume = typeof value === 'number' ? value : Number(String(value ?? '').trim());
+  if (!Number.isFinite(volume) || !Number.isInteger(volume)) throw new Error('Volume harus berupa angka bulat');
+  if (volume < 0 || volume > 100) throw new Error('Volume harus antara 0 dan 100');
   const next = {
     ...state,
-    actuators: { ...state.actuators, lighting: { ...state.actuators.lighting, color } },
+    actuators: { ...state.actuators, music: { ...state.actuators.music, volume } },
   };
-  return logAudit(next, 'Mengubah warna lampu', color === 'red' ? 'Merah' : 'Warm white');
+  return logAudit(next, 'Mengubah volume musik', `${volume}%`);
 }
 
 export function allActuatorsOff(state) {
@@ -324,6 +334,55 @@ export function allActuatorsOff(state) {
 
 export function countActiveActuators(state) {
   return Object.values(state.actuators).filter((a) => a.on).length;
+}
+
+/* ---------- notifikasi (mencerminkan panel pengguna) ---------- */
+
+export function unreadNotificationCount(state) {
+  return state.notifications.reduce((n, item) => n + Number(!item.read), 0);
+}
+
+export function markNotificationRead(state, id) {
+  const exists = state.notifications.some((item) => item.id === id);
+  if (!exists) throw new Error(`Notifikasi tidak dikenal: ${id}`);
+  const next = {
+    ...state,
+    notifications: state.notifications.map((item) => (item.id === id ? { ...item, read: true } : item)),
+  };
+  return logAudit(next, 'Menandai notifikasi dibaca', id);
+}
+
+export function markAllNotificationsRead(state) {
+  const next = {
+    ...state,
+    notifications: state.notifications.map((item) => ({ ...item, read: true })),
+  };
+  return logAudit(next, 'Menandai semua notifikasi dibaca', `${state.notifications.length} notifikasi`);
+}
+
+/* ---------- tema otomatis (siklus siang/sore/malam seperti pengguna) ---------- */
+
+export function getTimeTheme(date = new Date(), preference = 'auto') {
+  const hour = date.getHours();
+  const period = hour >= 6 && hour < 17 ? 'siang' : hour >= 17 && hour < 20 ? 'sore' : 'malam';
+  const pref = preference === 'light' || preference === 'dark' ? preference : 'auto';
+  const colorMode = pref === 'auto' ? (period === 'malam' ? 'dark' : 'light') : pref;
+  return {
+    period,
+    periodLabel: { siang: 'Siang', sore: 'Sore', malam: 'Malam' }[period],
+    colorMode,
+  };
+}
+
+export function resolveTheme(state, date = new Date()) {
+  if (state.themePreference === 'manual') return state.theme;
+  const { colorMode } = getTimeTheme(date, 'auto');
+  return colorMode === 'dark' ? 'night' : 'aurora';
+}
+
+export function setThemePreference(state, preference) {
+  if (!['auto', 'manual'].includes(preference)) throw new Error(`Preferensi tema tidak dikenal: ${preference}`);
+  return { ...state, themePreference: preference };
 }
 
 export { ACTUATORS };
