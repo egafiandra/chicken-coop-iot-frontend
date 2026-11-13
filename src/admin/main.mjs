@@ -30,12 +30,14 @@ import {
   toggleUserActive,
   unreadNotificationCount,
   updateUser,
-} from './state.mjs?v=20261136';
+} from './state.mjs?v=20261139';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
 let state = createAdminState();
 let formError = null;
+// Sidebar: ciut/lebar dikendalikan tombol, bukan hover. Default ciut di desktop.
+let railExpanded = false;
 
 /* ---------- ikon ---------- */
 
@@ -68,6 +70,8 @@ const P = {
   light: '<path d="M9.4 18.2h5.2M10.4 20.8h3.2M8.6 14.6a6.6 6.6 0 1 1 6.8 0c-.9.7-1.2 1.4-1.4 2.4h-4c-.2-1-.5-1.7-1.4-2.4Z"/>',
   music: '<path d="M9.4 17.6V5.2l11-2v12"/><circle cx="6.6" cy="17.8" r="2.8"/><circle cx="17.6" cy="15.6" r="2.8"/>',
   power: '<path d="M12 3v9"/><path d="M6.4 6.4a8 8 0 1 0 11.2 0"/>',
+  'chevron-l': '<path d="M14.5 6 8.5 12l6 6"/>',
+  'chevron-r': '<path d="M9.5 6l6 6-6 6"/>',
 };
 
 const TYPE_ICON = { esp: 'chip', sensor: 'activity', actuator: 'sliders', camera: 'camera' };
@@ -665,12 +669,15 @@ function renderApp() {
 
   app.innerHTML = `<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
-  <div class="shell">
+  <div class="shell${railExpanded ? ' rail-open' : ''}">
     <aside class="rail" id="nav" aria-label="Navigasi admin">
       <a class="rail-logo" href="#/dashboard" data-page="dashboard" aria-label="Kandang admin, ke dashboard">
         <span class="rail-mark">${icon('coop')}</span>
         <span class="rail-word"><b>Kandang</b><span>Panel admin</span></span>
       </a>
+      <button class="rail-toggle" type="button" data-rail-toggle aria-controls="nav" aria-expanded="${railExpanded}" aria-label="${railExpanded ? 'Ciutkan sidebar' : 'Lebarkan sidebar'}" title="${railExpanded ? 'Ciutkan sidebar' : 'Lebarkan sidebar'}">
+        ${icon(railExpanded ? 'chevron-l' : 'chevron-r')}
+      </button>
       <nav class="rail-nav">
         ${NAV.slice(0, 4).map((i) => railItem(i, id)).join('')}
         <span class="rail-sep" aria-hidden="true"></span>
@@ -751,6 +758,13 @@ function act(fn, msg) {
 app.addEventListener('click', (e) => {
   const t = e.target;
 
+  if (t.closest('[data-rail-toggle]')) {
+    railExpanded = !railExpanded;
+    paint();
+    // fokus kembali ke tombol setelah re-render
+    app.querySelector('[data-rail-toggle]')?.focus({ preventScroll: true });
+    return;
+  }
   if (t.closest('[data-menu-toggle]')) {
     app.classList.toggle('nav-open');
     app.querySelector('[data-menu-toggle]')?.setAttribute('aria-expanded', String(app.classList.contains('nav-open')));

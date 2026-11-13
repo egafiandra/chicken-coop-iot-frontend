@@ -237,11 +237,40 @@ h1, h2, h3, p { margin: 0; }
   transition: width 260ms var(--ease), box-shadow 260ms var(--ease);
 }
 
-.rail:hover,
-.rail:focus-within {
+/* Sidebar melebar HANYA lewat tombol (bukan hover), supaya tidak
+   menggeser konten saat kursor lewat. */
+.shell.rail-open .rail {
   width: var(--rail-w-open);
   box-shadow: var(--sh-md);
 }
+.shell.rail-open .rail-word,
+.shell.rail-open .rail-label,
+.shell.rail-open .rail-user-copy { opacity: 1; transform: none; }
+
+.rail-toggle {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin: 6px 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--ink-3);
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: color 180ms var(--ease), background-color 180ms var(--ease),
+              border-color 180ms var(--ease), transform 180ms var(--ease);
+}
+.rail-toggle .icon { width: 15px; height: 15px; }
+.rail-toggle:hover {
+  color: var(--violet);
+  border-color: color-mix(in srgb, var(--violet) 32%, var(--line));
+  background: var(--violet-tint);
+  transform: scale(1.06);
+}
+.rail-toggle:active { transform: scale(.96); }
+/* saat ciut, tombol sejajar ikon di tengah */
+.shell:not(.rail-open) .rail-toggle { align-self: center; }
 
 .rail-logo {
   display: flex;
@@ -276,8 +305,6 @@ h1, h2, h3, p { margin: 0; }
   transform: translateX(-6px);
   transition: opacity 200ms var(--ease) 40ms, transform 200ms var(--ease) 40ms;
 }
-.rail:hover .rail-word,
-.rail:focus-within .rail-word { opacity: 1; transform: none; }
 
 .rail-word b {
   color: var(--ink);
@@ -349,8 +376,6 @@ h1, h2, h3, p { margin: 0; }
   transform: translateX(-6px);
   transition: opacity 180ms var(--ease) 30ms, transform 180ms var(--ease) 30ms;
 }
-.rail:hover .rail-label,
-.rail:focus-within .rail-label { opacity: 1; transform: none; }
 
 .rail-item.is-active {
   color: var(--violet);
@@ -418,8 +443,6 @@ h1, h2, h3, p { margin: 0; }
   opacity: 0;
   transition: opacity 180ms var(--ease) 40ms;
 }
-.rail:hover .rail-user-copy,
-.rail:focus-within .rail-user-copy { opacity: 1; }
 .rail-user-copy strong {
   overflow: hidden;
   color: var(--ink);
@@ -1462,25 +1485,6 @@ h1, h2, h3, p { margin: 0; }
 .act-summary-copy strong { display: block; color: var(--ink); font-size: 19px; font-weight: 750; letter-spacing: -.5px; }
 .act-summary-copy p { margin-top: 4px; color: var(--ink-3); font-size: 11px; line-height: 1.55; }
 
-.color-choice { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; border: 0; }
-.color-choice legend { width: 100%; margin-bottom: 7px; color: var(--ink-3); font-size: 10px; font-weight: 650; }
-.color-option {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 34px;
-  padding: 0 11px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  color: var(--ink-2);
-  background: var(--surface-2);
-  font-size: 11px;
-  cursor: pointer;
-  transition: border-color 180ms var(--ease), background-color 180ms var(--ease);
-}
-.color-option:hover { border-color: var(--line-strong); }
-.color-option:has(input:checked) { border-color: var(--violet); background: var(--violet-tint); font-weight: 680; }
-.color-option input { width: 13px; height: 13px; accent-color: var(--violet); }
 .act-locked {
   display: flex;
   align-items: center;
@@ -1884,68 +1888,118 @@ h1, h2, h3, p { margin: 0; }
 @media (max-width: 900px) {
   .menu-btn { display: grid; }
 
-  .rail,
-  .rail:hover,
-  .rail:focus-within {
+  /* HP/tablet kecil: sidebar jadi drawer. Tombol ciut/lebar diganti
+     hamburger karena drawer selalu menampilkan teks. */
+  .rail {
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
-    width: min(84vw, 292px);
+    width: min(86vw, 300px);
     height: 100vh;
     height: 100dvh;
-    padding: 18px 14px;
+    padding: 16px 12px;
     transform: translateX(-103%);
     transition: transform 240ms var(--ease);
     box-shadow: none;
+    z-index: 60;
   }
-  #app.nav-open .rail,
-  #app.nav-open .rail:hover,
-  #app.nav-open .rail:focus-within {
-    width: min(84vw, 292px);
+  /* buka drawer lewat hamburger; state rail-open desktop diabaikan */
+  #app.nav-open .rail {
+    width: min(86vw, 300px);
     transform: translateX(0);
     box-shadow: var(--sh-lg);
   }
+  .shell.rail-open .rail { width: min(86vw, 300px); }
 
-  /* label selalu tampil di dalam drawer mobile */
+  /* di dalam drawer label selalu tampil */
   #app.nav-open .rail-word,
   #app.nav-open .rail-label,
-  #app.nav-open .rail-user-copy { opacity: 1; transform: none; }
+  #app.nav-open .rail-user-copy,
+  .shell.rail-open .rail-word,
+  .shell.rail-open .rail-label,
+  .shell.rail-open .rail-user-copy { opacity: 1; transform: none; }
+
+  /* tombol ciut/lebar tidak relevan di drawer */
+  .rail-toggle { display: none; }
 
   .rail-item { flex: 0 0 auto; height: 46px; }
   .rail-nav { overflow-y: auto; }
+
+  /* semua menu harus muat tanpa scroll di layar HP */
+  .rail { padding: 12px 10px; }
+  .rail-logo { height: 38px; margin-bottom: 4px; }
+  .rail-nav { gap: 1px; }
+  .rail-item { height: 42px; padding: 0 10px; }
+  .rail-sep { margin: 5px 0; }
+  .rail-foot { gap: 1px; padding-top: 6px; }
+  .rail-user { padding: 8px; margin-top: 4px; }
 
   .scrim { display: block; }
   #app.nav-open .scrim { opacity: 1; pointer-events: auto; }
 
   .pill-sim { display: none; }
-  .topbar { height: 62px; padding: 0 16px; }
+  .topbar { height: 58px; padding: 0 14px; }
   .canvas { padding-bottom: 48px; }
-
-  .gate-options { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
   .kpi-grid, .coop-grid, .act-grid { grid-template-columns: 1fr; }
   .form-grid, .rule-fields { grid-template-columns: 1fr; }
-  .hero { padding: 24px 20px; border-radius: var(--r-xl); }
-  .hero h1 { font-size: 24px; letter-spacing: -1px; }
+  .hero { padding: 22px 18px; border-radius: var(--r-xl); gap: 18px; }
+  .hero h1 { font-size: 23px; letter-spacing: -1px; line-height: 1.15; }
   .hero-stats { display: grid; grid-template-columns: 1fr; gap: 8px; }
   .hero-stat { justify-content: space-between; }
-  .card { padding: 17px; border-radius: var(--r-lg); }
-  .card-pad { padding: 17px 17px 0; }
-  .card-pad-x { padding: 0 17px; }
-  .tbl thead th, .tbl tbody td { padding: 10px; }
+  .card { padding: 15px; border-radius: var(--r-lg); }
+  .card-pad { padding: 15px 15px 0; }
+  .card-pad-x { padding: 0 15px; }
+  .card-head { gap: 10px; flex-wrap: wrap; }
+  .card-head h2 { font-size: 13px; }
+
+  /* tabel: beri scroll horizontal, jangan perkecil font sampai tak terbaca */
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tbl { min-width: 560px; }
+  .tbl thead th, .tbl tbody td { padding: 10px 12px; }
   .tbl thead th:first-child, .tbl tbody td:first-child { padding-left: 15px; }
   .tbl thead th:last-child, .tbl tbody td:last-child { padding-right: 15px; }
-  .toolbar { align-items: stretch; }
+
+  .toolbar { align-items: stretch; flex-direction: column; gap: 9px; }
   .search { max-width: none; }
-  .modal { padding: 19px; border-radius: var(--r-xl); }
-  .toast { right: 12px; bottom: 12px; }
+  .segmented { width: 100%; }
+  .segmented button { flex: 1; min-height: 36px; }
+
+  .modal { padding: 18px; border-radius: var(--r-xl); max-height: 92dvh; overflow-y: auto; }
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions .btn { width: 100%; }
+  .toast { right: 12px; left: 12px; bottom: 12px; }
+
   .tl-row { grid-template-columns: 15px minmax(0, 1fr); }
   .tl-row time { grid-column: 2; }
-  .kpi-value { font-size: 28px; }
-  .page-head h1 { font-size: 22px; }
+  .kpi-value { font-size: 26px; }
+  .page-head h1 { font-size: 21px; }
+  .page-head { gap: 10px; }
+
+  .act-summary { flex-direction: column; align-items: stretch; }
+  .act-summary .btn { width: 100%; }
+  .notif-row { grid-template-columns: auto minmax(0, 1fr); }
+  .notif-row > .chip, .notif-row > .btn { grid-column: 2; justify-self: start; }
+}
+
+/* HP kecil: rapatkan lagi, pastikan tak ada teks terpotong */
+@media (max-width: 420px) {
+  .canvas { padding-left: 12px; padding-right: 12px; }
+  .topbar { height: 54px; padding: 0 12px; gap: 8px; }
+  .hero { padding: 18px 15px; }
+  .hero h1 { font-size: 20px; }
+  .hero-stat { font-size: 10px; padding: 6px 10px; }
+  .kpi-value { font-size: 24px; }
+  .card { padding: 13px; }
+  .card-head h2 { font-size: 12.5px; }
+  .page-head h1 { font-size: 19px; }
+  .rail { width: min(90vw, 280px); }
+  #app.nav-open .rail { width: min(90vw, 280px); }
+  .btn { min-height: 40px; }
+  .rail-item { height: 44px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
