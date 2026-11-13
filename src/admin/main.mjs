@@ -30,7 +30,7 @@ import {
   toggleUserActive,
   unreadNotificationCount,
   updateUser,
-} from './state.mjs?v=20261147';
+} from './state.mjs?v=20261153';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
@@ -265,6 +265,9 @@ function renderDashboard() {
           <div class="audit-stat"><b>${state.auditLog.length}</b><span>total catatan</span></div>
           <div class="audit-stat"><b>${new Set(state.auditLog.map((e) => e.actor)).size}</b><span>aktor berbeda</span></div>
           <div class="audit-stat"><b>${Object.values(state.rules).filter((r) => r.enabled).length}/${Object.keys(state.rules).length}</b><span>aturan aktif</span></div>
+          <div class="audit-stat"><b>${state.auditLog.filter((e) => e.time >= '09:00').length}</b><span>catatan hari ini</span></div>
+          <div class="audit-stat"><b>${state.auditLog[0]?.time ?? '—'}</b><span>terakhir tercatat</span></div>
+          <div class="audit-stat"><b>${state.auditLog.filter((e) => e.actor === 'Sistem').length}</b><span>oleh sistem</span></div>
         </div>
       </div>
     </section>
