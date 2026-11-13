@@ -30,7 +30,7 @@ import {
   toggleUserActive,
   unreadNotificationCount,
   updateUser,
-} from './state.mjs?v=20261132';
+} from './state.mjs?v=20261134';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
@@ -146,37 +146,7 @@ function ring(online, warning, offline, size = 104) {
   </div>`;
 }
 
-/* ---------- gerbang ---------- */
-
-function renderGate() {
-  app.innerHTML = `<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
-  <div class="gate">
-    <div class="gate-card">
-      <div class="gate-top">
-        <span class="rail-mark">${icon('coop')}</span>
-        <span class="rail-word"><b>Kandang</b><span>Panel administrasi</span></span>
-      </div>
-      <h1>Kelola kandang <em>tanpa ribet.</em></h1>
-      <p class="gate-lede">Satu tempat untuk mengatur pengguna, memantau perangkat, dan menyetel aturan otomasi yang dibaca panel monitoring.</p>
-      <div class="gate-options">
-        <button class="gate-option" type="button" data-action="enter-admin">
-          <span class="gate-option-top"><span class="gate-option-ico">${icon('shield')}</span><span class="tag tag--admin">Admin</span></span>
-          <strong>Masuk sebagai Admin</strong>
-          <p>Kelola pengguna, kandang, perangkat, dan aturan otomasi.</p>
-          <span class="gate-go">Buka panel ${icon('arrow')}</span>
-        </button>
-        <a class="gate-option" href="./index.html#/home">
-          <span class="gate-option-top"><span class="gate-option-ico">${icon('activity')}</span><span class="tag tag--user">Pengguna</span></span>
-          <strong>Buka panel Pengguna</strong>
-          <p>Monitoring kandang, kontrol IoT, kamera, dan riwayat.</p>
-          <span class="gate-go">Monitoring ${icon('arrow')}</span>
-        </a>
-      </div>
-      <div class="gate-foot">${icon('info')}<span>Mode simulasi. Semua data adalah contoh yang ditandai simulasi — belum ada autentikasi, backend, atau koneksi perangkat nyata.</span></div>
-    </div>
-  </div>`;
-  app.querySelector('[data-action="enter-admin"]')?.focus();
-}
+/* ---------- gerbang (tidak dipakai lagi) ---------- */
 
 /* ---------- dashboard ---------- */
 
@@ -689,8 +659,6 @@ function renderApp() {
   const effectiveTheme = resolveTheme(state);
   document.documentElement.dataset.theme = effectiveTheme;
 
-  if (!state.session) { renderGate(); return; }
-
   const id = cur();
   const page = NAV.find((p) => p.id === id) || NAV[0];
   const dark = effectiveTheme === 'night';
@@ -795,15 +763,9 @@ app.addEventListener('click', (e) => {
   }
   if (t.closest('[data-page]')) { app.classList.remove('nav-open'); return; }
 
-  if (t.closest('[data-action="enter-admin"]')) {
-    state = enterAsAdmin(state);
-    if (!window.location.hash) window.location.hash = '#/dashboard';
-    renderApp();
-    return;
-  }
   if (t.closest('[data-action="exit"]')) {
     state = exitSession(state);
-    renderGate();
+    window.location.href = './index.html#/login';
     return;
   }
   if (t.closest('[data-action="toggle-theme"]')) {
@@ -958,6 +920,10 @@ app.addEventListener('keydown', (e) => {
     app.querySelector('[data-menu-toggle]')?.focus();
   }
 });
+
+// Panel admin dibuka langsung tanpa gerbang pilih peran.
+// Pintu masuk demo ada di halaman login pengguna (index.html).
+state = enterAsAdmin(state);
 
 let skipFocus = !window.location.hash;
 window.addEventListener('hashchange', () => {

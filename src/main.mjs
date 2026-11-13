@@ -10,13 +10,13 @@ import {
   toggleControl,
   unreadCount,
   updateProfile,
-} from './state.mjs?v=user-app-37';
-import { getDemoLoginStatus, isValidDemoEmail } from './auth-demo.mjs?v=user-app-37';
-import { createAccountSession, navigateToAppRoute, resetDemoAccountSession, startDemoPreview, validateSignupInput } from './auth-flow.mjs?v=user-app-37';
-import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user-app-37';
-import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-37';
-import { renderMonitorDashboard } from './monitor-dashboard.mjs?v=user-app-37';
-import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-37';
+} from './state.mjs?v=user-app-39';
+import { getDemoLoginStatus, isValidDemoEmail } from './auth-demo.mjs?v=user-app-39';
+import { createAccountSession, navigateToAppRoute, resetDemoAccountSession, startDemoPreview, validateSignupInput } from './auth-flow.mjs?v=user-app-39';
+import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user-app-39';
+import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-39';
+import { renderMonitorDashboard } from './monitor-dashboard.mjs?v=user-app-39';
+import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-39';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
@@ -294,7 +294,7 @@ function renderDemoCryptoNotice() {
 
 function renderLogin() {
   return `<main class="login-screen"><section class="login-brand-panel"><div class="login-brand-top"><a class="brand-name" href="#/login">Smart Poultry</a><span class="demo-badge" aria-label="Mode demo">DEMO</span></div><div class="login-brand-copy"><p class="eyebrow">Monitoring kandang</p><h1>Pantau kandang ayam dari satu layar.</h1><p>Kondisi udara, pakan, air, pencahayaan, dan kamera kandang.</p></div><div class="login-flock"><strong>12</strong><span>ekor, rencana awal</span></div></section>
-    <section class="login-form-panel"><div class="login-card"><span class="login-mark">${icon('user')}</span><p class="eyebrow">Akun pengguna</p><h2>Masuk</h2><p class="login-intro">Masukkan email dan kata sandi akun pengguna.</p><form id="login-form" novalidate><div class="form-field"><label for="login-email">Email</label><input id="login-email" name="email" type="email" autocomplete="username" required placeholder="nama@email.com"></div><div class="form-field"><label for="login-password">Kata sandi</label><input id="login-password" name="password" type="password" autocomplete="current-password" minlength="8" required placeholder="Masukkan kata sandi"></div><p id="login-message" class="form-message" role="status" aria-live="polite"></p><button class="primary-button" type="submit">Masuk ke kandang</button></form>${renderDemoCryptoNotice()}<p class="login-footnote">Belum punya akun? <a href="#/signup" data-page="signup">Buat akun</a></p><button class="secondary-button demo-preview-button" type="button" data-action="demo-preview">Masuk sebagai pengguna demo</button></div></section>
+    <section class="login-form-panel"><div class="login-card"><span class="login-mark">${icon('user')}</span><p class="eyebrow">Akun pengguna</p><h2>Masuk</h2><p class="login-intro">Masukkan email dan kata sandi akun pengguna.</p><form id="login-form" novalidate><div class="form-field"><label for="login-email">Email</label><input id="login-email" name="email" type="email" autocomplete="username" required placeholder="nama@email.com"></div><div class="form-field"><label for="login-password">Kata sandi</label><input id="login-password" name="password" type="password" autocomplete="current-password" minlength="8" required placeholder="Masukkan kata sandi"></div><p id="login-message" class="form-message" role="status" aria-live="polite"></p><button class="primary-button" type="submit">Masuk ke kandang</button></form>${renderDemoCryptoNotice()}<p class="login-footnote">Belum punya akun? <a href="#/signup" data-page="signup">Buat akun</a></p><button class="secondary-button demo-preview-button" type="button" data-action="demo-preview">Masuk sebagai pengguna demo</button><a class="secondary-button demo-preview-button" href="./admin.html" data-admin-demo>Masuk sebagai admin demo</a></div></section>
   </main><div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 }
 
