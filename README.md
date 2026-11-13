@@ -1,36 +1,36 @@
-# Monitoring Kandang Ayam
+# Smart Poultry
 
-Pratinjau front-end mandiri untuk aplikasi monitoring dan kontrol kandang. Project ini belum terhubung ke backend, kamera, sensor, atau ESP.
+Front-end aplikasi kandang untuk pengguna. Project berdiri sendiri, belum tersambung ke backend, kamera, sensor, atau ESP.
 
 Lokasi: `C:\Users\ega\chicken-coop-iot-frontend`
 
 ## Jalankan lokal
 
-Dari folder project, jalankan:
+Dari folder project:
 
 ```text
-python -m http.server 4173 --bind 127.0.0.1
+python -m http.server 4174 --bind 127.0.0.1
 ```
 
-Lalu buka `http://127.0.0.1:4173`.
+Buka `http://127.0.0.1:4174`.
 
-## Uji state pratinjau
+## Fitur front-end
+
+- Login dan pembuatan akun pengguna tersedia di front-end. Tidak ada email/kata sandi bawaan. Akun demo tersimpan lokal; jika Web Crypto tersedia, kredensial memakai hash PBKDF2. Pada koneksi tanpa Web Crypto, kata sandi tidak diverifikasi. Tombol pratinjau demo membuka aplikasi tanpa kredensial. Bukan autentikasi produksi.
+- Beranda memakai foto ayam yang dilisensikan CC0, serta ringkasan suhu, kelembapan, pakan, valve air, dan jumlah ayam.
+- Kontrol buka/tutup valve, lampu dengan mode tetap merah + warm white, dan musik klasik.
+- Pengaturan volume musik melalui input angka.
+- Halaman Kontrol dan Kamera memakai foto Stitch lokal; Kamera tetap berstatus belum terhubung. Tanpa YOLO.
+- Notifikasi dengan aksi tandai dibaca dan profil pengguna yang bisa diperbarui.
+- Navigasi bawah pada ponsel, navigasi samping pada layar lebar.
+- Jam lokal 24 jam diperbarui berkala. Tema otomatis mengikuti Siang/Sore/Malam; pilihan Terang/Gelap manual dan preferensi tersimpan lokal.
+
+Jumlah awal 12 ekor dan angka contoh untuk suhu, kelembapan, serta notifikasi tersedia agar tampilan dapat dicoba. Badge DEMO menandai data tersebut.
+
+## Uji
 
 ```text
-node --test tests/state.test.mjs
+node --test tests/*.test.mjs
 ```
 
-## Isi prototipe
-
-- Ringkasan kandang dengan jumlah awal 12 ekor sesuai brief.
-- Monitoring suhu, kelembapan, status pakan, debit air, dan perubahan berat dengan nilai fixture yang ditandai data simulasi.
-- Grafik tren suhu/kelembapan, daftar event kamera demo, status trigger lokal, dan riwayat yang bisa difilter.
-- Kontrol valve, pakan tersedia/habis, lampu merah/warm white, dan musik klasik. Tombol toggle menampilkan status aktif yang terlihat dan dapat dibaca assistive tech; semua aksi hanya memperbarui state lokal dan log demo.
-- Tombol reset mengembalikan skenario awal. Tidak ada perintah yang dikirim ke ESP atau perangkat nyata.
-- Tampilan kamera tetap placeholder, bukan video atau gambar palsu.
-- Loading dan error state pratinjau dapat dilihat dengan `?preview=loading` atau `?preview=error`.
-- Layout desktop dan mobile, navigasi keyboard, serta status koneksi yang jujur.
-
-Detail yang masih menunggu spesifikasi: jenis sensor pakan/air, unit dan posisi sensor berat, target YOLO, cara trigger ESP, threshold, serta format data backend.
-
-`DESIGN.md` mencatat arah visual dan batasan prototipe. Repo AquSmartPonik hanya dijadikan referensi pola dashboard; file repo tersebut tidak digunakan atau diubah.
+Detail backend dan koneksi perangkat dapat ditambahkan setelah spesifikasi sistem IoT diterima. Repo AquSmartPonik hanya menjadi referensi tampilan dan tidak diubah.

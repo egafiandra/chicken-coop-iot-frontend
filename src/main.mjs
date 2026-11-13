@@ -1,28 +1,43 @@
 import {
-  addSimulatedDetection,
-  addSimulatedEggEvent,
-  filterEvents,
   createInitialState,
+  getHomeDashboardModel,
+  loginUser,
+  logoutUser,
+  markAllNotificationsRead,
+  markNotificationRead,
   normalizePage,
-  resetDemo,
-  setHistoryFilter,
-  setLightColor,
-  simulateEspTrigger,
+  setMusicVolume,
   toggleControl,
-  toggleFeedScenario,
-} from './state.mjs';
+  unreadCount,
+  updateProfile,
+} from './state.mjs?v=user-app-37';
+import { getDemoLoginStatus, isValidDemoEmail } from './auth-demo.mjs?v=user-app-37';
+import { createAccountSession, navigateToAppRoute, resetDemoAccountSession, startDemoPreview, validateSignupInput } from './auth-flow.mjs?v=user-app-37';
+import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user-app-37';
+import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-37';
+import { renderMonitorDashboard } from './monitor-dashboard.mjs?v=user-app-37';
+import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-37';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
+const ACCOUNT_STORAGE_KEY = 'kandang-user-accounts-v1';
+const persistentAccountStorage = getBrowserStorage('localStorage');
+const legacyAccountStorage = getBrowserStorage('sessionStorage');
 let state = createInitialState();
+let accounts = loadDemoAccounts(persistentAccountStorage, {
+  legacyStorage: legacyAccountStorage,
+  legacyKey: ACCOUNT_STORAGE_KEY,
+});
+const THEME_PREFERENCE_STORAGE_KEY = 'smart-poultry-theme-preference-v1';
+let themePreference = readSavedThemePreference();
 
 const pages = [
-  { id: 'home', label: 'Ringkasan', icon: 'home', title: 'Ringkasan kandang', subtitle: 'Awal pemantauan untuk kandang ayam.' },
-  { id: 'monitor', label: 'Monitoring', icon: 'activity', title: 'Monitoring kandang', subtitle: 'Pembacaan udara, pakan, air, dan sensor berat.' },
-  { id: 'controls', label: 'Kontrol IoT', icon: 'sliders', title: 'Kontrol kandang', subtitle: 'Atur valve air, lampu, dan musik.' },
-  { id: 'camera', label: 'Kamera dan YOLO', icon: 'camera', title: 'Kamera dan deteksi', subtitle: 'Area kamera dan catatan hasil deteksi.' },
-  { id: 'eggs', label: 'Telur dan berat', icon: 'egg', title: 'Telur dan sensor berat', subtitle: 'Indikator berat dan catatan kejadian telur.' },
-  { id: 'history', label: 'Riwayat', icon: 'history', title: 'Riwayat aktivitas', subtitle: 'Pembacaan dan aktivitas setelah perangkat terhubung.' },
+  { id: 'home', label: 'Beranda', mobileLabel: 'Home', icon: 'home', title: 'Ringkasan kandang', subtitle: 'Kondisi ayam dan perangkat.' },
+  { id: 'monitor', label: 'Monitoring', mobileLabel: 'Pantau', icon: 'activity', title: 'Monitoring', subtitle: 'Udara, pakan, air, dan lampu.' },
+  { id: 'controls', label: 'Kontrol', mobileLabel: 'Kontrol', icon: 'sliders', title: 'Kontrol kandang', subtitle: 'Valve air, lampu, dan musik.' },
+  { id: 'camera', label: 'Kamera', mobileLabel: 'Kamera', icon: 'camera', title: 'Kamera kandang', subtitle: 'Pratinjau area kandang.' },
+  { id: 'notifications', label: 'Notifikasi', mobileLabel: 'Notif.', icon: 'bell', title: 'Notifikasi', subtitle: 'Pemberitahuan kandang.' },
+  { id: 'profile', label: 'Profil', mobileLabel: 'Profil', icon: 'user', title: 'Profil pengguna', subtitle: 'Informasi akun pengguna.' },
 ];
 
 const iconPaths = {
@@ -30,19 +45,17 @@ const iconPaths = {
   activity: '<path d="M3 12h4l3-7 4 14 3-7h4"/>',
   sliders: '<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="18" r="2"/>',
   camera: '<path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v11H3V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/>',
-  egg: '<path d="M12 3c-3.8 0-7 6-7 11a7 7 0 0 0 14 0c0-5-3.2-11-7-11Z"/>',
-  history: '<path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
+  bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   water: '<path d="M12 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11Z"/><path d="M9 15a3 3 0 0 0 3 3"/>',
   feed: '<path d="M4 10h16l-1.5 9h-13L4 10Z"/><path d="M7 7c1-2 3-2 4 0M13 7c1-2 3-2 4 0M8 14h.01M12 14h.01M16 14h.01"/>',
   light: '<path d="M9 18h6M10 21h4M8.5 14.5A7 7 0 1 1 15.5 14.5c-.9.7-1.3 1.4-1.5 2.5h-4c-.2-1.1-.6-1.8-1.5-2.5Z"/>',
   music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
-  weight: '<path d="M5 4h14l2 17H3L5 4Z"/><path d="M12 8v4l3 2"/><circle cx="12" cy="8" r="1"/>',
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
-  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
-  menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
-  close: '<path d="m6 6 12 12M18 6 6 18"/>',
-  link: '<path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"/>',
+  logout: '<path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>',
+  moon: '<path d="M20.7 14.3A8 8 0 0 1 9.7 3.3 8 8 0 1 0 20.7 14.3Z"/>',
 };
 
 function icon(name, className = '') {
@@ -50,306 +63,217 @@ function icon(name, className = '') {
   return `<svg class="icon ${className}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 }
 
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[char]);
+}
+
+function getBrowserStorage(name) {
+  try {
+    return window[name];
+  } catch {
+    return null;
+  }
+}
+
+function readSavedThemePreference() {
+  try {
+    return normalizeThemePreference(getBrowserStorage('localStorage')?.getItem(THEME_PREFERENCE_STORAGE_KEY));
+  } catch {
+    return 'auto';
+  }
+}
+
+function saveThemePreference() {
+  try {
+    getBrowserStorage('localStorage')?.setItem(THEME_PREFERENCE_STORAGE_KEY, themePreference);
+  } catch {
+    return false;
+  }
+  return true;
+}
+
+function localTimeZoneLabel(date) {
+  const localOffset = -date.getTimezoneOffset();
+  if (localOffset === 420) return 'WIB';
+  if (localOffset === 480) return 'WITA';
+  if (localOffset === 540) return 'WIT';
+  try {
+    return new Intl.DateTimeFormat('id-ID', { timeZoneName: 'short' })
+      .formatToParts(date)
+      .find((part) => part.type === 'timeZoneName')?.value || '';
+  } catch {
+    return '';
+  }
+}
+
+function renderTimeThemeControls(date = new Date()) {
+  const theme = getTimeTheme(date, themePreference);
+  const clock = [theme.clock, localTimeZoneLabel(date)].filter(Boolean).join(' ');
+  const modeLabel = themePreference === 'auto' ? 'Otomatis' : 'Manual';
+  const readoutClass = `time-theme-readout${themePreference === 'auto' ? '' : ' is-manual'}`;
+  const readoutLabel = themePreference === 'auto'
+    ? `Siklus otomatis, ${theme.periodLabel}, ${clock}`
+    : `Kembali ke tema otomatis, sekarang ${theme.periodLabel} ${clock}`;
+  const readout = themePreference === 'auto'
+    ? `<div class="${readoutClass}" data-period="${theme.period}" data-mode="auto" aria-label="${readoutLabel}">`
+    : `<button class="${readoutClass}" data-period="${theme.period}" data-mode="${themePreference}" type="button" data-action="set-auto-theme" aria-label="${readoutLabel}" title="Kembali ke otomatis">`;
+  const closeReadout = themePreference === 'auto' ? '</div>' : '</button>';
+  return `<div class="time-theme-controls">${readout}<time class="live-clock" id="live-clock" datetime="${date.toISOString()}">${escapeHTML(clock)}</time><span class="time-period-label" id="time-period-label">${theme.periodLabel}</span><span class="time-mode-label" id="time-mode-label">${modeLabel}</span>${closeReadout}<button class="theme-mode-toggle${theme.colorMode === 'dark' ? ' is-active' : ''}" type="button" data-action="toggle-dark-mode" aria-pressed="${theme.colorMode === 'dark'}" aria-label="${theme.colorMode === 'dark' ? 'Matikan mode gelap' : 'Nyalakan mode gelap'}" title="Dark Mode"><span class="theme-mode-icon">${icon(theme.colorMode === 'dark' ? 'sun' : 'moon')}</span><span class="theme-mode-label">Dark Mode</span></button></div>`;
+}
+
+function applyTimeTheme(date = new Date()) {
+  const theme = getTimeTheme(date, themePreference);
+  const root = document.documentElement;
+  root.dataset.timePeriod = theme.period;
+  root.dataset.colorMode = theme.colorMode;
+  root.dataset.themePreference = themePreference;
+  root.style.colorScheme = theme.colorMode;
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  if (themeColor) themeColor.content = theme.colorMode === 'dark' ? '#0c1510' : theme.period === 'sore' ? '#fcf5e8' : '#faf9f4';
+
+  const clock = document.querySelector('#live-clock');
+  if (clock) {
+    clock.textContent = [theme.clock, localTimeZoneLabel(date)].filter(Boolean).join(' ');
+    clock.dateTime = date.toISOString();
+  }
+  const periodLabel = document.querySelector('#time-period-label');
+  if (periodLabel) periodLabel.textContent = theme.periodLabel;
+  const modeLabel = document.querySelector('#time-mode-label');
+  if (modeLabel) modeLabel.textContent = themePreference === 'auto' ? 'Otomatis' : 'Manual';
+  const readout = document.querySelector('.time-theme-readout');
+  if (readout) {
+    readout.dataset.period = theme.period;
+    readout.dataset.mode = themePreference;
+    readout.setAttribute('aria-label', themePreference === 'auto'
+      ? `Siklus otomatis, ${theme.periodLabel}, ${clock?.textContent || theme.clock}`
+      : `Kembali ke siklus otomatis, ${theme.periodLabel}, ${clock?.textContent || theme.clock}`);
+  }
+  const toggle = document.querySelector('.theme-mode-toggle');
+  if (toggle) {
+    const isDark = theme.colorMode === 'dark';
+    toggle.setAttribute('aria-pressed', String(isDark));
+    toggle.setAttribute('aria-label', isDark ? 'Matikan mode gelap' : 'Nyalakan mode gelap');
+    toggle.classList.toggle('is-active', isDark);
+    const toggleIcon = toggle.querySelector('.theme-mode-icon');
+    if (toggleIcon) toggleIcon.innerHTML = icon(isDark ? 'sun' : 'moon');
+  }
+  return theme;
+}
+
+function saveBrowserAccounts() {
+  if (!saveDemoAccounts(accounts, persistentAccountStorage)) {
+    showToast('Akun hanya tersedia selama halaman ini terbuka.');
+  }
+}
+
 function currentPage() {
   return normalizePage(window.location.hash.replace(/^#\/?/, ''));
 }
 
-function navLink(page, activePage) {
-  const isActive = page.id === activePage;
-  return `<a class="nav-link${isActive ? ' is-active' : ''}" href="#/${page.id}" data-page="${page.id}"${isActive ? ' aria-current="page"' : ''}>
-    ${icon(page.icon)}<span>${page.label}</span>
-  </a>`;
+function sectionHeading(title, detail, action = '') {
+  return `<div class="section-heading"><div><h2>${title}</h2><p>${detail}</p></div>${action}</div>`;
 }
 
-
-function sectionHeading(title, detail, link = '') {
-  return `<div class="section-heading"><div><h2>${title}</h2><p>${detail}</p></div>${link}</div>`;
+function statePill(label, tone = 'neutral') {
+  return `<span class="state-pill tone-${tone}"><span class="state-dot" aria-hidden="true"></span>${label}</span>`;
 }
 
-function statusTag(text, tone = 'neutral') {
-  return `<span class="status-tag tone-${tone}"><span class="status-mark" aria-hidden="true"></span>${text}</span>`;
-}
-
-function sensorCard({ title, value, unit, iconName, description }) {
-  return `<article class="sensor-card">
-    <div class="sensor-card-top"><span class="icon-frame">${icon(iconName)}</span></div>
-    <p class="sensor-label">${title}</p>
-    <div class="sensor-reading"><span>${value}</span>${unit ? `<small>${unit}</small>` : ''}</div>
-    <p class="sensor-description">${description}</p>
-  </article>`;
-}
-
-function moduleRow({ title, detail, iconName, page, status = 'Belum terhubung', tone = 'neutral' }) {
-  return `<a class="module-row" href="#/${page}" data-page="${page}">
-    <span class="module-icon">${icon(iconName)}</span>
-    <span class="module-copy"><strong>${title}</strong><small>${detail}</small></span>
-    ${statusTag(status, tone)}${icon('arrow', 'row-arrow')}
-  </a>`;
-}
-
-const eventTypeLabels = { sensor: 'Sensor', control: 'Kontrol', camera: 'Kamera', egg: 'Berat' };
-
-function renderEventList(events, limit = 4) {
-  const preview = new URLSearchParams(window.location.search).get('preview');
-  if (preview === 'loading' || preview === 'error') {
-    return dataState({ iconName: 'history', title: 'Riwayat aktivitas', detail: 'Informasi aktivitas terbaru.' });
-  }
-  if (!events.length) {
-    return dataState({ iconName: 'history', title: 'Belum ada aktivitas', detail: 'Aktivitas akan muncul setelah data atau tindakan baru tersedia.' });
-  }
-  return `<div class="event-list">${events.slice(0, limit).map((event) => `<article class="event-row">
-    <span class="event-type">${eventTypeLabels[event.type] || 'Event'}</span>
-    <div class="event-copy"><strong>${event.title}</strong><p>${event.detail}</p></div>
-    <time>${event.time}</time>
-  </article>`).join('')}</div>`;
-}
-
-function renderTrendChart(title, values, labels, unit, color) {
+function trendChart(title, values, labels, unit, color) {
   const width = 560;
-  const height = 150;
-  const padX = 16;
-  const padY = 16;
+  const height = 148;
+  const padding = 16;
   const minimum = Math.min(...values);
   const maximum = Math.max(...values);
   const range = maximum - minimum || 1;
-  const points = values.map((value, index) => {
-    const x = padX + (index * (width - padX * 2)) / Math.max(values.length - 1, 1);
-    const y = height - padY - ((value - minimum) / range) * (height - padY * 2);
-    return `${x},${y}`;
-  }).join(' ');
-  return `<article class="trend-card">
-    <div class="trend-card-head"><div><h3>${title}</h3><p>Pembaruan 30 menit terakhir</p></div><span class="trend-unit">${unit}</span></div>
+  const coordinates = values.map((value, index) => {
+    const x = padding + (index * (width - padding * 2)) / Math.max(values.length - 1, 1);
+    const y = height - padding - ((value - minimum) / range) * (height - padding * 2);
+    return [x, y];
+  });
+  const points = coordinates.map(([x, y]) => `${x},${y}`).join(' ');
+  return `<article class="trend-card"><div class="trend-head"><div><h3>${title}</h3><p>30 menit terakhir</p></div><span>${unit}</span></div>
     <svg class="trend-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Grafik ${title}">
-      <line x1="${padX}" y1="42" x2="${width - padX}" y2="42" class="chart-gridline"/>
-      <line x1="${padX}" y1="82" x2="${width - padX}" y2="82" class="chart-gridline"/>
-      <line x1="${padX}" y1="${height - padY}" x2="${width - padX}" y2="${height - padY}" class="chart-gridline"/>
+      <line x1="${padding}" y1="40" x2="${width - padding}" y2="40" class="chart-gridline"/><line x1="${padding}" y1="78" x2="${width - padding}" y2="78" class="chart-gridline"/><line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" class="chart-gridline"/>
       <polyline points="${points}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      ${values.map((value, index) => {
-        const [x, y] = points.split(' ')[index].split(',');
-        return `<circle cx="${x}" cy="${y}" r="4" fill="#fffefa" stroke="${color}" stroke-width="2"><title>${labels[index]}: ${value} ${unit}</title></circle>`;
-      }).join('')}
+      ${coordinates.map(([x, y], index) => `<circle cx="${x}" cy="${y}" r="4" fill="var(--surface)" stroke="${color}" stroke-width="2"><title>${labels[index]}: ${values[index]} ${unit}</title></circle>`).join('')}
     </svg>
     <div class="trend-axis"><span>${labels[0]}</span><span>${labels[labels.length - 1]}</span></div>
   </article>`;
 }
 
-function renderDetectionList() {
-  if (!state.detections.length) {
-    return dataState({ iconName: 'camera', title: 'Belum ada deteksi', detail: 'Deteksi akan muncul setelah kamera terhubung.' });
-  }
-  return `<div class="detection-list">${state.detections.map((detection) => `<article class="detection-row">
-    <div class="detection-symbol">${icon('camera')}</div>
-    <div class="detection-copy"><strong>${detection.className}</strong><span>${detection.time} · keyakinan ${detection.confidence}%</span><small>Status trigger: ${detection.triggerStatus}</small></div>
-    <button class="small-action${detection.triggerStatus === 'Berhasil' ? ' is-active' : ''}" type="button" data-action="trigger-esp" data-detection-id="${detection.id}" data-focus-key="trigger-${detection.id}" aria-pressed="${detection.triggerStatus === 'Berhasil'}"${detection.triggerStatus === 'Berhasil' ? ' disabled' : ''}>${detection.triggerStatus === 'Berhasil' ? 'Trigger tercatat' : 'Catat trigger'}</button>
-  </article>`).join('')}</div>`;
-}
-
-function emptyState({ iconName, title, detail }) {
-  return `<div class="empty-state">
-    <span class="empty-icon">${icon(iconName)}</span>
-    <h3>${title}</h3>
-    <p>${detail}</p>
-  </div>`;
-}
-
-function dataState({ iconName, title, detail }) {
-  const preview = new URLSearchParams(window.location.search).get('preview');
-  if (preview === 'loading') {
-    return `<div class="data-state-preview" role="status"><span class="empty-icon">${icon('clock')}</span><h3>Memuat data</h3><p>Menunggu respons dari sumber data.</p></div>`;
-  }
-  if (preview === 'error') {
-    return `<div class="data-state-preview is-error" role="alert"><span class="empty-icon">${icon('info')}</span><h3>Data belum dapat dimuat</h3><p>Periksa koneksi perangkat, lalu coba lagi.</p><button class="filter-button" type="button" data-action="clear-preview">Tutup</button></div>`;
-  }
-  return emptyState({ iconName, title, detail });
+function navLink(page, activePage, mobile = false) {
+  const active = page.id === activePage;
+  const label = mobile ? page.mobileLabel : page.label;
+  return `<a class="nav-link${active ? ' is-active' : ''}" href="#/${page.id}" data-page="${page.id}"${active ? ' aria-current="page"' : ''}>${icon(page.icon)}<span>${label}</span></a>`;
 }
 
 function renderHome() {
-  const feedStatus = state.telemetry.feed.available ? 'Tersedia' : 'Habis';
-  const waterStatus = state.controls.waterValve ? 'Terbuka' : 'Tertutup';
-  const cameraEvents = state.events.filter((event) => event.type === 'camera');
-
-  return `<div class="page-stack">
-
-    <section class="flock-panel">
-      <div class="flock-copy">
-        <p class="eyebrow">Rencana awal kandang</p>
-        <h2>Pemantauan kandang</h2>
-        <p>Ringkasan kondisi udara, pakan, air, dan perangkat kandang.</p>
-        <a class="text-link" href="#/monitor" data-page="monitor">Lihat data pemantauan ${icon('arrow')}</a>
-      </div>
-      <div class="flock-count" aria-label="Rencana awal 12 ekor ayam"><strong>${state.flockCount}</strong><span>ekor</span></div>
-    </section>
-
-    ${!state.telemetry.feed.available ? `<aside class="demo-alert" role="status"><span class="demo-alert-mark"></span><div><strong>Pakan habis</strong><p>Tempat pakan terdeteksi kosong.</p></div><a href="#/monitor" data-page="monitor">Buka</a></aside>` : ''}
-
-    <div class="home-grid">
-      <section class="surface-card environment-panel">
-        ${sectionHeading('Udara kandang', `Pembaruan ${state.telemetry.updatedAt}.`, '<a class="quiet-link" href="#/monitor" data-page="monitor">Buka monitoring</a>')}
-        <div class="environment-readings">
-          <div class="environment-reading">
-            <span class="reading-symbol temperature-symbol">${icon('activity')}</span>
-            <div><small>Suhu udara</small><strong>${state.telemetry.temperature.value}<span> ${state.telemetry.temperature.unit}</span></strong><p>Pembaruan terbaru</p></div>
-          </div>
-          <div class="environment-reading">
-            <span class="reading-symbol humidity-symbol">${icon('water')}</span>
-            <div><small>Kelembapan udara</small><strong>${state.telemetry.humidity.value}<span> ${state.telemetry.humidity.unit}</span></strong><p>Pembaruan terbaru</p></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="surface-card modules-panel">
-        ${sectionHeading('Perangkat kandang', 'Kondisi air, pakan, lampu, dan musik.', '<a class="quiet-link" href="#/controls" data-page="controls">Buka kontrol</a>')}
-        <div class="module-list">
-          ${moduleRow({ title: 'Air minum', detail: `${state.telemetry.water.flowLpm.toFixed(1)} L/menit`, iconName: 'water', page: 'controls', status: waterStatus, tone: 'water' })}
-          ${moduleRow({ title: 'Pakan', detail: 'Status tempat pakan', iconName: 'feed', page: 'monitor', status: feedStatus, tone: 'warm' })}
-          ${moduleRow({ title: 'Lampu', detail: state.lightColor === 'red' ? 'Pilihan warna merah' : 'Pilihan warna warm white', iconName: 'light', page: 'controls', status: state.controls.lighting ? 'Menyala' : 'Mati', tone: 'warm' })}
-          ${moduleRow({ title: 'Musik klasik', detail: 'Status pemutar', iconName: 'music', page: 'controls', status: state.controls.music ? 'Menyala' : 'Mati', tone: 'neutral' })}
-        </div>
-      </section>
-    </div>
-
-    <div class="lower-grid">
-      <section class="surface-card camera-summary">
-        ${sectionHeading('Kamera dan YOLO', 'Kamera belum terhubung. Riwayat deteksi ada di bawah.')}
-        ${renderEventList(cameraEvents, 2)}
-        <a class="text-link" href="#/camera" data-page="camera">Buka halaman kamera ${icon('arrow')}</a>
-      </section>
-      <section class="surface-card activity-summary">
-        ${sectionHeading('Aktivitas terbaru', 'Riwayat sensor, kamera, dan kontrol kandang.')}
-        ${renderEventList(state.events, 3)}
-        <a class="text-link" href="#/history" data-page="history">Buka riwayat ${icon('arrow')}</a>
-      </section>
-    </div>
-  </div>`;
+  return renderHomeDashboard(getHomeDashboardModel(state), {
+    escapeHTML,
+    icon,
+    sectionHeading,
+    statePill,
+  });
 }
 
 function renderMonitor() {
-  const cards = [
-    { title: 'Suhu udara', value: state.telemetry.temperature.value, unit: state.telemetry.temperature.unit, iconName: 'activity', description: 'Pembaruan suhu kandang.' },
-    { title: 'Kelembapan udara', value: state.telemetry.humidity.value, unit: state.telemetry.humidity.unit, iconName: 'water', description: 'Pembaruan kelembapan kandang.' },
-    { title: 'Status pakan', value: state.telemetry.feed.available ? 'Tersedia' : 'Habis', unit: '', iconName: 'feed', description: 'Status tempat pakan.' },
-    { title: 'Debit air minum', value: state.telemetry.water.flowLpm.toFixed(1), unit: 'L/menit', iconName: 'water', description: `Valve ${state.controls.waterValve ? 'terbuka' : 'tertutup'}.` },
-    { title: 'Perubahan berat', value: `+${state.telemetry.weight.delta}`, unit: state.telemetry.weight.unit, iconName: 'weight', description: 'Indikasi perubahan berat.' },
-  ];
-  return `<div class="page-stack">
-    <section class="feed-test-panel surface-card">
-      <div><p class="eyebrow">Pemantauan pakan</p><h2>Tempat pakan</h2><p>Ubah status untuk melihat kondisi habis dan tersedia.</p></div>
-      <div class="feed-test-action"><button class="action-button action-neutral${state.telemetry.feed.available ? '' : ' is-active'}" type="button" data-action="toggle-feed" data-focus-key="feed-scenario" aria-label="Status tempat pakan" aria-pressed="${!state.telemetry.feed.available}"><span class="button-name">Tempat pakan</span><span class="button-state">${state.telemetry.feed.available ? 'Tersedia' : 'Habis'}</span></button></div>
-    </section>
-    <div class="sensor-grid">${cards.map(sensorCard).join('')}</div>
-    <div class="trend-grid">
-      ${renderTrendChart('Suhu udara', state.chartSeries.temperature, state.chartSeries.labels, '°C', '#b97945')}
-      ${renderTrendChart('Kelembapan udara', state.chartSeries.humidity, state.chartSeries.labels, '%', '#4b7d83')}
-    </div>
-  </div>`;
+  return renderMonitorDashboard({
+    ...getHomeDashboardModel(state),
+    temperatureSeries: state.chartSeries.temperature,
+    humiditySeries: state.chartSeries.humidity,
+    chartLabels: state.chartSeries.labels,
+  }, {
+    icon,
+    sectionHeading,
+    statePill,
+    trendChart,
+  });
 }
 
 function renderControls() {
-  return `<div class="page-stack">
-    <div class="control-grid">
-      <article class="surface-card control-card control-card-water">
-        <div class="control-card-head"><span class="control-icon water-icon">${icon('water')}</span></div>
-        <p class="eyebrow">Air minum</p>
-        <h2>Valve air</h2>
-        <p class="control-description">Buka atau tutup aliran air minum. Aturan otomatis belum ditetapkan.</p>
-        <div class="control-state-line"><span>Debit air</span><strong>${state.telemetry.water.flowLpm.toFixed(1)} L/menit</strong></div>
-        <button class="action-button action-water${state.controls.waterValve ? ' is-active' : ''}" type="button" data-action="toggle-control" data-key="waterValve" data-focus-key="waterValve" aria-label="Valve air minum" aria-pressed="${state.controls.waterValve}">
-          <span class="button-name">Valve air minum</span><span class="button-state">${state.controls.waterValve ? 'Terbuka' : 'Tertutup'}</span>
-        </button>
-      </article>
-
-      <article class="surface-card control-card">
-        <div class="control-card-head"><span class="control-icon light-icon">${icon('light')}</span></div>
-        <p class="eyebrow">Pencahayaan</p>
-        <h2>Lampu kandang</h2>
-        <p class="control-description">Warna yang dicatat di brief: merah dan warm white.</p>
-        <fieldset class="color-choice">
-          <legend>Warna lampu</legend>
-          <label class="color-option"><input type="radio" name="light-color" value="red" data-action="light-color" data-focus-key="light-color-red" ${state.lightColor === 'red' ? 'checked' : ''}><span class="color-swatch swatch-red"></span><span>Merah</span></label>
-          <label class="color-option"><input type="radio" name="light-color" value="warm-white" data-action="light-color" data-focus-key="light-color-warm-white" ${state.lightColor === 'warm-white' ? 'checked' : ''}><span class="color-swatch swatch-warm"></span><span>Warm white</span></label>
-        </fieldset>
-        <div class="control-state-line"><span>Warna pilihan</span><strong>${state.lightColor === 'red' ? 'Merah' : 'Warm white'}</strong></div>
-        <button class="action-button action-neutral${state.controls.lighting ? ' is-active' : ''}" type="button" data-action="toggle-control" data-key="lighting" data-focus-key="lighting" aria-label="Lampu kandang" aria-pressed="${state.controls.lighting}">
-          <span class="button-name">Lampu kandang</span><span class="button-state">${state.controls.lighting ? 'Menyala' : 'Mati'}</span>
-        </button>
-      </article>
-
-      <article class="surface-card control-card control-card-music">
-        <div class="control-card-head"><span class="control-icon music-icon">${icon('music')}</span></div>
-        <p class="eyebrow">Suara kandang</p>
-        <h2>Musik klasik</h2>
-        <p class="control-description">Jadwal dan pengaturan suara dapat ditentukan setelah spesifikasi perangkat diterima.</p>
-        <div class="control-state-line"><span>Mode suara</span><strong>Musik klasik</strong></div>
-        <button class="action-button action-neutral${state.controls.music ? ' is-active' : ''}" type="button" data-action="toggle-control" data-key="music" data-focus-key="music" aria-label="Musik klasik" aria-pressed="${state.controls.music}">
-          <span class="button-name">Musik klasik</span><span class="button-state">${state.controls.music ? 'Menyala' : 'Mati'}</span>
-        </button>
-      </article>
-    </div>
-  </div>`;
+  return `<div class="page-stack"><figure class="controls-scene-strip"><img src="./src/assets/stitch/coop-controls.jpg" alt="Pratinjau kandang ayam dengan tenggeran dan tempat pakan"><figcaption>Area tenggeran dan pakan</figcaption></figure><div class="control-grid">
+    <article class="surface-card control-card"><div class="control-card-head"><span class="control-icon water-icon">${icon('water')}</span><span class="control-kicker">Air minum</span></div><h2>Valve air</h2><p class="control-description">Buka atau tutup aliran air minum.</p>
+      <div class="control-state-line"><span>Status valve</span><strong>${state.controls.waterValve ? 'Terbuka' : 'Tertutup'}</strong></div>
+      <button class="action-button action-water${state.controls.waterValve ? ' is-active' : ''}" type="button" data-action="toggle-control" data-key="waterValve" aria-label="Valve air minum" aria-pressed="${state.controls.waterValve}"><span>Valve air minum</span><span class="button-state">${state.controls.waterValve ? 'Terbuka' : 'Tertutup'}</span></button>
+    </article>
+    <article class="surface-card control-card"><div class="control-card-head"><span class="control-icon light-icon">${icon('light')}</span><span class="control-kicker">Pencahayaan</span></div><h2>Lampu kandang</h2><p class="control-description">Mode cahaya tetap: merah + warm white.</p>
+      <div class="control-state-line"><span>Mode cahaya</span><strong>Merah + warm white</strong></div>
+      <button class="action-button action-neutral${state.controls.lighting ? ' is-active' : ''}" type="button" data-action="toggle-control" data-key="lighting" aria-label="Lampu kandang" aria-pressed="${state.controls.lighting}"><span>Lampu kandang</span><span class="button-state">${state.controls.lighting ? 'Menyala' : 'Mati'}</span></button>
+    </article>
+    <article class="surface-card control-card music-control-card"><div class="control-card-head"><span class="control-icon music-icon">${icon('music')}</span><span class="control-kicker">Audio</span></div><h2>Musik klasik</h2><p class="control-description">Atur pemutar dan volume musik.</p>
+      <div class="control-state-line"><span>Status musik</span><strong>${state.controls.music ? 'Menyala' : 'Mati'}</strong></div>
+      <button class="action-button action-neutral${state.controls.music ? ' is-active' : ''}" type="button" data-action="toggle-control" data-key="music" aria-label="Musik klasik" aria-pressed="${state.controls.music}"><span>Musik klasik</span><span class="button-state">${state.controls.music ? 'Menyala' : 'Mati'}</span></button>
+      <form class="volume-form" id="volume-form"><label for="music-volume">Volume (%)</label><div class="volume-row"><input id="music-volume" name="volume" type="number" inputmode="numeric" min="0" max="100" step="1" value="${state.musicVolume}" required><button class="small-action" type="submit">Simpan volume</button></div></form>
+    </article>
+  </div></div>`;
 }
 
 function renderCamera() {
-  return `<div class="page-stack">
-    <div class="camera-grid">
-      <section class="surface-card camera-view-card">
-        ${sectionHeading('Tampilan kamera', 'Kamera belum terhubung.')}
-        <div class="camera-viewfinder" role="img" aria-label="Placeholder stream kamera">
-          <span class="camera-placeholder-icon">${icon('camera')}</span>
-          <strong>Live feed belum tersedia</strong>
-          <p>Stream kamera akan tampil setelah sumber video dikonfigurasi.</p>
-        </div>
-      </section>
-      <section class="surface-card yolo-card">
-        ${sectionHeading('Deteksi YOLO', 'Event deteksi dan status trigger ESP.')}
-        <div class="yolo-status-block"><span class="status-mark" aria-hidden="true"></span><div><strong>Model belum tersambung</strong><p>Hasil deteksi dan trigger akan tercatat di sini setelah model terhubung.</p></div></div>
-        ${renderEventList(state.events.filter((event) => event.type === 'camera'), 3)}
-      </section>
-    </div>
-    <section class="surface-card detection-section">
-      ${sectionHeading('Event deteksi', 'Periksa kelas, tingkat keyakinan, dan status trigger.')}
-      <div class="detection-actions"><p>Tambahkan event deteksi untuk menguji daftar dan riwayat.</p><button class="action-button action-neutral" type="button" data-action="add-detection" data-focus-key="add-detection">Tambah deteksi</button></div>
-      ${renderDetectionList()}
-    </section>
-  </div>`;
+  return `<div class="page-stack"><section class="surface-card camera-view-card">${sectionHeading('Kamera kandang', 'Pratinjau area kandang.')}
+    <div class="camera-viewfinder camera-viewfinder-photo"><img class="camera-view-image" src="./src/assets/stitch/coop-camera.jpg" alt="Pratinjau kandang ayam dengan area pakan dan minum"><div class="camera-photo-label"><span class="state-dot" aria-hidden="true"></span><strong>Kamera belum terhubung</strong></div></div>
+  </section></div>`;
 }
 
-function renderEggs() {
-  const eggEvents = filterEvents(state.events, 'egg');
-  return `<div class="page-stack">
-    <section class="weight-feature surface-card">
-      <div class="weight-feature-copy">
-        <span class="control-icon weight-icon">${icon('weight')}</span>
-        <p class="eyebrow">Sensor berat</p>
-        <h2>Indikator kejadian telur</h2>
-        <p>Pembacaan berat membantu mencatat perubahan di area bertelur. Lokasi sensor, satuan, dan aturan penentu telur belum dikonfirmasi.</p>
-      </div>
-      <div class="weight-reading"><span>Pembacaan berat</span><strong>+${state.telemetry.weight.delta} ${state.telemetry.weight.unit}</strong><small>Satuan dan ambang mengikuti konfigurasi</small></div>
-    </section>
-    <section class="surface-card">
-      ${sectionHeading('Catatan telur', 'Indikasi berat tidak otomatis dianggap sebagai telur terkonfirmasi.', '<button class="small-action" type="button" data-action="add-egg-event" data-focus-key="add-egg-event">Tambah indikasi</button>')}
-      ${renderEventList(eggEvents, 6)}
-    </section>
-  </div>`;
+function renderNotifications() {
+  const unread = unreadCount(state);
+  return `<div class="page-stack"><section class="surface-card notifications-card">${sectionHeading('Pemberitahuan kandang', `${unread} belum dibaca.`, unread ? '<button class="small-action" type="button" data-action="mark-all-read">Tandai semua dibaca</button>' : '')}
+    <div class="notification-list">${state.notifications.map((item) => `<article class="notification-item${item.read ? ' is-read' : ' is-unread'}"><span class="notification-icon">${icon(item.kind === 'feed' ? 'feed' : item.kind === 'control' ? 'light' : 'activity')}</span><div class="notification-copy"><strong>${escapeHTML(item.title)}</strong><p>${escapeHTML(item.message)}</p><time>${escapeHTML(item.time)}</time></div>${item.read ? statePill('Dibaca') : `<button class="small-action" type="button" data-action="mark-read" data-notification-id="${escapeHTML(item.id)}">Tandai dibaca</button>`}</article>`).join('')}</div>
+    ${state.notifications.length ? '' : `<div class="empty-state"><span class="empty-icon">${icon('bell')}</span><h3>Belum ada pemberitahuan</h3><p>Pemberitahuan baru akan muncul di sini.</p></div>`}
+  </section></div>`;
 }
 
-const historyLabels = {
-  all: 'aktivitas',
-  sensor: 'pembacaan sensor',
-  control: 'kontrol perangkat',
-  camera: 'deteksi kamera',
-  egg: 'indikasi telur',
-};
-
-function renderHistory() {
-  const filters = Object.entries(historyLabels).map(([key, label]) => `<button class="filter-button${state.historyFilter === key ? ' is-selected' : ''}" type="button" data-action="history-filter" data-filter="${key}" data-focus-key="history-${key}" aria-pressed="${state.historyFilter === key}">${key === 'all' ? 'Semua' : label}</button>`).join('');
-  const events = filterEvents(state.events, state.historyFilter);
-  return `<div class="page-stack">
-    <section class="surface-card history-card">
-      ${sectionHeading('Log kandang', 'Riwayat pembacaan dan aktivitas perangkat.')}
-      <div class="filter-row" role="group" aria-label="Filter riwayat">${filters}</div>
-      ${renderEventList(events, 20)}
-    </section>
-  </div>`;
+function renderProfile() {
+  const name = escapeHTML(state.profile.name);
+  const email = escapeHTML(state.profile.email);
+  const phone = escapeHTML(state.profile.phone);
+  const displayName = escapeHTML(state.profile.name || 'Pengguna');
+  const initial = escapeHTML((state.profile.name || 'P').slice(0, 1).toUpperCase());
+  return `<div class="page-stack"><section class="profile-summary surface-card"><span class="profile-avatar" aria-hidden="true">${initial}</span><div><p class="eyebrow">Akun pengguna</p><h2>${displayName}</h2><p>${email || 'Email belum diisi'}</p></div><span class="role-pill">Pengguna</span></section>
+    <section class="surface-card profile-form-card">${sectionHeading('Informasi profil', 'Perbarui data akun pengguna.')}
+      <form id="profile-form" class="profile-form"><div class="form-field"><label for="profile-name">Nama</label><input id="profile-name" name="name" type="text" maxlength="80" value="${name}" required></div><div class="form-field"><label for="profile-email">Email</label><input id="profile-email" name="email" type="email" value="${email}" required></div><div class="form-field"><label for="profile-phone">Nomor telepon</label><input id="profile-phone" name="phone" type="tel" maxlength="30" value="${phone}"></div><p id="profile-message" class="form-message" role="status" aria-live="polite"></p><div class="form-actions"><button class="primary-button" type="submit">Simpan profil</button><button class="secondary-button" type="button" data-action="logout">Keluar akun</button></div></form>
+    </section></div>`;
 }
 
 const renderers = {
@@ -357,37 +281,74 @@ const renderers = {
   monitor: renderMonitor,
   controls: renderControls,
   camera: renderCamera,
-  eggs: renderEggs,
-  history: renderHistory,
+  notifications: renderNotifications,
+  profile: renderProfile,
 };
 
+function renderDemoCryptoNotice() {
+  const cryptoAvailable = Boolean(globalThis.crypto?.subtle && globalThis.crypto?.getRandomValues);
+  return cryptoAvailable
+    ? ''
+    : '<p class="login-footnote">Mode demo: kata sandi tidak diverifikasi pada koneksi ini. Untuk autentikasi nyata, gunakan HTTPS dan backend.</p>';
+}
+
+function renderLogin() {
+  return `<main class="login-screen"><section class="login-brand-panel"><div class="login-brand-top"><a class="brand-name" href="#/login">Smart Poultry</a><span class="demo-badge" aria-label="Mode demo">DEMO</span></div><div class="login-brand-copy"><p class="eyebrow">Monitoring kandang</p><h1>Pantau kandang ayam dari satu layar.</h1><p>Kondisi udara, pakan, air, pencahayaan, dan kamera kandang.</p></div><div class="login-flock"><strong>12</strong><span>ekor, rencana awal</span></div></section>
+    <section class="login-form-panel"><div class="login-card"><span class="login-mark">${icon('user')}</span><p class="eyebrow">Akun pengguna</p><h2>Masuk</h2><p class="login-intro">Masukkan email dan kata sandi akun pengguna.</p><form id="login-form" novalidate><div class="form-field"><label for="login-email">Email</label><input id="login-email" name="email" type="email" autocomplete="username" required placeholder="nama@email.com"></div><div class="form-field"><label for="login-password">Kata sandi</label><input id="login-password" name="password" type="password" autocomplete="current-password" minlength="8" required placeholder="Masukkan kata sandi"></div><p id="login-message" class="form-message" role="status" aria-live="polite"></p><button class="primary-button" type="submit">Masuk ke kandang</button></form>${renderDemoCryptoNotice()}<p class="login-footnote">Belum punya akun? <a href="#/signup" data-page="signup">Buat akun</a></p><button class="secondary-button demo-preview-button" type="button" data-action="demo-preview">Masuk sebagai pengguna demo</button></div></section>
+  </main><div class="toast" id="toast" role="status" aria-live="polite"></div>`;
+}
+
+function renderSignup() {
+  return `<main class="login-screen"><section class="login-brand-panel"><div class="login-brand-top"><a class="brand-name" href="#/login">Smart Poultry</a><span class="demo-badge" aria-label="Mode demo">DEMO</span></div><div class="login-brand-copy"><p class="eyebrow">Akun pengguna</p><h1>Buat akun kandang.</h1><p>Daftarkan profil pengguna untuk membuka halaman pemantauan.</p></div><div class="login-flock"><strong>12</strong><span>ekor, rencana awal</span></div></section>
+    <section class="login-form-panel"><div class="login-card"><span class="login-mark">${icon('user')}</span><p class="eyebrow">Pendaftaran pengguna</p><h2>Buat akun</h2><p class="login-intro">Lengkapi informasi akun pengguna.</p><form id="signup-form" novalidate>
+      <div class="form-field"><label for="signup-name">Nama</label><input id="signup-name" name="name" type="text" maxlength="80" autocomplete="name" required placeholder="Nama pengguna"></div>
+      <div class="form-field"><label for="signup-email">Email</label><input id="signup-email" name="email" type="email" autocomplete="email" required placeholder="nama@email.com"></div>
+      <div class="form-field"><label for="signup-phone">Nomor telepon</label><input id="signup-phone" name="phone" type="tel" maxlength="30" autocomplete="tel" placeholder="Opsional"></div>
+      <div class="form-field"><label for="signup-password">Kata sandi</label><input id="signup-password" name="password" type="password" autocomplete="new-password" minlength="8" required></div>
+      <div class="form-field"><label for="signup-confirm">Ulangi kata sandi</label><input id="signup-confirm" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required></div>
+      <p id="signup-message" class="form-message" role="status" aria-live="polite"></p><button id="reset-demo-account" class="secondary-button" type="button" data-action="reset-demo-account" hidden>Ganti akun demo dan masuk</button><button class="primary-button" type="submit">Buat akun pengguna</button>
+    </form><p class="login-footnote">Akun demo tersimpan secara lokal di browser ini.</p>${renderDemoCryptoNotice()}<p class="login-footnote">Sudah punya akun? <a href="#/login" data-page="login">Masuk</a></p></div></section>
+  </main><div class="toast" id="toast" role="status" aria-live="polite"></div>`;
+}
+
+function renderNotificationBell() {
+  const count = unreadCount(state);
+  return `<a class="notification-shortcut" href="#/notifications" data-page="notifications" aria-label="Notifikasi, ${count} belum dibaca">${icon('bell')}<span class="notification-shortcut-label">Notifikasi</span>${count ? `<span class="notification-count">${count}</span>` : ''}</a>`;
+}
+
+function renderNavigation(activePage, mobile = false) {
+  return pages.map((page) => {
+    const active = page.id === activePage;
+    const label = mobile ? page.mobileLabel : page.label;
+    return `<a class="nav-link${active ? ' is-active' : ''}" href="#/${page.id}" data-page="${page.id}"${active ? ' aria-current="page"' : ''}>${icon(page.icon)}<span>${label}</span></a>`;
+  }).join('');
+}
+
 function renderApp() {
-  const pageId = currentPage();
+  applyTimeTheme();
+  let pageId = currentPage();
+  const publicRoute = pageId === 'login' || pageId === 'signup';
+  if (!state.isAuthenticated && !publicRoute) {
+    window.location.hash = '#/login';
+    return;
+  }
+  if (state.isAuthenticated && publicRoute) {
+    window.location.hash = '#/home';
+    return;
+  }
+  if (pageId === 'login') {
+    app.innerHTML = renderLogin();
+    return;
+  }
+  if (pageId === 'signup') {
+    app.innerHTML = renderSignup();
+    return;
+  }
   const page = pages.find((item) => item.id === pageId) || pages[0];
-  const nav = pages.map((item) => navLink(item, pageId)).join('');
-
-  app.innerHTML = `<div class="app-shell">
-    <aside class="sidebar" id="primary-navigation" aria-label="Navigasi utama">
-      <a class="brand" href="#/home" data-page="home" aria-label="Kandang, kembali ke ringkasan">
-        <span class="brand-name">Kandang</span>
-        <span class="brand-caption">Monitoring ayam</span>
-      </a>
-      <div class="sidebar-label">Menu</div>
-      <nav class="nav-list">${nav}</nav>
-      <div class="sidebar-bottom"><span class="sidebar-rule"></span><button class="sidebar-reset" type="button" data-action="reset-demo" data-focus-key="reset-demo">Atur ulang data</button></div>
-    </aside>
-
-    <div class="mobile-scrim${app.classList.contains('menu-open') ? ' is-visible' : ''}" data-close-menu aria-hidden="true"></div>
-    <div class="main-area">
-      <header class="topbar">
-        <button class="menu-toggle" type="button" data-menu-toggle aria-controls="primary-navigation" aria-expanded="${app.classList.contains('menu-open')}" aria-label="Buka navigasi">${icon('menu')}</button>
-        <div class="page-context"><p>Monitoring kandang</p><h1 id="page-title" tabindex="-1">${page.title}</h1><span>${page.subtitle}</span></div>
-        <div class="topbar-meta"><span class="demo-badge" aria-label="Mode demo">DEMO</span><div class="connection-state"><span class="status-mark" aria-hidden="true"></span><span>IoT belum terhubung</span></div></div>
-      </header>
-      <main class="page-content" id="main-content" tabindex="-1">${renderers[pageId]()}</main>
-    </div>
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  </div>`;
+  app.innerHTML = `<div class="app-shell"><aside class="sidebar" aria-label="Navigasi pengguna"><a class="brand" href="#/home" data-page="home"><span class="brand-name">Smart Poultry</span><span class="brand-caption">Monitoring ayam</span></a><div class="sidebar-label">Menu pengguna</div><nav class="nav-list">${renderNavigation(pageId)}</nav></aside>
+    <div class="main-area"><header class="topbar"><div class="page-context"><p>Monitoring kandang</p><h1 id="page-title" tabindex="-1">${page.title}</h1><span>${page.subtitle}</span></div><div class="topbar-meta"><span class="demo-badge" aria-label="Mode demo">DEMO</span>${pageId === 'home' ? '' : `<div class="connection-state"><span class="status-mark" aria-hidden="true"></span><span>${escapeHTML(getHomeDashboardModel(state).connectionLabel)}</span></div>`}${renderTimeThemeControls()}${renderNotificationBell()}<a class="profile-shortcut" href="#/profile" data-page="profile" aria-label="Buka profil">${icon('user')}</a></div></header><main class="page-content" id="main-content" tabindex="-1">${renderers[pageId]()}</main></div>
+    <nav class="bottom-nav" aria-label="Navigasi utama">${renderNavigation(pageId, true)}</nav><div class="toast" id="toast" role="status" aria-live="polite"></div></div>`;
+  applyTimeTheme();
 }
 
 function showToast(message) {
@@ -396,132 +357,272 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add('is-visible');
   window.clearTimeout(showToast.timeoutId);
-  showToast.timeoutId = window.setTimeout(() => toast.classList.remove('is-visible'), 2800);
+  showToast.timeoutId = window.setTimeout(() => toast.classList.remove('is-visible'), 2400);
   liveAnnouncer.textContent = message;
 }
 
-function rerenderAndRestoreFocus(focusKey) {
-  const wasMenuOpen = app.classList.contains('menu-open');
-  renderApp();
-  if (wasMenuOpen) app.classList.remove('menu-open');
-  if (focusKey) {
-    app.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();
+function showFormMessage(id, message) {
+  const element = document.querySelector(`#${id}`);
+  if (element) element.textContent = message;
+}
+
+async function submitLogin(form) {
+  const emailInput = form.elements.email;
+  const emailValue = String(emailInput?.value ?? '').trim();
+  if (!emailValue) {
+    showFormMessage('login-message', 'Masukkan alamat email.');
+    emailInput?.focus();
+    return;
+  }
+  if (!isValidDemoEmail(emailValue)) {
+    showFormMessage('login-message', 'Format email tidak valid. Tanda @ harus berada di antara nama dan domain.');
+    emailInput?.focus();
+    return;
+  }
+  if (!form.reportValidity()) return;
+  const data = new FormData(form);
+  const email = emailValue.toLowerCase();
+  const password = String(data.get('password') ?? '');
+  try {
+    const result = await getDemoLoginStatus(accounts, email, password);
+    if (result.status === 'not-found') {
+      showFormMessage('login-message', `Akun belum terdaftar pada alamat ini (${window.location.origin}). Gunakan alamat/port saat mendaftar, atau daftarkan akun di sini.`);
+      return;
+    }
+    if (result.status === 'wrong-password') {
+      showFormMessage('login-message', 'Email ditemukan, tetapi kata sandinya tidak cocok. Untuk akun demo, buka Buat akun dan pilih Ganti akun demo dan masuk.');
+      return;
+    }
+    state = updateProfile(loginUser(state, email), result.account.profile);
+    navigateToAppRoute(window.location, renderApp, '#/home');
+    if (result.account.credential.mode === 'demo-unverified') {
+      showToast('Akun demo aktif; kata sandi tidak diverifikasi pada koneksi ini.');
+    }
+  } catch {
+    showFormMessage('login-message', 'Akun belum dapat dibuka. Periksa kembali email dan kata sandi.');
   }
 }
 
-app.addEventListener('click', (event) => {
-  const menuToggle = event.target.closest('[data-menu-toggle]');
-  if (menuToggle) {
-    app.classList.toggle('menu-open');
-    menuToggle.setAttribute('aria-expanded', String(app.classList.contains('menu-open')));
+async function submitSignup(form) {
+  const resetButton = document.querySelector('#reset-demo-account');
+  if (resetButton) resetButton.hidden = true;
+  const data = new FormData(form);
+  const profile = {
+    name: data.get('name'),
+    email: String(data.get('email') ?? '').trim().toLowerCase(),
+    phone: data.get('phone'),
+  };
+  const password = String(data.get('password') ?? '');
+  const confirmation = String(data.get('confirmPassword') ?? '');
+  const validation = validateSignupInput(profile, password, confirmation);
+  if (validation) {
+    const messages = {
+      'name-required': 'Masukkan nama pengguna.',
+      'email-invalid': 'Format email tidak valid. Tanda @ harus berada di antara nama dan domain.',
+      'password-too-short': 'Kata sandi minimal 8 karakter.',
+      'password-mismatch': 'Kata sandi belum sama.',
+    };
+    const fields = {
+      'name-required': form.elements.name,
+      'email-invalid': form.elements.email,
+      'password-too-short': form.elements.password,
+      'password-mismatch': form.elements.confirmPassword,
+    };
+    showFormMessage('signup-message', messages[validation]);
+    fields[validation]?.focus();
+    return;
+  }
+  if (!form.reportValidity()) {
+    const invalidField = form.querySelector(':invalid');
+    showFormMessage('signup-message', 'Periksa kembali semua kolom yang wajib diisi.');
+    invalidField?.focus();
     return;
   }
 
-  if (event.target.closest('[data-close-menu]')) {
-    app.classList.remove('menu-open');
-    app.querySelector('[data-menu-toggle]')?.setAttribute('aria-expanded', 'false');
+  const submitButton = form.querySelector('button[type="submit"]');
+  const originalLabel = submitButton?.textContent ?? 'Buat akun pengguna';
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = 'Membuat akun…';
+  }
+  form.setAttribute('aria-busy', 'true');
+  showFormMessage('signup-message', 'Membuat akun dan menyiapkan sesi masuk…');
+  try {
+    const result = await createAccountSession(state, accounts, profile, password, confirmation);
+    accounts = result.accounts;
+    saveBrowserAccounts();
+    state = result.state;
+    navigateToAppRoute(window.location, renderApp, result.route);
+    if (result.accounts[result.state.profile.email]?.credential.mode === 'demo-unverified') {
+      showToast('Akun demo dibuat; kata sandi tidak diverifikasi pada koneksi ini.');
+    }
+  } catch (error) {
+    const duplicate = error.message.includes('already exists');
+    if (duplicate && resetButton) resetButton.hidden = false;
+    const message = duplicate
+      ? 'Email sudah terdaftar dan kata sandinya tidak cocok. Gunakan akun yang ada atau reset akun demo lokal.'
+      : error.message.includes('passwords do not match')
+        ? 'Kata sandi belum sama.'
+        : error.message.includes('8 characters')
+          ? 'Kata sandi minimal 8 karakter.'
+          : error.message.includes('valid email')
+            ? 'Masukkan email yang benar.'
+            : error.message.includes('valid name')
+              ? 'Masukkan nama pengguna.'
+              : 'Akun belum dapat dibuat. Periksa data yang dimasukkan.';
+    showFormMessage('signup-message', message);
+  } finally {
+    form.removeAttribute('aria-busy');
+    if (submitButton?.isConnected) {
+      submitButton.disabled = false;
+      submitButton.textContent = originalLabel;
+    }
+  }
+}
+
+async function resetDemoAccountFromSignup() {
+  const form = document.querySelector('#signup-form');
+  if (!form || !form.reportValidity()) return;
+  const data = new FormData(form);
+  const password = String(data.get('password') ?? '');
+  const confirmation = String(data.get('confirmPassword') ?? '');
+  if (!window.confirm('Ganti akun demo lokal untuk email ini dengan data dan kata sandi baru?')) return;
+  try {
+    const result = await resetDemoAccountSession(state, accounts, {
+      name: data.get('name'),
+      email: data.get('email'),
+      phone: data.get('phone'),
+    }, password, confirmation);
+    accounts = result.accounts;
+    saveBrowserAccounts();
+    state = result.state;
+    navigateToAppRoute(window.location, renderApp, result.route);
+    if (result.accounts[result.state.profile.email]?.credential.mode === 'demo-unverified') {
+      showToast('Akun demo direset; kata sandi tidak diverifikasi pada koneksi ini.');
+    }
+  } catch (error) {
+    const message = error.message.includes('passwords do not match')
+      ? 'Kata sandi belum sama.'
+      : error.message.includes('8 characters')
+        ? 'Kata sandi minimal 8 karakter.'
+        : 'Akun demo tidak dapat direset. Periksa kembali data yang dimasukkan.';
+    showFormMessage('signup-message', message);
+  }
+}
+
+function submitProfile(form) {
+  if (!form.reportValidity()) return;
+  const data = new FormData(form);
+  try {
+    const updated = updateProfile(state, { name: data.get('name'), email: data.get('email'), phone: data.get('phone') });
+    const previousEmail = state.profile.email.toLowerCase();
+    const nextEmail = updated.profile.email;
+    if (accounts[previousEmail]) {
+      if (nextEmail !== previousEmail && accounts[nextEmail]) {
+        showFormMessage('profile-message', 'Email sudah digunakan akun lain.');
+        return;
+      }
+      const account = accounts[previousEmail];
+      if (nextEmail !== previousEmail) delete accounts[previousEmail];
+      accounts[nextEmail] = { ...account, profile: updated.profile };
+      saveBrowserAccounts();
+    }
+    state = updated;
+    renderApp();
+    showToast('Profil disimpan.');
+  } catch (error) {
+    showFormMessage('profile-message', error.message);
+  }
+}
+
+app.addEventListener('submit', async (event) => {
+  if (event.target.id === 'login-form') {
+    event.preventDefault();
+    await submitLogin(event.target);
+  } else if (event.target.id === 'signup-form') {
+    event.preventDefault();
+    await submitSignup(event.target);
+  } else if (event.target.id === 'profile-form') {
+    event.preventDefault();
+    submitProfile(event.target);
+  } else if (event.target.id === 'volume-form') {
+    event.preventDefault();
+    const input = event.target.elements.volume;
+    if (!input.reportValidity()) return;
+    try {
+      state = setMusicVolume(state, input.value);
+      renderApp();
+      showToast('Volume diperbarui.');
+    } catch (error) {
+      showToast(error.message);
+    }
+  }
+});
+
+app.addEventListener('click', async (event) => {
+  if (event.target.closest('[data-page]')) return;
+  if (event.target.closest('[data-action="set-auto-theme"]')) {
+    themePreference = 'auto';
+    saveThemePreference();
+    renderApp();
+    showToast('Tema otomatis mengikuti waktu perangkat.');
     return;
   }
-
-  const pageLink = event.target.closest('[data-page]');
-  if (pageLink) {
-    app.classList.remove('menu-open');
+  if (event.target.closest('[data-action="toggle-dark-mode"]')) {
+    const currentMode = getTimeTheme(new Date(), themePreference).colorMode;
+    themePreference = currentMode === 'dark' ? 'light' : 'dark';
+    saveThemePreference();
+    renderApp();
+    showToast(themePreference === 'dark' ? 'Mode gelap diaktifkan.' : 'Mode terang manual diaktifkan.');
     return;
   }
-
+  if (event.target.closest('[data-action="demo-preview"]')) {
+    const preview = startDemoPreview(state);
+    state = preview.state;
+    navigateToAppRoute(window.location, renderApp, preview.route);
+    showToast('Pratinjau pengguna demo dibuka.');
+    return;
+  }
+  if (event.target.closest('[data-action="reset-demo-account"]')) {
+    await resetDemoAccountFromSignup();
+    return;
+  }
   const controlButton = event.target.closest('[data-action="toggle-control"]');
   if (controlButton) {
     state = toggleControl(state, controlButton.dataset.key);
-    rerenderAndRestoreFocus(controlButton.dataset.focusKey);
+    renderApp();
     showToast('Status perangkat diperbarui.');
     return;
   }
-
-  const feedButton = event.target.closest('[data-action="toggle-feed"]');
-  if (feedButton) {
-    state = toggleFeedScenario(state);
-    rerenderAndRestoreFocus(feedButton.dataset.focusKey);
-    showToast('Status pakan diperbarui.');
-    return;
-  }
-
-  const detectionButton = event.target.closest('[data-action="add-detection"]');
-  if (detectionButton) {
-    state = addSimulatedDetection(state);
-    rerenderAndRestoreFocus(detectionButton.dataset.focusKey);
-    showToast('Event deteksi ditambahkan.');
-    return;
-  }
-
-  const triggerButton = event.target.closest('[data-action="trigger-esp"]');
-  if (triggerButton) {
-    state = simulateEspTrigger(state, triggerButton.dataset.detectionId);
-    rerenderAndRestoreFocus(triggerButton.dataset.focusKey);
-    showToast('Trigger tercatat.');
-    return;
-  }
-
-  const eggButton = event.target.closest('[data-action="add-egg-event"]');
-  if (eggButton) {
-    state = addSimulatedEggEvent(state);
-    rerenderAndRestoreFocus(eggButton.dataset.focusKey);
-    showToast('Indikasi berat ditambahkan.');
-    return;
-  }
-
-  const resetButton = event.target.closest('[data-action="reset-demo"]');
-  if (resetButton) {
-    state = resetDemo();
-    app.classList.remove('menu-open');
+  const readButton = event.target.closest('[data-action="mark-read"]');
+  if (readButton) {
+    state = markNotificationRead(state, readButton.dataset.notificationId);
     renderApp();
-    showToast('Data dikembalikan.');
+    showToast('Notifikasi ditandai dibaca.');
     return;
   }
-
-  const clearPreview = event.target.closest('[data-action="clear-preview"]');
-  if (clearPreview) {
-    window.history.replaceState(null, '', `${window.location.pathname}${window.location.hash}`);
+  if (event.target.closest('[data-action="mark-all-read"]')) {
+    state = markAllNotificationsRead(state);
     renderApp();
+    showToast('Semua notifikasi ditandai dibaca.');
     return;
   }
-
-  const filterButton = event.target.closest('[data-action="history-filter"]');
-  if (filterButton) {
-    state = setHistoryFilter(state, filterButton.dataset.filter);
-    rerenderAndRestoreFocus(`history-${filterButton.dataset.filter}`);
-    return;
+  if (event.target.closest('[data-action="logout"]')) {
+    state = logoutUser(state);
+    window.location.hash = '#/login';
   }
 });
-
-app.addEventListener('change', (event) => {
-  const colorInput = event.target.closest('[data-action="light-color"]');
-  if (colorInput) {
-    state = setLightColor(state, colorInput.value);
-    rerenderAndRestoreFocus(`light-color-${colorInput.value}`);
-    showToast('Warna lampu diperbarui.');
-  }
-});
-
-app.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && app.classList.contains('menu-open')) {
-    app.classList.remove('menu-open');
-    app.querySelector('[data-menu-toggle]')?.setAttribute('aria-expanded', 'false');
-    app.querySelector('[data-menu-toggle]')?.focus();
-  }
-});
-
-let skipInitialHashFocus = !window.location.hash;
-if (!window.location.hash) window.location.hash = '#/home';
 
 window.addEventListener('hashchange', () => {
-  app.classList.remove('menu-open');
   window.scrollTo(0, 0);
   renderApp();
-  if (skipInitialHashFocus) {
-    skipInitialHashFocus = false;
-    return;
-  }
   app.querySelector('#page-title')?.focus({ preventScroll: true });
 });
 
+if (!window.location.hash) window.location.hash = '#/login';
 renderApp();
+window.setInterval(() => applyTimeTheme(), 15_000);
+window.addEventListener('focus', () => applyTimeTheme());
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) applyTimeTheme();
+});
