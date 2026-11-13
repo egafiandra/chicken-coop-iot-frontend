@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import {
   acknowledgeAlert,
   addUser,
+  allActuatorsOff,
   closeModal,
+  countActiveActuators,
   createAdminState,
   enterAsAdmin,
   exitSession,
@@ -11,11 +13,13 @@ import {
   normalizeAdminPage,
   openModal,
   resetAdminDemo,
+  setActuatorColor,
   setCoopFilter,
   setRuleValue,
   setUserRoleFilter,
   setUserSearch,
   summarize,
+  toggleActuator,
   toggleCamera,
   toggleDeviceState,
   toggleRule,
@@ -170,4 +174,89 @@ test('reset mengembalikan fixture admin tetapi mempertahankan sesi', () => {
   assert.equal(reset.session, 'admin');
   assert.equal(reset.users.find((user) => user.id === 'u-2').active, true);
   assert.equal(reset.auditLog.length, createAdminState().auditLog.length);
+});
+
+test('aktuator mulai mati dan bisa dinyalakan satu per satu', () => {
+  const base = createAdminState();
+  assert.equal(countActiveActuators(base), 0);
+  assert.equal(base.actuators.waterValve.on, false);
+  assert.equal(base.actuators.lighting.on, false);
+  assert.equal(base.actuators.music.on, false);
+
+  const water = toggleActuator(base, 'waterValve');
+  assert.equal(water.actuators.waterValve.on, true);
+  assert.equal(water.actuators.waterValve.flowLpm, 0.7);
+  assert.equal(countActiveActuators(water), 1);
+  assert.equal(water.auditLog[0].action, 'Menyalakan aktuator');
+
+  const light = toggleActuator(water, 'lighting');
+  assert.equal(light.actuators.lighting.on, true);
+  assert.equal(countActiveActuators(light), 2);
+
+  const music = toggleActuator(light, 'music');
+  assert.equal(music.actuators.music.on, true);
+  assert.equal(countActiveActuators(music), 3);
+});
+
+test('mematikan aktuator mengembalikan debit air ke nol', () => {
+  const on = toggleActuator(createAdminState(), 'waterValve');
+  const off = toggleActuator(on, 'waterValve');
+  assert.equal(off.actuators.waterValve.on, false);
+  assert.equal(off.actuators.waterValve.flowLpm, 0);
+  assert.equal(off.auditLog[0].action, 'Mematikan aktuator');
+});
+
+test('toggle aktuator tidak mengubah state masukan (immutable)', () => {
+  const base = createAdminState();
+  toggleActuator(base, 'lighting');
+  assert.equal(base.actuators.lighting.on, false, 'state awal tidak boleh berubah');
+});
+
+test('aktuator tak dikenal ditolak', () => {
+  assert.throws(() => toggleActuator(createAdminState(), 'pintu'), /Aktuator tidak dikenal/);
+  assert.throws(() => toggleActuator(createAdminState(), 'kamera'), /Aktuator tidak dikenal/);
+});
+
+test('warna lampu aktuator memakai whitelist yang sama dengan aturan', () => {
+  const base = createAdminState();
+  assert.equal(setActuatorColor(base, 'red').actuators.lighting.color, 'red');
+  assert.equal(setActuatorColor(base, 'warm-white').actuators.lighting.color, 'warm-white');
+  assert.throws(() => setActuatorColor(base, 'biru'), /tidak didukung/);
+});
+
+test('matikan semua aktuator mematikan ketiganya sekaligus', () => {
+  let state = createAdminState();
+  state = toggleActuator(state, 'waterValve');
+  state = toggleActuator(state, 'lighting');
+  state = toggleActuator(state, 'music');
+  assert.equal(countActiveActuators(state), 3);
+
+  const off = allActuatorsOff(state);
+  assert.equal(countActiveActuators(off), 0);
+  assert.equal(off.actuators.waterValve.flowLpm, 0);
+  assert.equal(off.auditLog[0].action, 'Mematikan semua aktuator');
+});
+
+test('setiap kontrol aktuator tercatat di audit log dan ditandai simulasi', () => {
+  const base = createAdminState();
+  const after = toggleActuator(base, 'music');
+  assert.equal(after.auditLog[0].simulated, true);
+  assert.equal(after.auditLog[0].actor, base.currentUser.name);
+  assert.ok(after.auditLog.length > base.auditLog.length);
+});
+
+test('reset mengembalikan aktuator ke keadaan mati', () => {
+  const on = toggleActuator(createAdminState(), 'lighting');
+  const reset = resetAdminDemo(on);
+  assert.equal(reset.actuators.lighting.on, false);
+  assert.equal(countActiveActuators(reset), 0);
+});
+
+test('setiap halaman di NAV dikenali normalizeAdminPage', () => {
+  // regresi: halaman baru harus didaftarkan di ADMIN_PAGES,
+  // kalau tidak normalizeAdminPage diam-diam mengembalikan ke dashboard
+  const pages = ['dashboard', 'users', 'coops', 'control', 'rules', 'cameras', 'logs', 'settings'];
+  for (const page of pages) {
+    assert.equal(normalizeAdminPage(page), page, `halaman '${page}' tidak dikenali`);
+  }
 });

@@ -1,4 +1,4 @@
-const ADMIN_PAGES = new Set(['dashboard', 'users', 'coops', 'rules', 'cameras', 'logs', 'settings']);
+const ADMIN_PAGES = new Set(['dashboard', 'users', 'coops', 'control', 'rules', 'cameras', 'logs', 'settings']);
 const ROLES = new Set(['admin', 'pengguna']);
 const LIGHT_COLORS = new Set(['red', 'warm-white']);
 const DEVICE_STATES = new Set(['online', 'offline', 'warning']);
@@ -64,6 +64,11 @@ export function createAdminState() {
       egg: { enabled: true, thresholdGram: 50 },
     },
     ui: { userSearch: '', userRole: 'all', coopFilter: 'all', modal: null },
+    actuators: {
+      waterValve: { on: false, flowLpm: 0 },
+      lighting: { on: false, color: 'warm-white' },
+      music: { on: false, track: 'Klasik' },
+    },
     theme: 'aurora',
     nextUserId: 5,
     nextAuditId: 5,
@@ -277,6 +282,51 @@ export function summarize(state) {
 export function toggleTheme(state) {
   return { ...state, theme: state.theme === 'night' ? 'aurora' : 'night' };
 }
+
+/* ---------- kontrol aktuator ---------- */
+
+const ACTUATORS = new Set(['waterValve', 'lighting', 'music']);
+const ACTUATOR_LABEL = { waterValve: 'Valve air', lighting: 'Lampu kandang', music: 'Musik klasik' };
+
+export function toggleActuator(state, key) {
+  if (!ACTUATORS.has(key)) throw new Error(`Aktuator tidak dikenal: ${key}`);
+  const current = state.actuators[key];
+  const on = !current.on;
+  const nextActuator = { ...current, on };
+  if (key === 'waterValve') nextActuator.flowLpm = on ? 0.7 : 0;
+  const next = { ...state, actuators: { ...state.actuators, [key]: nextActuator } };
+  const detail = key === 'waterValve'
+    ? `Valve air minum ${on ? 'dibuka' : 'ditutup'}.`
+    : `${ACTUATOR_LABEL[key]} ${on ? 'dinyalakan' : 'dimatikan'}.`;
+  return logAudit(next, on ? 'Menyalakan aktuator' : 'Mematikan aktuator', detail);
+}
+
+export function setActuatorColor(state, color) {
+  if (!LIGHT_COLORS.has(color)) throw new Error(`Warna lampu tidak didukung: ${color}`);
+  const next = {
+    ...state,
+    actuators: { ...state.actuators, lighting: { ...state.actuators.lighting, color } },
+  };
+  return logAudit(next, 'Mengubah warna lampu', color === 'red' ? 'Merah' : 'Warm white');
+}
+
+export function allActuatorsOff(state) {
+  const next = {
+    ...state,
+    actuators: {
+      waterValve: { ...state.actuators.waterValve, on: false, flowLpm: 0 },
+      lighting: { ...state.actuators.lighting, on: false },
+      music: { ...state.actuators.music, on: false },
+    },
+  };
+  return logAudit(next, 'Mematikan semua aktuator', 'Valve, lampu, dan musik');
+}
+
+export function countActiveActuators(state) {
+  return Object.values(state.actuators).filter((a) => a.on).length;
+}
+
+export { ACTUATORS };
 
 export function resetAdminDemo(state) {
   const fresh = createAdminState();

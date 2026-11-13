@@ -1,7 +1,9 @@
 import {
   acknowledgeAlert,
   addUser,
+  allActuatorsOff,
   closeModal,
+  countActiveActuators,
   createAdminState,
   enterAsAdmin,
   exitSession,
@@ -9,18 +11,20 @@ import {
   normalizeAdminPage,
   openModal,
   resetAdminDemo,
+  setActuatorColor,
   setCoopFilter,
   setRuleValue,
   setUserRoleFilter,
   setUserSearch,
   summarize,
+  toggleActuator,
   toggleCamera,
   toggleDeviceState,
   toggleRule,
   toggleTheme,
   toggleUserActive,
   updateUser,
-} from './state.mjs?v=20261129';
+} from './state.mjs?v=20261131';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
@@ -54,6 +58,10 @@ const P = {
   down: '<path d="M12 5v14M5.5 12.5 12 19l6.5-6.5"/>',
   bell: '<path d="M18 15.6V10a6 6 0 1 0-12 0v5.6L4.4 18h15.2L18 15.6Z"/><path d="M10.4 21h3.2"/>',
   shield: '<path d="M12 2.8 4.6 6v6c0 4.6 3.1 7.8 7.4 9.2 4.3-1.4 7.4-4.6 7.4-9.2V6L12 2.8Z"/><path d="m8.8 12 2.2 2.2 4.2-4.4"/>',
+  water: '<path d="M12 3.2S6.4 10 6.4 13.8a5.6 5.6 0 0 0 11.2 0C17.6 10 12 3.2 12 3.2Z"/><path d="M9.4 15a2.6 2.6 0 0 0 2.6 2.6"/>',
+  light: '<path d="M9.4 18.2h5.2M10.4 20.8h3.2M8.6 14.6a6.6 6.6 0 1 1 6.8 0c-.9.7-1.2 1.4-1.4 2.4h-4c-.2-1-.5-1.7-1.4-2.4Z"/>',
+  music: '<path d="M9.4 17.6V5.2l11-2v12"/><circle cx="6.6" cy="17.8" r="2.8"/><circle cx="17.6" cy="15.6" r="2.8"/>',
+  power: '<path d="M12 3v9"/><path d="M6.4 6.4a8 8 0 1 0 11.2 0"/>',
 };
 
 const TYPE_ICON = { esp: 'chip', sensor: 'activity', actuator: 'sliders', camera: 'camera' };
@@ -68,6 +76,7 @@ const NAV = [
   { id: 'dashboard', label: 'Dashboard', icon: 'grid', title: 'Dashboard', lede: 'Ringkasan seluruh kandang, perangkat, dan pengguna dalam satu tampilan.' },
   { id: 'users', label: 'Pengguna', icon: 'users', title: 'Pengguna', lede: 'Kelola akun pengguna dan admin, peran, serta kandang yang mereka pantau.' },
   { id: 'coops', label: 'Kandang', icon: 'coop', title: 'Kandang & perangkat', lede: 'Data induk kandang, node ESP, sensor, dan aktuator yang terdaftar.' },
+  { id: 'control', label: 'Kontrol', icon: 'power', title: 'Kontrol perangkat', lede: 'Nyalakan atau matikan valve air, lampu kandang, dan musik langsung dari panel admin.' },
   { id: 'rules', label: 'Aturan', icon: 'sliders', title: 'Aturan & otomasi', lede: 'Ambang sensor, jadwal aktuator, dan notifikasi yang dibaca panel pengguna.' },
   { id: 'cameras', label: 'Kamera', icon: 'camera', title: 'Kamera & model', lede: 'Sumber stream, ambang keyakinan, dan aksi trigger untuk deteksi YOLO.' },
   { id: 'logs', label: 'Log', icon: 'logs', title: 'Log aktivitas', lede: 'Jejak setiap perubahan konfigurasi yang dilakukan admin.' },
@@ -416,8 +425,73 @@ function renderCoops() {
   </div>`;
 }
 
-/* ---------- aturan ---------- */
+/* ---------- kontrol aktuator ---------- */
 
+function actuatorCard({ key, title, subtitle, iconName, on, tone, children }) {
+  return `<article class="card act-card rise${on ? ' is-on' : ''}" style="--i:0;--tone:${tone}">
+    <div class="act-head">
+      <span class="act-icon">${icon(iconName)}</span>
+      <button class="switch" type="button" data-action="toggle-actuator" data-key="${key}" aria-pressed="${on}" aria-label="${title}">
+        <i></i>${on ? 'Menyala' : 'Mati'}
+      </button>
+    </div>
+    <h3 class="act-title">${title}</h3>
+    <p class="act-sub">${subtitle}</p>
+    ${children}
+  </article>`;
+}
+
+function renderControl() {
+  const a = state.actuators;
+  const active = countActiveActuators(state);
+
+  return `<div class="stack">
+    <div class="note rise" style="--i:0">${icon('info')}<span>Mode simulasi — perintah tidak dikirim ke perangkat nyata. Setiap perubahan tercatat di log aktivitas.</span></div>
+
+    <section class="card act-summary rise" style="--i:1">
+      <div class="act-summary-copy">
+        <span class="eyebrow-mini">Status aktuator</span>
+        <strong>${active} dari 3 menyala</strong>
+        <p>${active === 0 ? 'Semua perangkat dalam keadaan mati.' : 'Perangkat aktif akan tetap menyala sampai dimatikan manual atau dijalankan aturan otomasi.'}</p>
+      </div>
+      <button class="btn btn--danger" type="button" data-action="all-off"${active === 0 ? ' disabled' : ''}>${icon('power')}Matikan semua</button>
+    </section>
+
+    <div class="act-grid">
+      ${actuatorCard({
+        key: 'waterValve', title: 'Valve air minum', iconName: 'water', on: a.waterValve.on, tone: 'var(--cyan)',
+        subtitle: 'Buka aliran air minum ke kandang.',
+        children: `<div class="act-meta">
+          <div class="act-row"><span>Status</span><b>${a.waterValve.on ? 'Terbuka' : 'Tertutup'}</b></div>
+          <div class="act-row"><span>Debit</span><b>${a.waterValve.flowLpm.toFixed(1)} L/menit</b></div>
+        </div>`,
+      })}
+      ${actuatorCard({
+        key: 'lighting', title: 'Lampu kandang', iconName: 'light', on: a.lighting.on, tone: 'var(--amber)',
+        subtitle: 'Nyalakan pencahayaan kandang.',
+        children: `<div class="act-meta">
+          <div class="act-row"><span>Status</span><b>${a.lighting.on ? 'Menyala' : 'Mati'}</b></div>
+          <div class="act-row"><span>Warna</span><b>${a.lighting.color === 'red' ? 'Merah' : 'Warm white'}</b></div>
+        </div>
+        <fieldset class="color-choice">
+          <legend>Warna lampu</legend>
+          <label class="color-option"><input type="radio" name="act-color" value="red" data-action="act-color" ${a.lighting.color === 'red' ? 'checked' : ''}><span class="swatch swatch-red"></span>Merah</label>
+          <label class="color-option"><input type="radio" name="act-color" value="warm-white" data-action="act-color" ${a.lighting.color === 'warm-white' ? 'checked' : ''}><span class="swatch swatch-warm"></span>Warm white</label>
+        </fieldset>`,
+      })}
+      ${actuatorCard({
+        key: 'music', title: 'Musik klasik', iconName: 'music', on: a.music.on, tone: 'var(--violet)',
+        subtitle: 'Putar musik untuk menenangkan ayam.',
+        children: `<div class="act-meta">
+          <div class="act-row"><span>Status</span><b>${a.music.on ? 'Memutar' : 'Berhenti'}</b></div>
+          <div class="act-row"><span>Playlist</span><b>${a.music.track}</b></div>
+        </div>`,
+      })}
+    </div>
+  </div>`;
+}
+
+/* ---------- aturan ---------- */
 const num = (s, f, label, val, unit, hint = '') => `<label class="field"><span class="label">${label}</span>
   <input type="number" min="0" step="1" value="${val}" data-action="rule-number" data-section="${s}" data-field="${f}" aria-label="${label}">
   <span class="hint">${unit}${hint ? ` · ${hint}` : ''}</span></label>`;
@@ -551,7 +625,7 @@ function renderSettings() {
 /* ---------- shell ---------- */
 
 const VIEWS = {
-  dashboard: renderDashboard, users: renderUsers, coops: renderCoops,
+  dashboard: renderDashboard, users: renderUsers, coops: renderCoops, control: renderControl,
   rules: renderRules, cameras: renderCameras, logs: renderLogs, settings: renderSettings,
 };
 
@@ -732,6 +806,19 @@ app.addEventListener('click', (e) => {
   const tr = t.closest('[data-action="toggle-rule"]');
   if (tr) { act(() => toggleRule(state, tr.dataset.section), 'Status aturan diperbarui.'); return; }
 
+  const ta = t.closest('[data-action="toggle-actuator"]');
+  if (ta) {
+    const key = ta.dataset.key;
+    const wasOn = state.actuators[key]?.on;
+    act(() => toggleActuator(state, key), wasOn ? 'Perangkat dimatikan.' : 'Perangkat dinyalakan.');
+    return;
+  }
+
+  if (t.closest('[data-action="all-off"]')) {
+    act(() => allActuatorsOff(state), 'Semua aktuator dimatikan.');
+    return;
+  }
+
   if (t.closest('[data-action="reset-admin"]')) {
     state = resetAdminDemo(state);
     paint();
@@ -765,7 +852,11 @@ app.addEventListener('change', (e) => {
     let v = x.value;
     if (x.dataset.field === 'notifyWhenEmpty') v = v === 'true';
     act(() => setRuleValue(state, x.dataset.section, x.dataset.field, v), 'Aturan disimpan.');
+    return;
   }
+
+  const ac = e.target.closest('[data-action="act-color"]');
+  if (ac) { act(() => setActuatorColor(state, ac.value), 'Warna lampu diperbarui.'); }
 });
 
 app.addEventListener('submit', (e) => {
