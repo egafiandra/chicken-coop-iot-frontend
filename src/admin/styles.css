@@ -2034,29 +2034,28 @@ h1, h2, h3, p { margin: 0; }
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .coop-grid, .act-grid { grid-template-columns: 1fr; }
   .form-grid, .rule-fields { grid-template-columns: 1fr; }
-  .kpi { padding: 12px; border-radius: var(--r-lg); gap: 2px; }
+  .kpi { padding: 10px; border-radius: var(--r-lg); gap: 2px; }
   .kpi-head { margin-bottom: 8px; gap: 6px; }
-  .kpi-icon { width: 26px; height: 26px; border-radius: 8px; }
-  .kpi-icon .icon { width: 13px; height: 13px; }
+  .kpi-icon { width: 24px; height: 24px; border-radius: 8px; }
+  .kpi-icon .icon { width: 12px; height: 12px; }
   .kpi-delta { font-size: 8.5px; padding: 2px 6px; gap: 3px; }
   .kpi-delta .icon { width: 8px; height: 8px; }
-  .kpi-label { font-size: 9.5px; }
-  .kpi-value { font-size: 21px; letter-spacing: -1px; }
-  .kpi-value small { font-size: 10px; }
+  .kpi-label { font-size: 9px; }
+  .kpi-value { font-size: 19px; letter-spacing: -1px; }
+  .kpi-value small { font-size: 9px; }
   .kpi-foot { margin-top: 7px; gap: 6px; }
-  .kpi-note { font-size: 8.5px; line-height: 1.35; }
-  .spark { width: 46px; height: 18px; }
+  .kpi-note { font-size: 8px; line-height: 1.35; }
+  .spark { width: 40px; height: 16px; }
 
-  .hero { padding: 22px 18px; border-radius: var(--r-xl); gap: 18px; }
-  .hero h1 { font-size: 23px; letter-spacing: -1px; line-height: 1.15; }
+  .hero { padding: 18px 14px; border-radius: var(--r-xl); gap: 18px; }
+  .hero h1 { font-size: 20px; letter-spacing: -1px; line-height: 1.15; }
   .hero-stats { display: grid; grid-template-columns: 1fr; gap: 8px; }
   .hero-stat { justify-content: space-between; }
-  .card { padding: 15px; border-radius: var(--r-lg); }
-  .card-pad { padding: 15px 15px 0; }
-  .card-pad-x { padding: 0 15px; }
+  .card { padding: 12px; border-radius: var(--r-lg); }
+  .card-pad { padding: 12px 12px 0; }
+  .card-pad-x { padding: 0 12px; }
   .card-head { gap: 10px; flex-wrap: wrap; }
-  .card-head h2 { font-size: 13px; }
-
+  
   /* tabel: beri scroll horizontal, jangan perkecil font sampai tak terbaca */
   .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .tbl thead th, .tbl tbody td { padding: 10px 12px; }
@@ -2068,78 +2067,78 @@ h1, h2, h3, p { margin: 0; }
   .segmented { width: 100%; }
   .segmented button { flex: 1; min-height: 36px; }
 
-  .modal { padding: 18px; border-radius: var(--r-xl); max-height: 92dvh; overflow-y: auto; }
+  .modal { padding: 14px; border-radius: var(--r-xl); max-height: 92dvh; overflow-y: auto; }
   .modal-actions { flex-direction: column-reverse; }
   .modal-actions .btn { width: 100%; }
   .toast { right: 12px; left: 12px; bottom: 12px; }
 
   .tl-row { grid-template-columns: 15px minmax(0, 1fr); }
   .tl-row time { grid-column: 2; }
-  .page-head h1 { font-size: 21px; }
+  .page-head h1 { font-size: 19px; }
   .page-head { gap: 10px; }
 
   /* --- tipografi & kontrol halaman data di HP --- */
-  .card-head h2 { font-size: 12.5px; }
-  .card-head p { font-size: 10px; }
-  .tbl { font-size: 11px; min-width: 520px; }
-  .tbl thead th { padding: 7px 10px; font-size: 8.5px; }
-  .tbl tbody td { padding: 9px 10px; }
-  .avatar { width: 24px; height: 24px; font-size: 9px; }
-  .chip { height: 20px; padding: 0 7px; font-size: 9px; gap: 4px; }
-  .btn { height: 32px; padding: 0 11px; font-size: 10.5px; }
-  .btn--sm { height: 25px; padding: 0 8px; font-size: 9.5px; }
-  .field input, .field select { height: 34px; font-size: 11px; }
-  .field .label { font-size: 10px; }
-  .search input { height: 32px; font-size: 11px; }
-  .segmented button { height: 30px; font-size: 10px; }
-  .modal h2 { font-size: 14px; }
+  .card-head h2 { font-size: 11.5px; }
+  .card-head p { font-size: 9px; }
+  .tbl { font-size: 10.5px; min-width: 500px; }
+  .tbl thead th { padding: 6px 9px; font-size: 8px; }
+  .tbl tbody td { padding: 8px 9px; }
+  .avatar { width: 22px; height: 22px; font-size: 8.5px; }
+  .chip { height: 18px; padding: 0 6px; font-size: 8.5px; gap: 3px; }
+  .btn { height: 30px; padding: 0 10px; font-size: 10px; }
+  .btn--sm { height: 23px; padding: 0 7px; font-size: 9px; }
+  .field input, .field select { height: 32px; font-size: 10.5px; }
+  .field .label { font-size: 9px; }
+  .search input { height: 30px; font-size: 10.5px; }
+  .segmented button { height: 28px; font-size: 9.5px; }
+  .modal h2 { font-size: 13px; }
 
   /* Kontrol */
-  .act-title { font-size: 12.5px; }
-  .act-sub { font-size: 10px; }
-  .act-icon { width: 30px; height: 30px; }
-  .act-icon .icon { width: 14px; height: 14px; }
-  .act-row span { font-size: 9px; }
-  .act-row b { font-size: 10px; }
-  .act-meta { padding: 9px 10px; gap: 5px; }
-  .act-summary-copy strong { font-size: 15px; }
-  .eyebrow-mini { font-size: 8.5px; }
-  .vol-label { font-size: 9px; }
-  .vol-row input { height: 30px; font-size: 11px; }
+  .act-title { font-size: 11.5px; }
+  .act-sub { font-size: 9px; }
+  .act-icon { width: 27px; height: 27px; }
+  .act-icon .icon { width: 12px; height: 12px; }
+  .act-row span { font-size: 8.5px; }
+  .act-row b { font-size: 9.5px; }
+  .act-meta { padding: 7px 8px; gap: 4px; }
+  .act-summary-copy strong { font-size: 13px; }
+  .eyebrow-mini { font-size: 8px; }
+  .vol-label { font-size: 8.5px; }
+  .vol-row input { height: 28px; font-size: 10px; }
 
   /* Notifikasi */
-  .notif-row { padding: 10px; gap: 9px; }
-  .notif-copy strong { font-size: 10.5px; }
-  .notif-copy p { font-size: 9px; }
-  .notif-copy time { font-size: 8.5px; }
-  .notif-icon { width: 23px; height: 23px; border-radius: 7px; }
-  .notif-icon .icon { width: 12px; height: 12px; }
+  .notif-row { padding: 8px; gap: 8px; }
+  .notif-copy strong { font-size: 9.5px; }
+  .notif-copy p { font-size: 8.5px; }
+  .notif-copy time { font-size: 8px; }
+  .notif-icon { width: 21px; height: 21px; border-radius: 6px; }
+  .notif-icon .icon { width: 11px; height: 11px; }
 
   /* Log */
-  .tl-copy strong { font-size: 10px; }
-  .tl-copy small { font-size: 9px; }
-  .audit-stat b { font-size: 13px; }
+  .tl-copy strong { font-size: 9.5px; }
+  .tl-copy small { font-size: 8.5px; }
+  .audit-stat b { font-size: 12px; }
   .audit-stat span { font-size: 8px; }
 
   /* Aturan */
-  .rule-head h3 { font-size: 12px; }
-  .rule-head p { font-size: 9.5px; }
-  .rule-fields input, .rule-fields select { height: 32px; font-size: 10.5px; }
-  .switch { height: 20px; font-size: 9px; }
-  .switch i { width: 24px; height: 13px; }
-  .hint { font-size: 8.5px; }
+  .rule-head h3 { font-size: 11px; }
+  .rule-head p { font-size: 8.5px; }
+  .rule-fields input, .rule-fields select { height: 30px; font-size: 10px; }
+  .switch { height: 18px; font-size: 8.5px; }
+  .switch i { width: 22px; height: 12px; }
+  .hint { font-size: 8px; }
 
   /* Pengaturan */
-  .row-copy strong { font-size: 11px; }
-  .row-copy small { font-size: 9px; }
-  .row-icon { width: 27px; height: 27px; }
+  .row-copy strong { font-size: 10px; }
+  .row-copy small { font-size: 8.5px; }
+  .row-icon { width: 24px; height: 24px; }
 
   /* banner info & empty state ikut mengecil */
-  .note { font-size: 10px; padding: 10px 12px; gap: 8px; line-height: 1.5; }
-  .note .icon { width: 14px; height: 14px; }
-  .empty h3 { font-size: 12px; }
-  .empty p { font-size: 10px; }
-  .empty-icon { width: 32px; height: 32px; }
+  .note { font-size: 9px; padding: 8px 10px; gap: 7px; line-height: 1.45; }
+  .note .icon { width: 12px; height: 12px; }
+  .empty h3 { font-size: 11px; }
+  .empty p { font-size: 9px; }
+  .empty-icon { width: 28px; height: 28px; }
 
   .act-summary { flex-direction: column; align-items: stretch; }
   .act-summary .btn { width: 100%; }
@@ -2151,56 +2150,62 @@ h1, h2, h3, p { margin: 0; }
 @media (max-width: 420px) {
   .canvas { padding-left: 12px; padding-right: 12px; }
   .topbar { height: 54px; padding: 0 12px; gap: 8px; }
-  .kpi-grid { gap: 8px; }
-  .kpi { padding: 10px; border-radius: var(--r-md); }
-  .kpi-icon { width: 23px; height: 23px; border-radius: 7px; }
-  .kpi-icon .icon { width: 12px; height: 12px; }
-  .kpi-label { font-size: 9px; }
-  .kpi-value { font-size: 18px; letter-spacing: -.8px; }
-  .kpi-value small { font-size: 9px; }
+  .kpi-grid { gap: 6px; }
+  .kpi { padding: 8px; border-radius: var(--r-md); }
+  .kpi-icon { width: 20px; height: 20px; border-radius: 7px; }
+  .kpi-icon .icon { width: 10px; height: 10px; }
+  .kpi-label { font-size: 8.5px; }
+  .kpi-value { font-size: 16px; letter-spacing: -.8px; }
+  .kpi-value small { font-size: 8.5px; }
   .kpi-note { font-size: 8px; }
   .spark { display: none; }
-  .hero { padding: 18px 15px; }
-  .hero h1 { font-size: 20px; }
-  .hero-stat { font-size: 10px; padding: 6px 10px; }
-  .card { padding: 13px; }
-  .card-head h2 { font-size: 12.5px; }
-  .page-head h1 { font-size: 19px; }
+  .hero { padding: 15px 12px; }
+  .hero h1 { font-size: 18px; }
+  .hero-stat { font-size: 9px; padding: 5px 8px; }
+  .card { padding: 10px; }
+    .page-head h1 { font-size: 17px; }
   .rail { width: min(90vw, 280px); }
   #app.nav-open .rail { width: min(90vw, 280px); }
   .rail-item { height: 44px; }
 
   /* halaman data di HP kecil */
-  .card-head h2 { font-size: 12px; }
-  .card-head p { font-size: 9.5px; }
-  .tbl { font-size: 10.5px; }
-  .tbl thead th { font-size: 8px; padding: 6px 9px; }
-  .tbl tbody td { padding: 8px 9px; }
-  .avatar { width: 22px; height: 22px; font-size: 8.5px; }
-  .chip { height: 19px; font-size: 8.5px; padding: 0 6px; }
+  .card-head h2 { font-size: 10.5px; }
+  /* header kartu menumpuk: judul di atas, tombol full-width di bawah */
+  .card-head { flex-direction: column; align-items: stretch; gap: 8px; }
+  .card-head > .btn, .card-head > a.btn { width: 100%; justify-content: center; }
+  .card-head p { font-size: 8.5px; }
+  .tbl { font-size: 9.5px; min-width: 460px; }
+  .tbl thead th { font-size: 8px; padding: 5px 8px; }
+  .tbl tbody td { padding: 7px 8px; }
+  .avatar { width: 20px; height: 20px; font-size: 8px; }
+  .chip { height: 18px; font-size: 8px; padding: 0 5px; }
   /* tombol tetap nyaman disentuh: min-height 36px, bukan 30px */
-  .btn { height: auto; min-height: 36px; font-size: 10px; padding: 0 10px; }
-  .btn--sm { height: auto; min-height: 30px; font-size: 9px; padding: 0 7px; }
-  .field input, .field select { height: 34px; font-size: 10.5px; }
+  .btn { height: auto; min-height: 34px; font-size: 9px; padding: 0 9px; }
+  .btn--sm { height: auto; min-height: 28px; font-size: 8px; padding: 0 6px; }
+  .field input, .field select { height: 32px; font-size: 9.5px; }
 
-  .act-title { font-size: 12px; }
-  .act-sub { font-size: 9.5px; }
-  .act-row span { font-size: 8.5px; }
-  .act-row b { font-size: 9.5px; }
-  .act-summary-copy strong { font-size: 14px; }
+  .act-title { font-size: 10.5px; }
+  .act-sub { font-size: 8.5px; }
+  .act-row span { font-size: 8px; }
+  .act-row b { font-size: 8.5px; }
+  .act-summary-copy strong { font-size: 12px; }
 
-  .notif-copy strong { font-size: 10px; }
-  .notif-copy p { font-size: 8.5px; }
-  .tl-copy strong { font-size: 9.5px; }
-  .tl-copy small { font-size: 8.5px; }
-  .rule-head h3 { font-size: 11.5px; }
+  .notif-copy strong { font-size: 9px; }
+  .notif-copy p { font-size: 8px; }
+  .tl-copy strong { font-size: 8.5px; }
+  .tl-copy small { font-size: 8px; }
+  .rule-head h3 { font-size: 10.5px; }
+  .rule-head p { font-size: 8px; }
+  .rule-fields input, .rule-fields select { height: 28px; font-size: 9.5px; }
+  .switch { height: 17px; font-size: 8px; }
+  .switch i { width: 20px; height: 11px; }
   .hint { font-size: 8px; }
-  .note { font-size: 9.5px; padding: 9px 10px; }
-  .note .icon { width: 13px; height: 13px; }
-  .empty h3 { font-size: 11.5px; }
-  .empty p { font-size: 9.5px; }
-  .row-copy strong { font-size: 10.5px; }
-  .row-copy small { font-size: 8.5px; }
+  .note { font-size: 8.5px; padding: 7px 9px; }
+  .note .icon { width: 11px; height: 11px; }
+  .empty h3 { font-size: 10.5px; }
+  .empty p { font-size: 8.5px; }
+  .row-copy strong { font-size: 9.5px; }
+  .row-copy small { font-size: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
