@@ -30,7 +30,7 @@ import {
   toggleUserActive,
   unreadNotificationCount,
   updateUser,
-} from './state.mjs?v=20261134';
+} from './state.mjs?v=20261136';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
@@ -125,7 +125,7 @@ function spark(values, color, idx = 0) {
 function ring(online, warning, offline, size = 104) {
   const total = online + warning + offline || 1;
   const R = size / 2 - 8, C = 2 * Math.PI * R, c = size / 2;
-  const seg = [[online, '#6ee7b7'], [warning, '#fbbf24'], [offline, '#fb7185']];
+  const seg = [[online, '#7cc47f'], [warning, '#e0b862'], [offline, '#d9917f']];
   let off = 0;
   const arcs = seg.filter(([n]) => n > 0).map(([n, col], i) => {
     const len = (n / total) * C;
