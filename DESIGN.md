@@ -14,10 +14,10 @@ Beranda memakai foto ayam berlisensi CC0 sebagai titik fokus, lalu ringkasan sen
 
 - Pine `#154212` dan Pine-soft `#2d5a27`: aksi utama dan navigasi.
 - Paper `#faf9f4`, surface `#ffffff`, dan surface-low `#f5f4ef`: latar hangat dan kartu.
-- Ink `#1b1c19`, moss `#42493e`, dan outline `#c2c9bb`: teks dan pemisah yang terbaca.
+- Ink `#1b1c19`, moss `#42493e`, outline `#72796e`, dan outline-soft `#c2c9bb`: teks dan pemisah yang tegas.
 - Gold `#7e5700` dan pale gold `#ffdead`: aksen sekunder untuk pembacaan dan status penting.
 - Water `#4b7d83`: aksen semantik untuk kontrol air.
-- Dark canvas `#0c1510`, surface `#141e18`, text `#dae5dc`, outline `#3d4a3d`, emerald `#4be277`, dan amber `#ffc640`: palet Nocturne untuk malam atau Dark Mode.
+- Dark canvas `#0c1510`, surface `#141e18`, text `#dae5dc`, outline `#869585`, outline-soft `#3d4a3d`, emerald `#4be277`, dan amber `#ffc640`: palet Nocturne untuk malam atau Dark Mode.
 - Typography: Plus Jakarta Sans dengan fallback system sans.
 - Radius: kartu 16px, kontrol 10px, status chip membulat bila membantu pemindaian.
 - Motion: transisi singkat untuk umpan balik klik; tanpa animasi loop.

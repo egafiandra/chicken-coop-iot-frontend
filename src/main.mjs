@@ -10,13 +10,13 @@ import {
   toggleControl,
   unreadCount,
   updateProfile,
-} from './state.mjs?v=user-app-39';
-import { getDemoLoginStatus, isValidDemoEmail } from './auth-demo.mjs?v=user-app-39';
-import { createAccountSession, navigateToAppRoute, resetDemoAccountSession, startDemoPreview, validateSignupInput } from './auth-flow.mjs?v=user-app-39';
-import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user-app-39';
-import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-39';
-import { renderMonitorDashboard } from './monitor-dashboard.mjs?v=user-app-39';
-import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-39';
+} from './state.mjs?v=user-app-41';
+import { getDemoLoginStatus, isValidDemoEmail } from './auth-demo.mjs?v=user-app-41';
+import { createAccountSession, navigateToAppRoute, resetDemoAccountSession, startDemoPreview, validateSignupInput } from './auth-flow.mjs?v=user-app-41';
+import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user-app-41';
+import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-41';
+import { renderMonitorDashboard } from './monitor-dashboard.mjs?v=user-app-41';
+import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-41';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
@@ -95,11 +95,15 @@ function saveThemePreference() {
 }
 
 function localTimeZoneLabel(date) {
-  const localOffset = -date.getTimezoneOffset();
-  if (localOffset === 420) return 'WIB';
-  if (localOffset === 480) return 'WITA';
-  if (localOffset === 540) return 'WIT';
   try {
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const indonesiaZones = {
+      'Asia/Jakarta': 'WIB',
+      'Asia/Pontianak': 'WIB',
+      'Asia/Makassar': 'WITA',
+      'Asia/Jayapura': 'WIT',
+    };
+    if (indonesiaZones[zone]) return indonesiaZones[zone];
     return new Intl.DateTimeFormat('id-ID', { timeZoneName: 'short' })
       .formatToParts(date)
       .find((part) => part.type === 'timeZoneName')?.value || '';
@@ -110,7 +114,8 @@ function localTimeZoneLabel(date) {
 
 function renderTimeThemeControls(date = new Date()) {
   const theme = getTimeTheme(date, themePreference);
-  const clock = [theme.clock, localTimeZoneLabel(date)].filter(Boolean).join(' ');
+  const zone = localTimeZoneLabel(date);
+  const clock = [theme.clock, zone].filter(Boolean).join(' ');
   const modeLabel = themePreference === 'auto' ? 'Otomatis' : 'Manual';
   const readoutClass = `time-theme-readout${themePreference === 'auto' ? '' : ' is-manual'}`;
   const readoutLabel = themePreference === 'auto'
@@ -120,7 +125,7 @@ function renderTimeThemeControls(date = new Date()) {
     ? `<div class="${readoutClass}" data-period="${theme.period}" data-mode="auto" aria-label="${readoutLabel}">`
     : `<button class="${readoutClass}" data-period="${theme.period}" data-mode="${themePreference}" type="button" data-action="set-auto-theme" aria-label="${readoutLabel}" title="Kembali ke otomatis">`;
   const closeReadout = themePreference === 'auto' ? '</div>' : '</button>';
-  return `<div class="time-theme-controls">${readout}<time class="live-clock" id="live-clock" datetime="${date.toISOString()}">${escapeHTML(clock)}</time><span class="time-period-label" id="time-period-label">${theme.periodLabel}</span><span class="time-mode-label" id="time-mode-label">${modeLabel}</span>${closeReadout}<button class="theme-mode-toggle${theme.colorMode === 'dark' ? ' is-active' : ''}" type="button" data-action="toggle-dark-mode" aria-pressed="${theme.colorMode === 'dark'}" aria-label="${theme.colorMode === 'dark' ? 'Matikan mode gelap' : 'Nyalakan mode gelap'}" title="Dark Mode"><span class="theme-mode-icon">${icon(theme.colorMode === 'dark' ? 'sun' : 'moon')}</span><span class="theme-mode-label">Dark Mode</span></button></div>`;
+  return `<div class="time-theme-controls">${readout}<time class="live-clock" id="live-clock" datetime="${date.toISOString()}">${theme.clock}</time>${zone ? `<span class="time-zone-label" id="time-zone-label">${escapeHTML(zone)}</span>` : ''}<span class="time-period-label" id="time-period-label">${theme.periodLabel}</span><span class="time-mode-label" id="time-mode-label">${modeLabel}</span>${closeReadout}<button class="theme-mode-toggle${theme.colorMode === 'dark' ? ' is-active' : ''}" type="button" data-action="toggle-dark-mode" aria-pressed="${theme.colorMode === 'dark'}" aria-label="${theme.colorMode === 'dark' ? 'Matikan mode gelap' : 'Nyalakan mode gelap'}" title="Dark Mode"><span class="theme-mode-icon">${icon(theme.colorMode === 'dark' ? 'sun' : 'moon')}</span><span class="theme-mode-label theme-mode-label-full">Dark Mode</span><span class="theme-mode-label theme-mode-label-short">Gelap</span></button></div>`;
 }
 
 function applyTimeTheme(date = new Date()) {
@@ -133,11 +138,14 @@ function applyTimeTheme(date = new Date()) {
   const themeColor = document.querySelector('meta[name="theme-color"]');
   if (themeColor) themeColor.content = theme.colorMode === 'dark' ? '#0c1510' : theme.period === 'sore' ? '#fcf5e8' : '#faf9f4';
 
+  const clockLabel = [theme.clock, localTimeZoneLabel(date)].filter(Boolean).join(' ');
   const clock = document.querySelector('#live-clock');
   if (clock) {
-    clock.textContent = [theme.clock, localTimeZoneLabel(date)].filter(Boolean).join(' ');
+    clock.textContent = theme.clock;
     clock.dateTime = date.toISOString();
   }
+  const zoneLabel = document.querySelector('#time-zone-label');
+  if (zoneLabel) zoneLabel.textContent = localTimeZoneLabel(date);
   const periodLabel = document.querySelector('#time-period-label');
   if (periodLabel) periodLabel.textContent = theme.periodLabel;
   const modeLabel = document.querySelector('#time-mode-label');
@@ -147,8 +155,8 @@ function applyTimeTheme(date = new Date()) {
     readout.dataset.period = theme.period;
     readout.dataset.mode = themePreference;
     readout.setAttribute('aria-label', themePreference === 'auto'
-      ? `Siklus otomatis, ${theme.periodLabel}, ${clock?.textContent || theme.clock}`
-      : `Kembali ke siklus otomatis, ${theme.periodLabel}, ${clock?.textContent || theme.clock}`);
+      ? `Siklus otomatis, ${theme.periodLabel}, ${clockLabel}`
+      : `Kembali ke siklus otomatis, ${theme.periodLabel}, ${clockLabel}`);
   }
   const toggle = document.querySelector('.theme-mode-toggle');
   if (toggle) {
@@ -293,13 +301,13 @@ function renderDemoCryptoNotice() {
 }
 
 function renderLogin() {
-  return `<main class="login-screen"><section class="login-brand-panel"><div class="login-brand-top"><a class="brand-name" href="#/login">Smart Poultry</a><span class="demo-badge" aria-label="Mode demo">DEMO</span></div><div class="login-brand-copy"><p class="eyebrow">Monitoring kandang</p><h1>Pantau kandang ayam dari satu layar.</h1><p>Kondisi udara, pakan, air, pencahayaan, dan kamera kandang.</p></div><div class="login-flock"><strong>12</strong><span>ekor, rencana awal</span></div></section>
+  return `<main class="login-screen"><section class="login-brand-panel"><div class="login-brand-top"><a class="brand-name" href="#/login">Smart Poultry</a><div class="login-brand-tools"><span class="demo-badge" aria-label="Mode demo">DEMO</span>${renderTimeThemeControls()}</div></div><div class="login-brand-copy"><p class="eyebrow">Monitoring kandang</p><h1>Pantau kandang ayam dari satu layar.</h1><p>Kondisi udara, pakan, air, pencahayaan, dan kamera kandang.</p></div><div class="login-flock"><strong>12</strong><span>ekor, rencana awal</span></div></section>
     <section class="login-form-panel"><div class="login-card"><span class="login-mark">${icon('user')}</span><p class="eyebrow">Akun pengguna</p><h2>Masuk</h2><p class="login-intro">Masukkan email dan kata sandi akun pengguna.</p><form id="login-form" novalidate><div class="form-field"><label for="login-email">Email</label><input id="login-email" name="email" type="email" autocomplete="username" required placeholder="nama@email.com"></div><div class="form-field"><label for="login-password">Kata sandi</label><input id="login-password" name="password" type="password" autocomplete="current-password" minlength="8" required placeholder="Masukkan kata sandi"></div><p id="login-message" class="form-message" role="status" aria-live="polite"></p><button class="primary-button" type="submit">Masuk ke kandang</button></form>${renderDemoCryptoNotice()}<p class="login-footnote">Belum punya akun? <a href="#/signup" data-page="signup">Buat akun</a></p><button class="secondary-button demo-preview-button" type="button" data-action="demo-preview">Masuk sebagai pengguna demo</button><a class="secondary-button demo-preview-button" href="./admin.html" data-admin-demo>Masuk sebagai admin demo</a></div></section>
   </main><div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 }
 
 function renderSignup() {
-  return `<main class="login-screen"><section class="login-brand-panel"><div class="login-brand-top"><a class="brand-name" href="#/login">Smart Poultry</a><span class="demo-badge" aria-label="Mode demo">DEMO</span></div><div class="login-brand-copy"><p class="eyebrow">Akun pengguna</p><h1>Buat akun kandang.</h1><p>Daftarkan profil pengguna untuk membuka halaman pemantauan.</p></div><div class="login-flock"><strong>12</strong><span>ekor, rencana awal</span></div></section>
+  return `<main class="login-screen"><section class="login-brand-panel"><div class="login-brand-top"><a class="brand-name" href="#/login">Smart Poultry</a><div class="login-brand-tools"><span class="demo-badge" aria-label="Mode demo">DEMO</span>${renderTimeThemeControls()}</div></div><div class="login-brand-copy"><p class="eyebrow">Akun pengguna</p><h1>Buat akun kandang.</h1><p>Daftarkan profil pengguna untuk membuka halaman pemantauan.</p></div><div class="login-flock"><strong>12</strong><span>ekor, rencana awal</span></div></section>
     <section class="login-form-panel"><div class="login-card"><span class="login-mark">${icon('user')}</span><p class="eyebrow">Pendaftaran pengguna</p><h2>Buat akun</h2><p class="login-intro">Lengkapi informasi akun pengguna.</p><form id="signup-form" novalidate>
       <div class="form-field"><label for="signup-name">Nama</label><input id="signup-name" name="name" type="text" maxlength="80" autocomplete="name" required placeholder="Nama pengguna"></div>
       <div class="form-field"><label for="signup-email">Email</label><input id="signup-email" name="email" type="email" autocomplete="email" required placeholder="nama@email.com"></div>
