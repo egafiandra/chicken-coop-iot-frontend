@@ -30,14 +30,12 @@ import {
   toggleUserActive,
   unreadNotificationCount,
   updateUser,
-} from './state.mjs?v=20261153';
+} from './state.mjs?v=20261154';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
 let state = createAdminState();
 let formError = null;
-// Sidebar: ciut/lebar dikendalikan tombol, bukan hover. Default ciut di desktop.
-let railExpanded = false;
 
 /* ---------- ikon ---------- */
 
@@ -672,15 +670,12 @@ function renderApp() {
 
   app.innerHTML = `<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
-  <div class="shell${railExpanded ? ' rail-open' : ''}">
+  <div class="shell">
     <aside class="rail" id="nav" aria-label="Navigasi admin">
       <a class="rail-logo" href="#/dashboard" data-page="dashboard" aria-label="Kandang admin, ke dashboard">
         <span class="rail-mark">${icon('coop')}</span>
         <span class="rail-word"><b>Kandang</b><span>Panel admin</span></span>
       </a>
-      <button class="rail-toggle" type="button" data-rail-toggle aria-controls="nav" aria-expanded="${railExpanded}" aria-label="${railExpanded ? 'Kecilkan sidebar' : 'Lebarkan sidebar'}" title="${railExpanded ? 'Kecilkan sidebar' : 'Lebarkan sidebar'}">
-        ${icon(railExpanded ? 'chevron-l' : 'chevron-r')}<span class="rail-toggle-text">${railExpanded ? 'Kecilkan sidebar' : 'Lebarkan sidebar'}</span>
-      </button>
       <nav class="rail-nav">
         ${NAV.slice(0, 4).map((i) => railItem(i, id)).join('')}
         <span class="rail-sep" aria-hidden="true"></span>
@@ -761,13 +756,6 @@ function act(fn, msg) {
 app.addEventListener('click', (e) => {
   const t = e.target;
 
-  if (t.closest('[data-rail-toggle]')) {
-    railExpanded = !railExpanded;
-    paint();
-    // fokus kembali ke tombol setelah re-render
-    app.querySelector('[data-rail-toggle]')?.focus({ preventScroll: true });
-    return;
-  }
   if (t.closest('[data-menu-toggle]')) {
     app.classList.toggle('nav-open');
     app.querySelector('[data-menu-toggle]')?.setAttribute('aria-expanded', String(app.classList.contains('nav-open')));
