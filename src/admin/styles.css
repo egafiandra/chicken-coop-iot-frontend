@@ -1695,28 +1695,43 @@ a { color: inherit; text-decoration: none; }
 /* ---------- responsive ---------- */
 
 @media (max-width: 1180px) {
-  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* >=901px: 4 kolom (kartu 900+ px masih cukup lega) */
+  .kpi-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .coop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .act-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .rule-grid { grid-template-columns: 1fr; }
   .rule-grid > .card:last-child:nth-child(odd) { grid-column: auto; }
   .duo, .duo-eq { grid-template-columns: 1fr; }
+
+  /* tablet besar: hero & kartu dirapatkan proporsional */
+  .canvas { padding: 18px 18px 40px; }
+  .hero { padding: 22px; gap: 18px; }
+  .kpi { padding: 15px; }
+  .card { padding: 16px; }
+  .card-pad { padding: 16px 16px 0; }
+  .card-pad-x { padding: 0 16px; }
 }
 
 @media (max-width: 1000px) {
-  .hero { grid-template-columns: 1fr; }
-  /* donut pindah ke bawah teks, bukan disembunyikan */
-  .hero-ring {
-    justify-self: center;
-    margin-top: 4px;
-    transform: scale(.92);
-  }
+  /* hero 2 kolom tetap dipakai selama masih muat (>=760px) */
+  .hero { padding: 20px; gap: 14px; }
+  .hero h1 { font-size: clamp(20px, 3.4vw, 26px); }
+  .hero-sub { font-size: 11px; }
+  .hero-stats { gap: 6px; }
+
+  /* tablet portrait: KPI 2 kolom lebih lega */
+  .kpi-grid { gap: 11px; }
+  .kpi { padding: 14px; }
+  .kpi-value { font-size: 24px; }
+  .card { padding: 15px; }
+  .card-head h2 { font-size: 12.5px; }
 }
 
 @media (max-width: 900px) {
   .menu-btn { display: grid; }
 
   /* tablet: kartu & tipografi dirapatkan */
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi { padding: 13px; }
   .kpi-icon { width: 27px; height: 27px; }
   .kpi-icon .icon { width: 13px; height: 13px; }
@@ -1750,7 +1765,8 @@ a { color: inherit; text-decoration: none; }
   .row-copy strong { font-size: 10.5px; }
   .row-copy small { font-size: 9px; }
 
-  /* sidebar jadi drawer */
+  /* sidebar jadi drawer: shell tidak lagi menyisakan kolom untuk rail */
+  .shell { grid-template-columns: minmax(0, 1fr); }
   .rail {
     position: fixed;
     top: 0;
@@ -1787,8 +1803,47 @@ a { color: inherit; text-decoration: none; }
   .canvas { padding: 16px 14px 40px; }
 }
 
+/* tablet kecil / HP landscape: langkah antara 900px dan 640px */
+/* tablet lebar: 4 kartu KPI sejajar supaya tidak boros ruang */
+@media (max-width: 900px) and (min-width: 760px) {
+  .kpi-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .coop-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .act-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* di bawah 760px hero baru menumpuk 1 kolom */
+@media (max-width: 759px) {
+  .hero { grid-template-columns: 1fr; padding: 18px 16px; gap: 12px; }
+  .hero-ring { justify-self: center; margin-top: 2px; transform: scale(.9); }
+  .hero h1 { font-size: 21px; }
+}
+
+@media (max-width: 720px) {
+  .canvas { padding: 15px 14px 38px; }
+  .hero { padding: 18px 16px; }
+  .hero h1 { font-size: 22px; }
+  .hero-sub { font-size: 10.5px; }
+  .kpi-grid { gap: 10px; }
+  .kpi { padding: 12px; }
+  .kpi-value { font-size: 21px; }
+  .kpi-label { font-size: 9.5px; }
+  .kpi-note { font-size: 8.5px; }
+  .card { padding: 13px; }
+  .card-head h2 { font-size: 11.5px; }
+  .card-head p { font-size: 9.5px; }
+  .coop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .act-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tbl { font-size: 10.5px; }
+  .tbl thead th { font-size: 8px; }
+  .chip { height: 19px; font-size: 8.5px; }
+  .btn { height: 29px; font-size: 10px; }
+  .topbar { height: 54px; }
+}
+
 @media (max-width: 640px) {
   /* KPI 2 kolom, kartu ringkas */
+  .canvas { padding: 14px 12px 36px; }
+  .topbar { height: 54px; padding: 0 12px; }
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
   .coop-grid, .act-grid { grid-template-columns: 1fr; }
   .form-grid, .rule-fields { grid-template-columns: 1fr; }
