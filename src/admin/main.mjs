@@ -30,7 +30,7 @@ import {
   toggleUserActive,
   unreadNotificationCount,
   updateUser,
-} from './state.mjs?v=20261160';
+} from './state.mjs?v=20261164';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
@@ -73,6 +73,10 @@ const P = {
 };
 
 const TYPE_ICON = { esp: 'chip', sensor: 'activity', actuator: 'sliders', camera: 'camera' };
+
+/* Bottom bar di HP: 4 menu utama + "Lainnya" (sisanya di sheet). */
+const BOTTOM_IDS = ['dashboard', 'users', 'coops', 'control'];
+const BOTTOM_MORE = ['notifications', 'rules', 'cameras', 'logs', 'settings'];
 
 function icon(name, cls = '') {
   return `<svg class="icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name] || P.info}</svg>`;
@@ -698,7 +702,6 @@ function renderApp() {
     <div class="main">
       <header class="topbar">
         <div class="topbar-left">
-          <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-controls="nav" aria-expanded="${app.classList.contains('nav-open')}" aria-label="Buka navigasi">${icon('menu')}</button>
           <div class="crumb"><span>Panel admin</span>${icon('arrow')}<b>${page.label}</b></div>
         </div>
         <div class="topbar-right">
@@ -716,6 +719,40 @@ function renderApp() {
     </div>
 
     ${state.ui.modal ? renderUserModal() : ''}
+
+    <nav class="bottombar" aria-label="Navigasi utama">
+      ${BOTTOM_IDS.map((pid) => {
+        const item = NAV.find((n) => n.id === pid);
+        const on = pid === id;
+        return `<a class="bb-item${on ? ' is-active' : ''}" href="#/${pid}" data-page="${pid}"${on ? ' aria-current="page"' : ''}>
+          ${icon(item.icon)}<span>${item.label}</span></a>`;
+      }).join('')}
+      <button class="bb-item${BOTTOM_MORE.includes(id) ? ' is-active' : ''}" type="button" data-more-toggle
+        aria-expanded="${app.classList.contains('more-open')}" aria-controls="more-sheet">
+        ${icon('menu')}<span>Lainnya</span></button>
+    </nav>
+
+    <div class="more-sheet${app.classList.contains('more-open') ? ' is-open' : ''}" id="more-sheet" role="dialog" aria-label="Menu lainnya" aria-modal="true">
+      <div class="more-panel">
+        <div class="more-head">
+          <strong>Menu lainnya</strong>
+          <button class="icon-btn" type="button" data-more-close aria-label="Tutup menu">${icon('x')}</button>
+        </div>
+        <div class="more-list">
+          ${BOTTOM_MORE.map((pid) => {
+            const item = NAV.find((n) => n.id === pid);
+            const on = pid === id;
+            return `<a class="more-item${on ? ' is-active' : ''}" href="#/${pid}" data-page="${pid}"${on ? ' aria-current="page"' : ''}>
+              ${icon(item.icon)}<span>${item.label}</span>${on ? icon('check') : ''}</a>`;
+          }).join('')}
+        </div>
+        <div class="more-foot">
+          <button class="btn btn--ghost" type="button" data-action="toggle-theme">${icon(dark ? 'sun' : 'moon')}Tema ${dark ? 'night' : 'aurora'}</button>
+          <button class="btn btn--ghost" type="button" data-action="exit">${icon('logout')}Keluar</button>
+        </div>
+      </div>
+    </div>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </div>`;
 }
@@ -733,9 +770,9 @@ function toast(msg) {
 }
 
 function paint() {
-  const open = app.classList.contains('nav-open');
+  const moreOpen = app.classList.contains('more-open');
   renderApp();
-  if (open) app.classList.remove('nav-open');
+  if (moreOpen) app.classList.remove('more-open');
 }
 
 function act(fn, msg) {
@@ -756,17 +793,17 @@ function act(fn, msg) {
 app.addEventListener('click', (e) => {
   const t = e.target;
 
-  if (t.closest('[data-menu-toggle]')) {
-    app.classList.toggle('nav-open');
-    app.querySelector('[data-menu-toggle]')?.setAttribute('aria-expanded', String(app.classList.contains('nav-open')));
+  if (t.closest('[data-more-toggle]')) {
+    app.classList.toggle('more-open');
+    app.querySelector('[data-more-toggle]')?.setAttribute('aria-expanded', String(app.classList.contains('more-open')));
     return;
   }
-  if (t.closest('[data-close-menu]')) {
-    app.classList.remove('nav-open');
-    app.querySelector('[data-menu-toggle]')?.setAttribute('aria-expanded', 'false');
+  if (t.closest('[data-more-close]') || t.closest('.more-sheet') && !t.closest('.more-panel')) {
+    app.classList.remove('more-open');
+    app.querySelector('[data-more-toggle]')?.setAttribute('aria-expanded', 'false');
     return;
   }
-  if (t.closest('[data-page]')) { app.classList.remove('nav-open'); return; }
+  if (t.closest('[data-page]')) { app.classList.remove('more-open'); return; }
 
   if (t.closest('[data-action="exit"]')) {
     state = exitSession(state);
@@ -919,10 +956,10 @@ app.addEventListener('keydown', (e) => {
     paint();
     return;
   }
-  if (app.classList.contains('nav-open')) {
-    app.classList.remove('nav-open');
-    app.querySelector('[data-menu-toggle]')?.setAttribute('aria-expanded', 'false');
-    app.querySelector('[data-menu-toggle]')?.focus();
+  if (app.classList.contains('more-open')) {
+    app.classList.remove('more-open');
+    app.querySelector('[data-more-toggle]')?.setAttribute('aria-expanded', 'false');
+    app.querySelector('[data-more-toggle]')?.focus();
   }
 });
 
@@ -932,7 +969,7 @@ state = enterAsAdmin(state);
 
 let skipFocus = !window.location.hash;
 window.addEventListener('hashchange', () => {
-  app.classList.remove('nav-open');
+  app.classList.remove('more-open');
   window.scrollTo(0, 0);
   renderApp();
   if (skipFocus) { skipFocus = false; return; }

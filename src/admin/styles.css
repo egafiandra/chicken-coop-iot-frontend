@@ -1692,6 +1692,12 @@ a { color: inherit; text-decoration: none; }
 
 .gate { display: grid; place-items: center; min-height: 100vh; padding: 22px; }
 
+/* ---------- bottom bar (HP) ---------- */
+
+.bottombar { display: none; }
+
+.more-sheet { display: none; }
+
 /* ---------- responsive ---------- */
 
 @media (max-width: 1180px) {
@@ -1765,38 +1771,141 @@ a { color: inherit; text-decoration: none; }
   .row-copy strong { font-size: 10.5px; }
   .row-copy small { font-size: 9px; }
 
-  /* sidebar jadi drawer: shell tidak lagi menyisakan kolom untuk rail */
+  /* HP/tablet: sidebar diganti bottom bar */
   .shell { grid-template-columns: minmax(0, 1fr); }
-  .rail {
+  .rail { display: none; }
+  .scrim { display: none; }
+  .menu-btn { display: none; }
+
+  /* bottom bar: 5 item, aman untuk notch & gesture bar */
+  .bottombar {
     position: fixed;
-    top: 0;
     left: 0;
+    right: 0;
     bottom: 0;
-    width: min(86vw, 290px);
-    height: 100vh;
-    height: 100dvh;
-    padding: 13px 10px;
-    transform: translateX(-103%);
-    transition: transform 230ms var(--ease);
-    box-shadow: none;
-    z-index: 60;
+    z-index: 70;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: stretch;
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
+    color: var(--sidebar-fg);
+    background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-2) 100%);
+    border-top: 1px solid var(--sidebar-line);
+    box-shadow: 0 -4px 20px rgba(12, 21, 16, .18);
   }
-  #app.nav-open .rail {
-    width: min(86vw, 290px);
-    transform: translateX(0);
+
+  .bb-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 46px;
+    padding: 4px 2px;
+    border: 0;
+    border-radius: var(--r-sm);
+    color: var(--sidebar-muted);
+    background: transparent;
+    font-size: 9px;
+    font-weight: 640;
+    line-height: 1.1;
+    text-align: center;
+    cursor: pointer;
+    transition: color 160ms var(--ease), background-color 160ms var(--ease);
+  }
+  .bb-item .icon { width: 18px; height: 18px; }
+  .bb-item span {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bb-item.is-active {
+    color: var(--sidebar-active-fg);
+    background: var(--sidebar-active-bg);
+  }
+  .bb-item.is-active .icon { color: var(--sidebar-active-icon); }
+  /* penanda aktif: garis kecil di atas item */
+  .bb-item.is-active::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 18px;
+    height: 2px;
+    border-radius: 0 0 2px 2px;
+    background: var(--sidebar-active-icon);
+    transform: translateX(-50%);
+  }
+
+  /* sheet "Lainnya" */
+  .more-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: block;
+    background: rgba(12, 21, 16, .48);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms var(--ease);
+  }
+  #app.more-open .more-sheet { opacity: 1; pointer-events: auto; }
+
+  .more-panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 82dvh;
+    overflow-y: auto;
+    padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    background: var(--surface-solid);
     box-shadow: var(--sh-lg);
+    transform: translateY(100%);
+    transition: transform 260ms var(--ease);
   }
-  .rail-logo { height: 40px; margin-bottom: 12px; }
-  .rail-item { height: 40px; padding: 0 10px; }
-  .rail-nav { gap: 1px; }
-  .rail-sep { margin: 6px 8px; }
-  .rail-foot { padding-top: 8px; }
+  #app.more-open .more-panel { transform: translateY(0); }
 
-  .scrim { display: block; }
-  #app.nav-open .scrim { opacity: 1; pointer-events: auto; }
+  .more-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .more-head strong { color: var(--ink); font-size: 12.5px; font-weight: 730; }
 
-  /* donut tetap tampil di tablet, diperkecil */
-  .hero-ring { transform: scale(.86); transform-origin: center right; }
+  .more-list { display: grid; gap: 2px; }
+  .more-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 10px;
+    border-radius: var(--r-sm);
+    color: var(--ink-2);
+    font-size: 12px;
+    font-weight: 620;
+  }
+  .more-item .icon { width: 17px; height: 17px; color: var(--ink-3); }
+  .more-item .icon:last-child { margin-left: auto; color: var(--violet); }
+  .more-item:hover { background: var(--surface-3); }
+  .more-item.is-active { color: var(--violet); background: var(--violet-tint); font-weight: 720; }
+  .more-item.is-active .icon { color: var(--violet); }
+
+  .more-foot {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+  .more-foot .btn { width: 100%; }
 
   .pill-sim { display: none; }
   .topbar { height: 56px; padding: 0 14px; }
@@ -1992,8 +2101,16 @@ a { color: inherit; text-decoration: none; }
   .hero-sub { font-size: 10px; line-height: 1.5; }
   .hero-stat { padding: 5px 9px; font-size: 9px; }
   .hero-stat b { font-size: 11px; }
-  .rail { width: min(90vw, 275px); }
-  #app.nav-open .rail { width: min(90vw, 275px); }
+  /* bottom bar HP kecil: ikon & label dirapatkan */
+  .bb-item { min-height: 44px; font-size: 8.5px; }
+  .bb-item .icon { width: 17px; height: 17px; }
+  .bottombar { padding-left: 2px; padding-right: 2px; }
+}
+
+/* ruang bawah agar konten terakhir tidak tertutup bottom bar.
+   Ditaruh paling akhir supaya tidak ditimpa breakpoint lain. */
+@media (max-width: 900px) {
+  .canvas { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
