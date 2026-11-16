@@ -30,7 +30,7 @@ import {
   toggleUserActive,
   unreadNotificationCount,
   updateUser,
-} from './state.mjs?v=20261154';
+} from './state.mjs?v=20261155';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');

@@ -1705,7 +1705,12 @@ a { color: inherit; text-decoration: none; }
 
 @media (max-width: 1000px) {
   .hero { grid-template-columns: 1fr; }
-  .hero-ring { display: none; }
+  /* donut pindah ke bawah teks, bukan disembunyikan */
+  .hero-ring {
+    justify-self: center;
+    margin-top: 4px;
+    transform: scale(.92);
+  }
 }
 
 @media (max-width: 900px) {
@@ -1774,6 +1779,9 @@ a { color: inherit; text-decoration: none; }
   .scrim { display: block; }
   #app.nav-open .scrim { opacity: 1; pointer-events: auto; }
 
+  /* donut tetap tampil di tablet, diperkecil */
+  .hero-ring { transform: scale(.86); transform-origin: center right; }
+
   .pill-sim { display: none; }
   .topbar { height: 56px; padding: 0 14px; }
   .canvas { padding: 16px 14px 40px; }
@@ -1784,8 +1792,10 @@ a { color: inherit; text-decoration: none; }
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
   .coop-grid, .act-grid { grid-template-columns: 1fr; }
   .form-grid, .rule-fields { grid-template-columns: 1fr; }
-  .kpi { padding: 11px; border-radius: var(--r-md); }
-  .kpi-head { margin-bottom: 7px; }
+  .kpi { padding: 10px; border-radius: var(--r-md); gap: 1px; }
+  .kpi-head { margin-bottom: 6px; }
+  .kpi-foot { margin-top: 7px; }
+  .kpi-note { line-height: 1.35; }
   .kpi-icon { width: 24px; height: 24px; }
   .kpi-icon .icon { width: 12px; height: 12px; }
   .kpi-delta { font-size: 8px; padding: 2px 6px; }
@@ -1798,8 +1808,15 @@ a { color: inherit; text-decoration: none; }
   .hero { padding: 16px 14px; gap: 14px; }
   .hero h1 { font-size: 20px; letter-spacing: -1px; }
   .hero-sub { font-size: 10.5px; }
-  .hero-stats { display: grid; grid-template-columns: 1fr; gap: 6px; margin-top: 12px; }
-  .hero-stat { justify-content: space-between; font-size: 9.5px; padding: 5px 9px; }
+  /* hero stats: satu kolom, angka kiri label kanan, tidak berdesakan */
+  .hero-stats { display: grid; grid-template-columns: 1fr; gap: 5px; margin-top: 11px; }
+  .hero-stat {
+    justify-content: space-between;
+    font-size: 9.5px;
+    padding: 6px 10px;
+    gap: 10px;
+  }
+  .hero-stat b { font-size: 11.5px; }
 
   .card { padding: 12px; border-radius: var(--r-md); }
   .card-pad { padding: 12px 12px 0; }
@@ -1897,6 +1914,29 @@ a { color: inherit; text-decoration: none; }
   .tl-copy strong { font-size: 9px; }
   .rule-head h3 { font-size: 10.5px; }
   .row-copy strong { font-size: 9.5px; }
+
+  /* kartu kandang: 3 metrik diberi jarak jelas, label tidak menempel */
+  .coop { padding: 10px; gap: 8px; }
+  .coop-stats { gap: 0; justify-content: space-between; }
+  .coop-stat { flex: 1 1 0; min-width: 0; }
+  .coop-stat b { font-size: 12px; }
+  .coop-stat span { font-size: 8px; letter-spacing: .01em; }
+
+  /* timeline: waktu turun ke baris sendiri, tidak sempit */
+  .tl-row { grid-template-columns: 12px minmax(0, 1fr); gap: 8px; padding: 7px 0; }
+  .tl-row time { grid-column: 2; font-size: 8px; margin-top: 1px; }
+  .tl-node { width: 12px; height: 12px; }
+
+  /* legenda kesehatan: baris lebih rapat */
+  .legend { gap: 5px; }
+  .legend-row { font-size: 9.5px; }
+  .legend-row b { font-size: 10px; }
+
+  /* hero lebih ringkas di HP kecil */
+  .hero h1 { font-size: 17px; letter-spacing: -.8px; }
+  .hero-sub { font-size: 10px; line-height: 1.5; }
+  .hero-stat { padding: 5px 9px; font-size: 9px; }
+  .hero-stat b { font-size: 11px; }
   .rail { width: min(90vw, 275px); }
   #app.nav-open .rail { width: min(90vw, 275px); }
 }
