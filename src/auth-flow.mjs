@@ -1,5 +1,5 @@
-import { authenticateDemoAccount, createDemoAccount, isValidDemoEmail } from './auth-demo.mjs?v=user-app-41';
-import { loginUser, updateProfile } from './state.mjs?v=user-app-41';
+import { authenticateDemoAccount, createDemoAccount, isValidDemoEmail } from './auth-demo.mjs?v=user-app-55';
+import { loginUser, updateProfile } from './state.mjs?v=user-app-55';
 
 export function startDemoPreview(state) {
   const profile = { name: 'Pengguna Demo', email: 'demo@kandang.test', phone: '' };

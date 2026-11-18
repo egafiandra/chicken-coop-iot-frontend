@@ -10,16 +10,20 @@ import {
   toggleControl,
   unreadCount,
   updateProfile,
-} from './state.mjs?v=user-app-41';
-import { getDemoLoginStatus, isValidDemoEmail } from './auth-demo.mjs?v=user-app-41';
-import { createAccountSession, navigateToAppRoute, resetDemoAccountSession, startDemoPreview, validateSignupInput } from './auth-flow.mjs?v=user-app-41';
-import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user-app-41';
-import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-41';
-import { renderMonitorDashboard } from './monitor-dashboard.mjs?v=user-app-41';
-import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-41';
+} from './state.mjs?v=user-app-55';
+import { getDemoLoginStatus, isValidDemoEmail } from './auth-demo.mjs?v=user-app-55';
+import { createAccountSession, navigateToAppRoute, resetDemoAccountSession, startDemoPreview, validateSignupInput } from './auth-flow.mjs?v=user-app-55';
+import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user-app-55';
+import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-55';
+import { renderMonitorDashboard } from './monitor-dashboard.mjs?v=user-app-55';
+import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-55';
+import { attachScrollReveal } from './scroll-reveal.mjs?v=user-app-55';
+import { attachFeatureEntryCards, shouldPlayFeatureEntry } from './feature-entry.mjs?v=user-app-55';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
+let scrollRevealCleanup = () => {};
+let lastRenderedPageId = null;
 const ACCOUNT_STORAGE_KEY = 'kandang-user-accounts-v1';
 const persistentAccountStorage = getBrowserStorage('localStorage');
 const legacyAccountStorage = getBrowserStorage('sessionStorage');
@@ -125,7 +129,7 @@ function renderTimeThemeControls(date = new Date()) {
     ? `<div class="${readoutClass}" data-period="${theme.period}" data-mode="auto" aria-label="${readoutLabel}">`
     : `<button class="${readoutClass}" data-period="${theme.period}" data-mode="${themePreference}" type="button" data-action="set-auto-theme" aria-label="${readoutLabel}" title="Kembali ke otomatis">`;
   const closeReadout = themePreference === 'auto' ? '</div>' : '</button>';
-  return `<div class="time-theme-controls">${readout}<time class="live-clock" id="live-clock" datetime="${date.toISOString()}">${theme.clock}</time>${zone ? `<span class="time-zone-label" id="time-zone-label">${escapeHTML(zone)}</span>` : ''}<span class="time-period-label" id="time-period-label">${theme.periodLabel}</span><span class="time-mode-label" id="time-mode-label">${modeLabel}</span>${closeReadout}<button class="theme-mode-toggle${theme.colorMode === 'dark' ? ' is-active' : ''}" type="button" data-action="toggle-dark-mode" aria-pressed="${theme.colorMode === 'dark'}" aria-label="${theme.colorMode === 'dark' ? 'Matikan mode gelap' : 'Nyalakan mode gelap'}" title="Dark Mode"><span class="theme-mode-icon">${icon(theme.colorMode === 'dark' ? 'sun' : 'moon')}</span><span class="theme-mode-label theme-mode-label-full">Dark Mode</span><span class="theme-mode-label theme-mode-label-short">Gelap</span></button></div>`;
+  return `<div class="time-theme-controls">${readout}<time class="live-clock" id="live-clock" datetime="${date.toISOString()}">${theme.clock}</time>${zone ? `<span class="time-zone-label" id="time-zone-label">${escapeHTML(zone)}</span>` : ''}<span class="time-period-label" id="time-period-label">${theme.periodLabel}</span><span class="time-mode-label" id="time-mode-label">${modeLabel}</span>${closeReadout}<button class="theme-mode-toggle${theme.colorMode === 'dark' ? ' is-active' : ''}" type="button" data-action="toggle-dark-mode" aria-pressed="${theme.colorMode === 'dark'}" aria-label="${theme.colorMode === 'dark' ? 'Matikan mode gelap' : 'Nyalakan mode gelap'}" title="${theme.colorMode === 'dark' ? 'Beralih ke mode terang' : 'Beralih ke mode gelap'}"><span class="theme-mode-icon">${icon(theme.colorMode === 'dark' ? 'sun' : 'moon')}</span><span class="theme-mode-label theme-mode-label-full">Dark Mode</span><span class="theme-mode-label theme-mode-label-short">${theme.colorMode === 'dark' ? 'Gelap' : 'Terang'}</span></button></div>`;
 }
 
 function applyTimeTheme(date = new Date()) {
@@ -163,9 +167,12 @@ function applyTimeTheme(date = new Date()) {
     const isDark = theme.colorMode === 'dark';
     toggle.setAttribute('aria-pressed', String(isDark));
     toggle.setAttribute('aria-label', isDark ? 'Matikan mode gelap' : 'Nyalakan mode gelap');
+    toggle.title = isDark ? 'Beralih ke mode terang' : 'Beralih ke mode gelap';
     toggle.classList.toggle('is-active', isDark);
     const toggleIcon = toggle.querySelector('.theme-mode-icon');
     if (toggleIcon) toggleIcon.innerHTML = icon(isDark ? 'sun' : 'moon');
+    const toggleModeLabel = toggle.querySelector('.theme-mode-label-short');
+    if (toggleModeLabel) toggleModeLabel.textContent = isDark ? 'Gelap' : 'Terang';
   }
   return theme;
 }
@@ -333,6 +340,8 @@ function renderNavigation(activePage, mobile = false) {
 }
 
 function renderApp() {
+  scrollRevealCleanup();
+  scrollRevealCleanup = () => {};
   applyTimeTheme();
   let pageId = currentPage();
   const publicRoute = pageId === 'login' || pageId === 'signup';
@@ -344,6 +353,9 @@ function renderApp() {
     window.location.hash = '#/home';
     return;
   }
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const playFeatureEntry = shouldPlayFeatureEntry(lastRenderedPageId, pageId);
+  lastRenderedPageId = pageId;
   if (pageId === 'login') {
     app.innerHTML = renderLogin();
     return;
@@ -356,6 +368,12 @@ function renderApp() {
   app.innerHTML = `<div class="app-shell"><aside class="sidebar" aria-label="Navigasi pengguna"><a class="brand" href="#/home" data-page="home"><span class="brand-name">Smart Poultry</span><span class="brand-caption">Monitoring ayam</span></a><div class="sidebar-label">Menu pengguna</div><nav class="nav-list">${renderNavigation(pageId)}</nav></aside>
     <div class="main-area"><header class="topbar"><div class="page-context"><p>Monitoring kandang</p><h1 id="page-title" tabindex="-1">${page.title}</h1><span>${page.subtitle}</span></div><div class="topbar-meta"><span class="demo-badge" aria-label="Mode demo">DEMO</span>${pageId === 'home' ? '' : `<div class="connection-state"><span class="status-mark" aria-hidden="true"></span><span>${escapeHTML(getHomeDashboardModel(state).connectionLabel)}</span></div>`}${renderTimeThemeControls()}${renderNotificationBell()}<a class="profile-shortcut" href="#/profile" data-page="profile" aria-label="Buka profil">${icon('user')}</a></div></header><main class="page-content" id="main-content" tabindex="-1">${renderers[pageId]()}</main></div>
     <nav class="bottom-nav" aria-label="Navigasi utama">${renderNavigation(pageId, true)}</nav><div class="toast" id="toast" role="status" aria-live="polite"></div></div>`;
+  const mainContent = document.querySelector('#main-content');
+  if (playFeatureEntry) attachFeatureEntryCards(mainContent, prefersReducedMotion ? 80 : 100);
+  scrollRevealCleanup = attachScrollReveal(mainContent, {
+    prefersReducedMotion,
+    IntersectionObserver: window.IntersectionObserver,
+  });
   applyTimeTheme();
 }
 

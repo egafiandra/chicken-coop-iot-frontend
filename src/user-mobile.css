@@ -9,6 +9,9 @@
   --user-water: var(--water);
   --user-water-soft: var(--water-soft);
   --user-copper: var(--copper);
+  --scroll-reveal-distance: 18px;
+  --scroll-reveal-duration: 520ms;
+  --scroll-reveal-easing: cubic-bezier(.2, .75, .25, 1);
 }
 
 .bottom-nav { display: none; }
@@ -194,9 +197,13 @@ button[hidden] { display: none !important; }
   .coop-hero-photo { object-position: center 58%; }
 }
 
-@media (min-width: 821px) and (max-width: 1000px) {
+@media (min-width: 821px) and (max-width: 1120px) {
   .topbar { gap: 12px; padding-inline: 24px; }
-  .topbar-meta .connection-state, .topbar-meta .notification-shortcut, .topbar-meta .profile-shortcut { display: none; }
+  .topbar-meta .connection-state { display: none; }
+}
+
+@media (min-width: 821px) and (max-width: 1000px) {
+  .topbar-meta .notification-shortcut, .topbar-meta .profile-shortcut { display: none; }
 }
 
 @media (max-width: 1120px) {
@@ -215,9 +222,11 @@ button[hidden] { display: none !important; }
   .topbar-meta .notification-shortcut, .topbar-meta .profile-shortcut { display: none; }
   .time-theme-controls { gap: 4px; }
   .time-theme-readout { min-height: 31px; gap: 4px; padding: 0 6px; }
-  .time-mode-label { display: none; }
-  .theme-mode-toggle { width: 32px; min-width: 32px; min-height: 32px; padding: 0; }
-  .theme-mode-label { display: none; }
+  .time-mode-label { display: inline; color: var(--user-ink); font-size: 9px; font-weight: 600; }
+  .theme-mode-toggle { width: auto; min-width: 54px; min-height: 32px; padding: 0 7px; }
+  .theme-mode-label-full { display: none; }
+  .theme-mode-label-short { display: inline; }
+  .time-period-label { color: var(--user-ink); font-size: 9px; font-weight: 650; }
   .time-theme-readout.is-manual { min-height: 29px; padding: 0 6px; font-size: 8px; }
   .demo-badge { min-height: 22px; padding: 0 6px; font-size: 8px; }
   .notification-shortcut, .profile-shortcut { min-width: 34px; min-height: 34px; padding: 0 6px; }
@@ -309,7 +318,7 @@ button[hidden] { display: none !important; }
 }
 @media (max-width: 360px) {
   .notification-shortcut-label { display: none; }
-  .time-period-label, .time-zone-label { display: none; }
+  .time-zone-label { display: none; }
   .page-context h1 { font-size: 15px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -331,3 +340,71 @@ button[hidden] { display: none !important; }
 
 :root[data-time-period="sore"][data-color-mode="light"] .coop-hero { border-color: var(--user-line); background: var(--user-surface); }
 :root[data-time-period="sore"][data-color-mode="light"] .quick-menu-tile:hover { background: var(--surface-hover); }
+
+@keyframes feature-card-slide-in {
+  0% { opacity: 0; transform: translate3d(-24px, 0, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.page-content.is-feature-staggering .is-feature-card-entering {
+  animation: feature-card-slide-in 320ms var(--scroll-reveal-easing) backwards;
+  animation-delay: var(--feature-card-entry-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .page-content.has-scroll-motion [data-scroll-reveal] {
+    opacity: 0;
+    transform: translate3d(0, var(--scroll-reveal-distance), 0) scale(.99);
+    transition:
+      opacity var(--scroll-reveal-duration) var(--scroll-reveal-easing),
+      transform var(--scroll-reveal-duration) var(--scroll-reveal-easing);
+    transition-delay: var(--scroll-reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+
+  .page-content.has-scroll-motion [data-scroll-reveal].is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    will-change: auto;
+  }
+
+  .page-content.has-scroll-motion .coop-hero-photo,
+  .page-content.has-scroll-motion .controls-scene-strip img,
+  .page-content.has-scroll-motion .camera-view-image {
+    transform: scale(1.035);
+    transition: transform 760ms var(--scroll-reveal-easing);
+  }
+
+  .page-content.has-scroll-motion .coop-hero.is-visible .coop-hero-photo,
+  .page-content.has-scroll-motion .controls-scene-strip.is-visible img,
+  .page-content.has-scroll-motion .camera-view-card.is-visible .camera-view-image {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-content.is-feature-staggering .is-feature-card-entering {
+    animation-name: feature-card-slide-in-reduced;
+    animation-duration: 180ms !important;
+    animation-timing-function: ease-out;
+  }
+
+  @keyframes feature-card-slide-in-reduced {
+    from { opacity: 0; transform: translate3d(-10px, 0, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+
+  .page-content.has-scroll-motion [data-scroll-reveal],
+  .page-content.has-scroll-motion [data-scroll-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    will-change: auto;
+  }
+
+  .page-content.has-scroll-motion .coop-hero-photo,
+  .page-content.has-scroll-motion .controls-scene-strip img,
+  .page-content.has-scroll-motion .camera-view-image {
+    transform: none;
+    transition: none;
+  }
+}

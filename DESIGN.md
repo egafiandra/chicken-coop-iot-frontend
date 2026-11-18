@@ -6,9 +6,9 @@ Status: UI pengguna untuk prototipe front-end. Identitas final dan detail koneks
 
 Aplikasi operasional mobile-first untuk pengguna kandang ayam. Prioritasnya membaca suhu, kelembapan, pakan, air, dan status perangkat dengan cepat. Bahasa visual memakai hijau hutan dan warna netral hangat, dengan aksen khusus pada status air dan pencahayaan.
 
-Dials: ENERGY 2 / RHYTHM 2 / MOTION 1.
+Dials: ENERGY 2 / RHYTHM 2 / MOTION 2.
 
-Beranda memakai foto ayam berlisensi CC0 sebagai titik fokus, lalu ringkasan sensor dan menu cepat. Foto lokal dari arsip Stitch tetap dipakai pada halaman Kontrol dan Kamera; pratinjau kamera tetap diberi status belum terhubung. Pada ponsel, navigasi bawah tetap terlihat; pada layar lebar, hero membentang di area konten.
+Beranda memakai foto ayam berlisensi CC0 sebagai titik fokus, lalu ringkasan sensor dan menu cepat. Foto lokal dari arsip Stitch tetap dipakai pada halaman Kontrol dan Kamera; pratinjau kamera tetap diberi status belum terhubung. Pada ponsel, navigasi bawah tetap terlihat; pada layar lebar, navigasi pengguna berada di sisi kiri dan area konten menggunakan lebar yang tersedia.
 
 ## Tokens
 
@@ -20,7 +20,7 @@ Beranda memakai foto ayam berlisensi CC0 sebagai titik fokus, lalu ringkasan sen
 - Dark canvas `#0c1510`, surface `#141e18`, text `#dae5dc`, outline `#869585`, outline-soft `#3d4a3d`, emerald `#4be277`, dan amber `#ffc640`: palet Nocturne untuk malam atau Dark Mode.
 - Typography: Plus Jakarta Sans dengan fallback system sans.
 - Radius: kartu 16px, kontrol 10px, status chip membulat bila membantu pemindaian.
-- Motion: transisi singkat untuk umpan balik klik; tanpa animasi loop.
+- Motion: saat pindah fitur, tiap kartu meluncur horizontal dari kiri dan muncul berurutan dalam urutan baca, tanpa gerak vertikal atau efek membesar. Jarak mulai antarkartu 100 ms (80 ms pada reduced motion), durasi 320 ms (180 ms pada reduced motion); tidak ada animasi halaman penuh serentak. Reveal scroll tetap terpisah.
 
 ## Product scope
 
