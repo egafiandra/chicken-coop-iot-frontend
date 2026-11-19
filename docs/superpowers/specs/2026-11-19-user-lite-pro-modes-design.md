@@ -1,13 +1,13 @@
 # User Lite/Pro Modes and Home Monitoring
 
 Date: 2026-11-19
-Status: Design approved in conversation; awaiting written-spec review before implementation.
+Status: Revised design approved in conversation; awaiting written-spec review before implementation.
 
 ## Scope
 
-Implement the requested edition and monitoring revisions only in the user-facing application. The user app and the admin app remain separate. Do not edit `admin.html`, `src/admin/**`, admin state, admin navigation, or admin behavior; the user's friend will handle future Lite/Pro selection in the admin app.
+Implement the edition and monitoring revisions only in the user-facing application. The user app and admin app remain separate. Do not edit `admin.html`, `src/admin/**`, admin state, admin navigation, or admin behavior; the user's friend will handle future Lite/Pro selection in the admin app.
 
-The existing admin page is used as the Pro content inside the user app. It remains its own document and keeps its own UI, code, and state.
+Pro is a new user-facing dashboard in the existing user SPA. It may follow the admin screenshot's visual language, but it must use only user-facing data and functions. It must not embed, import, or display the admin application.
 
 ## User decisions
 
@@ -15,10 +15,12 @@ The existing admin page is used as the Pro content inside the user app. It remai
 - Remove the separate Monitoring navigation item and Monitoring quick-access link.
 - Rename the user Profil navigation/page to Pengaturan, retaining the existing profile form.
 - Put the Lite and Pro choices in the user Pengaturan page.
-- Lite is the current user-facing application.
-- Pro displays the existing admin page embedded in the user application's content area. Keep the user app shell/navigation around it so the user can return to Pengaturan and select Lite.
-- Keep the mode choice in local browser storage. Start new browsers in Lite mode.
+- Provide an explicit gear shortcut labeled Pengaturan in the user header; keep the sidebar/bottom-navigation Pengaturan entry.
+- Lite is the current user-facing application and remains unchanged apart from the Monitoring move and Settings entry.
+- Pro is a dedicated user-facing dashboard in the same SPA, styled with cues from the admin screenshot: dark-green navigation, a clear operational summary, compact metric cards, and a device/status area.
+- Pro navigation remains user-only: Beranda/Pro, Kontrol, Kamera, Notifikasi, and Pengaturan.
 - Leave all admin-side edition controls for the friend to implement later.
+- Keep the mode choice in local browser storage. Start new browsers in Lite mode.
 
 ## Monitoring on Beranda
 
@@ -28,29 +30,40 @@ Preserve compatibility for old `#/monitor` links by normalizing that route to `h
 
 ## Lite/Pro selection
 
-Add an edition section to the user Pengaturan page with two accessible controls labeled Lite and Pro, and a visible selected state.
+Add an edition section to the user Pengaturan page with two accessible controls labeled Lite and Pro, and a visible selected state. Keep the profile editor and explicit header gear shortcut available.
 
 - Lite restores the existing user application view.
-- Pro renders the existing `admin.html` inside an accessible iframe in the user app content area. Give the iframe an informative title and ensure it can use the available content width and height without creating nested horizontal scrolling.
-- Keep the user app navigation available outside the embedded panel, including Pengaturan, so the user can switch back to Lite.
-- Store the selected edition in local storage; if storage is unavailable or invalid, default safely to Lite. Restore the selected view after reload while keeping the outer user navigation available.
-- This is a presentation switch only. Do not merge account/authentication, role, or state models between user and admin apps, and do not claim the user gains admin authorization.
+- Pro opens the user-facing Pro dashboard within the existing user SPA. Preserve access to user Kontrol, Kamera, Notifikasi, and Pengaturan routes.
+- Persist the selected edition locally; if storage is unavailable or invalid, default safely to Lite. Restore the selected view after reload while keeping login/signup accessible.
+- Treat this as a presentation mode, not an authorization or role change.
 
-The Pro view intentionally displays the existing admin demo, including its existing demo data and disclosures. Do not alter the admin page to add its own Lite/Pro switch.
+## Pro user dashboard
+
+Use the screenshot only as a visual reference for layout and hierarchy. Adapt a dark-green user navigation rail, a concise summary area, compact metric cards, and a device/status section. Build the Pro dashboard from the existing user state/model only:
+
+- Flock count and current temperature/humidity fixture values.
+- Feed availability and valve state.
+- Lamp and music state, including the existing fixed lamp mode and volume.
+- Existing unread notification count and links to user routes.
+- Existing demo/disconnected-IoT disclosures.
+
+Do not display admin-only concepts or data: user/account administration, multiple registered coops, device registration/online totals, admin rules/automation, admin logs, or admin demo records. Do not invent a health percentage, device total, alert severity, or sensor metric that the user model does not supply. Do not render an iframe or reuse `src/admin/**`.
 
 ## Existing behavior to preserve
 
 - Keep the user profile name, email, and phone editing form.
 - Preserve current login, signup, logout, controls, camera, notification, time-theme, demo, and disconnected-device behavior.
-- Keep the existing admin page unchanged.
+- Keep `admin.html` and `src/admin/**` unchanged.
 - Do not add backend connectivity or real sensor claims.
 
 ## Acceptance criteria
 
-1. Beranda contains current home content and the complete former Monitoring sections, with no duplicated sensor summary.
-2. Monitoring is absent from desktop/mobile navigation and quick access; navigating to legacy `#/monitor` resolves to Beranda.
-3. The user menu reads Pengaturan, and its page retains profile editing plus Lite/Pro selection.
-4. Selecting Lite displays the current user app; selecting Pro embeds `admin.html` within the user app shell, and the outer Pengaturan navigation remains usable to return to Lite.
-5. The selected edition persists locally; a fresh browser defaults to Lite, and unavailable/invalid storage falls back to Lite.
-6. `admin.html` and `src/admin/**` are unchanged.
-7. Existing tests pass, new tests cover route/mode selection and render composition, and browser verification confirms navigation and iframe sizing at mobile and desktop widths.
+1. Beranda contains current home content and the complete former Monitoring sections, without duplicating the environment summary.
+2. Monitoring is absent from desktop/mobile navigation and quick access; legacy `#/monitor` resolves to Beranda.
+3. User Pengaturan keeps profile editing and Lite/Pro controls; the header gear shortcut visibly opens Pengaturan.
+4. Lite continues to show the existing user app.
+5. Pro shows a distinct user-only dashboard with the approved admin-inspired hierarchy, using only existing user data; it contains no admin iframe, admin management functions, or admin demo values.
+6. Pro retains user-only navigation to Kontrol, Kamera, Notifikasi, and Pengaturan.
+7. The selected edition persists locally; a fresh browser defaults to Lite, and unavailable/invalid storage falls back to Lite.
+8. `admin.html` and `src/admin/**` are unchanged.
+9. Existing tests pass, new tests cover mode routing and Pro dashboard composition, and browser checks cover desktop/mobile layouts without horizontal overflow.
