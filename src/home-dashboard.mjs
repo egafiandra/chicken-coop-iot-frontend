@@ -1,11 +1,11 @@
-export function renderHomeDashboard(model, helpers) {
+export function renderHomeDashboard(model, helpers, monitorDetails = '') {
   const { escapeHTML, icon, sectionHeading, statePill } = helpers;
   const displayName = escapeHTML(model.displayName || 'Pengguna');
 
   return `<div class="page-stack home-dashboard">
     <section class="coop-hero">
       <div class="coop-hero-art"><img class="coop-hero-photo" src="./src/assets/commons/red-hens-coop.jpg" alt="Ayam Rhode Island Red berkumpul di dalam kandang" width="1937" height="1724" fetchpriority="high"></div>
-      <div class="coop-hero-copy"><p class="eyebrow">Selamat datang, ${displayName}</p><h2>Kondisi kandang hari ini</h2><p>Pantau suhu, kelembapan, pakan, dan perangkat.</p><div class="coop-hero-actions"><div class="coop-connection-status">${statePill(model.connectionLabel, 'neutral')}</div><a class="primary-button coop-hero-link" href="#/monitor" data-page="monitor">Monitoring ${icon('arrow')}</a></div></div>
+      <div class="coop-hero-copy"><p class="eyebrow">Selamat datang, ${displayName}</p><h2>Kondisi kandang hari ini</h2><p>Pantau suhu, kelembapan, pakan, dan perangkat.</p><div class="coop-hero-actions"><div class="coop-connection-status">${statePill(model.connectionLabel, 'neutral')}</div></div></div>
       <div class="coop-flock-count"><span>Jumlah ayam</span><strong>${model.flockCount}</strong><small>ekor</small></div>
     </section>
 
@@ -23,11 +23,11 @@ export function renderHomeDashboard(model, helpers) {
 
     <section class="quick-access-section">${sectionHeading('Akses kandang', 'Pilih menu yang ingin dibuka.')}
       <div class="quick-menu-grid">
-        <a class="quick-menu-tile" href="#/monitor" data-page="monitor"><span class="quick-menu-icon">${icon('activity')}</span><span class="quick-menu-copy"><strong>Monitoring</strong><small>Suhu, kelembapan, dan pakan</small></span></a>
         <a class="quick-menu-tile" href="#/controls" data-page="controls"><span class="quick-menu-icon">${icon('sliders')}</span><span class="quick-menu-copy"><strong>Kontrol</strong><small>Valve, lampu, dan musik</small></span></a>
         <a class="quick-menu-tile quick-menu-camera" href="#/camera" data-page="camera"><img class="quick-menu-photo" src="./src/assets/commons/red-hens-coop.jpg" alt="" aria-hidden="true"><span class="quick-menu-copy"><strong>Kamera</strong><small>Kamera belum terhubung</small></span></a>
         <a class="quick-menu-tile" href="#/notifications" data-page="notifications"><span class="quick-menu-icon">${icon('bell')}</span><span class="quick-menu-copy"><strong>Notifikasi</strong><small>${model.unreadNotifications} belum dibaca</small></span></a>
       </div>
     </section>
+    ${monitorDetails}
   </div>`;
 }

@@ -1,4 +1,4 @@
-const PAGES = new Set(['login', 'signup', 'home', 'monitor', 'controls', 'camera', 'notifications', 'profile']);
+const PAGES = new Set(['login', 'signup', 'home', 'controls', 'camera', 'notifications', 'settings', 'pro']);
 const CONTROL_KEYS = new Set(['waterValve', 'lighting', 'music']);
 
 const INITIAL_NOTIFICATIONS = [
@@ -125,5 +125,7 @@ export function unreadCount(state) {
 }
 
 export function normalizePage(page) {
+  if (page === 'monitor') return 'home';
+  if (page === 'profile') return 'settings';
   return PAGES.has(page) ? page : 'home';
 }

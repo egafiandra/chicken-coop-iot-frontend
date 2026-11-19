@@ -50,14 +50,23 @@ test('home dashboard renders the coop scene and only existing monitoring data', 
   assert.doesNotMatch(html, /Berat|Debit|YOLO|Riwayat/i);
 });
 
-test('home dashboard keeps quick routes and a safe profile greeting', () => {
+test('home dashboard keeps Lite quick routes and a safe profile greeting', () => {
   const html = renderHomeDashboard(model, helpers);
-  assert.match(html, /class="quick-menu-tile" href="#\/monitor" data-page="monitor"/);
+  assert.doesNotMatch(html, /href="#\/monitor"|data-page="monitor"/);
   assert.match(html, /class="quick-menu-tile" href="#\/controls" data-page="controls"/);
   assert.match(html, /class="quick-menu-tile(?: quick-menu-camera)?" href="#\/camera" data-page="camera"/);
   assert.match(html, /class="quick-menu-tile" href="#\/notifications" data-page="notifications"/);
   assert.match(html, /&lt;script&gt;bad\(\)&lt;\/script&gt;/);
   assert.match(html, /2 belum dibaca/);
+});
+
+test('home dashboard appends the moved Monitoring details once', () => {
+  const details = '<section data-monitoring-details><h2>Tren lingkungan kandang</h2><h3>Suhu udara</h3><strong>Lampu kandang</strong></section>';
+  const html = renderHomeDashboard(model, helpers, details);
+  assert.equal((html.match(/data-monitoring-details/g) || []).length, 1);
+  assert.equal((html.match(/Tren lingkungan kandang/g) || []).length, 1);
+  assert.equal((html.match(/28\.4/g) || []).length, 1);
+  assert.match(html, /data-monitoring-details/);
 });
 
 test('home hero photograph is bundled with a local usage credit', async () => {

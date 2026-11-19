@@ -22,6 +22,18 @@ const helpers = {
   trendChart: (title, values, labels, unit) => `<article class="trend-card" data-title="${title}"><h3>${title}</h3><p>${values.length} points, ${labels[0]}-${labels.at(-1)} ${unit}</p></article>`,
 };
 
+test('monitor details render charts and device status without a repeated environment masthead', async () => {
+  const module = await import('../src/monitor-dashboard.mjs').catch(() => null);
+  assert.equal(typeof module?.renderMonitorDetails, 'function', 'monitor details renderer must be available');
+
+  const html = module.renderMonitorDetails(model, helpers);
+  assert.match(html, /data-title="Suhu udara"/);
+  assert.match(html, /data-title="Kelembapan udara"/);
+  assert.match(html, /Lampu kandang/);
+  assert.match(html, /Musik klasik/);
+  assert.doesNotMatch(html, /environment-masthead|aria-label="Ringkasan sensor kandang"/);
+});
+
 test('monitor dashboard groups existing readings and omits out-of-scope telemetry', async () => {
   const module = await import('../src/monitor-dashboard.mjs').catch(() => null);
   assert.equal(typeof module?.renderMonitorDashboard, 'function', 'monitor dashboard renderer must be available');

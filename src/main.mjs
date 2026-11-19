@@ -10,15 +10,17 @@ import {
   toggleControl,
   unreadCount,
   updateProfile,
-} from './state.mjs?v=user-app-55';
-import { getDemoLoginStatus, isValidDemoEmail } from './auth-demo.mjs?v=user-app-55';
-import { createAccountSession, navigateToAppRoute, resetDemoAccountSession, startDemoPreview, validateSignupInput } from './auth-flow.mjs?v=user-app-55';
-import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user-app-55';
-import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-55';
-import { renderMonitorDashboard } from './monitor-dashboard.mjs?v=user-app-55';
-import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-55';
-import { attachScrollReveal } from './scroll-reveal.mjs?v=user-app-55';
-import { attachFeatureEntryCards, shouldPlayFeatureEntry } from './feature-entry.mjs?v=user-app-55';
+} from './state.mjs?v=user-app-56';
+import { getDemoLoginStatus, isValidDemoEmail } from './auth-demo.mjs?v=user-app-56';
+import { createAccountSession, navigateToAppRoute, resetDemoAccountSession, startDemoPreview, validateSignupInput } from './auth-flow.mjs?v=user-app-56';
+import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user-app-56';
+import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-56';
+import { renderMonitorDetails } from './monitor-dashboard.mjs?v=user-app-56';
+import { readUserEdition, writeUserEdition } from './user-edition.mjs?v=user-app-56';
+import { renderEditionSettings, renderProPanel } from './user-edition-view.mjs?v=user-app-56';
+import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-56';
+import { attachScrollReveal } from './scroll-reveal.mjs?v=user-app-56';
+import { attachFeatureEntryCards, shouldPlayFeatureEntry } from './feature-entry.mjs?v=user-app-56';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
@@ -34,15 +36,17 @@ let accounts = loadDemoAccounts(persistentAccountStorage, {
 });
 const THEME_PREFERENCE_STORAGE_KEY = 'smart-poultry-theme-preference-v1';
 let themePreference = readSavedThemePreference();
+let userEdition = readUserEdition(persistentAccountStorage);
 
 const pages = [
-  { id: 'home', label: 'Beranda', mobileLabel: 'Home', icon: 'home', title: 'Ringkasan kandang', subtitle: 'Kondisi ayam dan perangkat.' },
-  { id: 'monitor', label: 'Monitoring', mobileLabel: 'Pantau', icon: 'activity', title: 'Monitoring', subtitle: 'Udara, pakan, air, dan lampu.' },
+  { id: 'home', label: 'Beranda', mobileLabel: 'Home', icon: 'home', title: 'Ringkasan kandang', subtitle: 'Kondisi ayam, pemantauan, dan perangkat.' },
   { id: 'controls', label: 'Kontrol', mobileLabel: 'Kontrol', icon: 'sliders', title: 'Kontrol kandang', subtitle: 'Valve air, lampu, dan musik.' },
   { id: 'camera', label: 'Kamera', mobileLabel: 'Kamera', icon: 'camera', title: 'Kamera kandang', subtitle: 'Pratinjau area kandang.' },
   { id: 'notifications', label: 'Notifikasi', mobileLabel: 'Notif.', icon: 'bell', title: 'Notifikasi', subtitle: 'Pemberitahuan kandang.' },
-  { id: 'profile', label: 'Profil', mobileLabel: 'Profil', icon: 'user', title: 'Profil pengguna', subtitle: 'Informasi akun pengguna.' },
+  { id: 'settings', label: 'Pengaturan', mobileLabel: 'Pengaturan', icon: 'user', title: 'Pengaturan', subtitle: 'Profil pengguna dan versi aplikasi.' },
 ];
+
+const proPage = { id: 'pro', label: 'Pro', mobileLabel: 'Pro', icon: 'activity', title: 'Smart Poultry Pro', subtitle: 'Panel admin tertanam dalam aplikasi pengguna.' };
 
 const iconPaths = {
   home: '<path d="m3 10 9-7 9 7"/><path d="M5 9.5V21h14V9.5M9 21v-6h6v6"/>',
@@ -225,17 +229,9 @@ function navLink(page, activePage, mobile = false) {
 }
 
 function renderHome() {
-  return renderHomeDashboard(getHomeDashboardModel(state), {
-    escapeHTML,
-    icon,
-    sectionHeading,
-    statePill,
-  });
-}
-
-function renderMonitor() {
-  return renderMonitorDashboard({
-    ...getHomeDashboardModel(state),
+  const model = getHomeDashboardModel(state);
+  const monitorDetails = renderMonitorDetails({
+    ...model,
     temperatureSeries: state.chartSeries.temperature,
     humiditySeries: state.chartSeries.humidity,
     chartLabels: state.chartSeries.labels,
@@ -245,7 +241,16 @@ function renderMonitor() {
     statePill,
     trendChart,
   });
+  return renderHomeDashboard(model, {
+    escapeHTML,
+    icon,
+    sectionHeading,
+    statePill,
+  }, monitorDetails);
 }
+
+
+
 
 function renderControls() {
   return `<div class="page-stack"><figure class="controls-scene-strip"><img src="./src/assets/stitch/coop-controls.jpg" alt="Pratinjau kandang ayam dengan tenggeran dan tempat pakan"><figcaption>Area tenggeran dan pakan</figcaption></figure><div class="control-grid">
@@ -279,13 +284,14 @@ function renderNotifications() {
   </section></div>`;
 }
 
-function renderProfile() {
+function renderSettings() {
   const name = escapeHTML(state.profile.name);
   const email = escapeHTML(state.profile.email);
   const phone = escapeHTML(state.profile.phone);
   const displayName = escapeHTML(state.profile.name || 'Pengguna');
   const initial = escapeHTML((state.profile.name || 'P').slice(0, 1).toUpperCase());
   return `<div class="page-stack"><section class="profile-summary surface-card"><span class="profile-avatar" aria-hidden="true">${initial}</span><div><p class="eyebrow">Akun pengguna</p><h2>${displayName}</h2><p>${email || 'Email belum diisi'}</p></div><span class="role-pill">Pengguna</span></section>
+    ${renderEditionSettings(userEdition)}
     <section class="surface-card profile-form-card">${sectionHeading('Informasi profil', 'Perbarui data akun pengguna.')}
       <form id="profile-form" class="profile-form"><div class="form-field"><label for="profile-name">Nama</label><input id="profile-name" name="name" type="text" maxlength="80" value="${name}" required></div><div class="form-field"><label for="profile-email">Email</label><input id="profile-email" name="email" type="email" value="${email}" required></div><div class="form-field"><label for="profile-phone">Nomor telepon</label><input id="profile-phone" name="phone" type="tel" maxlength="30" value="${phone}"></div><p id="profile-message" class="form-message" role="status" aria-live="polite"></p><div class="form-actions"><button class="primary-button" type="submit">Simpan profil</button><button class="secondary-button" type="button" data-action="logout">Keluar akun</button></div></form>
     </section></div>`;
@@ -293,11 +299,11 @@ function renderProfile() {
 
 const renderers = {
   home: renderHome,
-  monitor: renderMonitor,
   controls: renderControls,
   camera: renderCamera,
   notifications: renderNotifications,
-  profile: renderProfile,
+  settings: renderSettings,
+  pro: renderProPanel,
 };
 
 function renderDemoCryptoNotice() {
@@ -331,8 +337,8 @@ function renderNotificationBell() {
   return `<a class="notification-shortcut" href="#/notifications" data-page="notifications" aria-label="Notifikasi, ${count} belum dibaca">${icon('bell')}<span class="notification-shortcut-label">Notifikasi</span>${count ? `<span class="notification-count">${count}</span>` : ''}</a>`;
 }
 
-function renderNavigation(activePage, mobile = false) {
-  return pages.map((page) => {
+function renderNavigation(activePage, mobile = false, navigationPages = pages) {
+  return navigationPages.map((page) => {
     const active = page.id === activePage;
     const label = mobile ? page.mobileLabel : page.label;
     return `<a class="nav-link${active ? ' is-active' : ''}" href="#/${page.id}" data-page="${page.id}"${active ? ' aria-current="page"' : ''}>${icon(page.icon)}<span>${label}</span></a>`;
@@ -353,6 +359,12 @@ function renderApp() {
     window.location.hash = '#/home';
     return;
   }
+  if (userEdition === 'pro' && !['login', 'signup', 'settings'].includes(pageId)) pageId = 'pro';
+  if (userEdition === 'lite' && pageId === 'pro') pageId = 'home';
+  const navigationPages = userEdition === 'pro'
+    ? [proPage, pages.find((item) => item.id === 'settings')]
+    : pages;
+  const page = pageId === 'pro' ? proPage : pages.find((item) => item.id === pageId) || pages[0];
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const playFeatureEntry = shouldPlayFeatureEntry(lastRenderedPageId, pageId);
   lastRenderedPageId = pageId;
@@ -364,10 +376,9 @@ function renderApp() {
     app.innerHTML = renderSignup();
     return;
   }
-  const page = pages.find((item) => item.id === pageId) || pages[0];
-  app.innerHTML = `<div class="app-shell"><aside class="sidebar" aria-label="Navigasi pengguna"><a class="brand" href="#/home" data-page="home"><span class="brand-name">Smart Poultry</span><span class="brand-caption">Monitoring ayam</span></a><div class="sidebar-label">Menu pengguna</div><nav class="nav-list">${renderNavigation(pageId)}</nav></aside>
-    <div class="main-area"><header class="topbar"><div class="page-context"><p>Monitoring kandang</p><h1 id="page-title" tabindex="-1">${page.title}</h1><span>${page.subtitle}</span></div><div class="topbar-meta"><span class="demo-badge" aria-label="Mode demo">DEMO</span>${pageId === 'home' ? '' : `<div class="connection-state"><span class="status-mark" aria-hidden="true"></span><span>${escapeHTML(getHomeDashboardModel(state).connectionLabel)}</span></div>`}${renderTimeThemeControls()}${renderNotificationBell()}<a class="profile-shortcut" href="#/profile" data-page="profile" aria-label="Buka profil">${icon('user')}</a></div></header><main class="page-content" id="main-content" tabindex="-1">${renderers[pageId]()}</main></div>
-    <nav class="bottom-nav" aria-label="Navigasi utama">${renderNavigation(pageId, true)}</nav><div class="toast" id="toast" role="status" aria-live="polite"></div></div>`;
+  app.innerHTML = `<div class="app-shell"><aside class="sidebar" aria-label="Navigasi pengguna"><a class="brand" href="#/home" data-page="home"><span class="brand-name">Smart Poultry</span><span class="brand-caption">Monitoring ayam</span></a><div class="sidebar-label">Menu pengguna</div><nav class="nav-list">${renderNavigation(pageId, false, navigationPages)}</nav></aside>
+    <div class="main-area"><header class="topbar"><div class="page-context"><p>Monitoring kandang</p><h1 id="page-title" tabindex="-1">${page.title}</h1><span>${page.subtitle}</span></div><div class="topbar-meta"><span class="demo-badge" aria-label="Mode demo">DEMO</span>${pageId === 'home' ? '' : `<div class="connection-state"><span class="status-mark" aria-hidden="true"></span><span>${escapeHTML(getHomeDashboardModel(state).connectionLabel)}</span></div>`}${renderTimeThemeControls()}${userEdition === 'pro' ? '' : renderNotificationBell()}<a class="profile-shortcut" href="#/settings" data-page="settings" aria-label="Buka pengaturan">${icon('user')}</a></div></header><main class="page-content" id="main-content" tabindex="-1">${renderers[pageId]()}</main></div>
+    <nav class="bottom-nav" aria-label="Navigasi utama" style="--bottom-nav-count: ${navigationPages.length}">${renderNavigation(pageId, true, navigationPages)}</nav><div class="toast" id="toast" role="status" aria-live="polite"></div></div>`;
   const mainContent = document.querySelector('#main-content');
   if (playFeatureEntry) attachFeatureEntryCards(mainContent, prefersReducedMotion ? 80 : 100);
   scrollRevealCleanup = attachScrollReveal(mainContent, {
@@ -587,6 +598,13 @@ app.addEventListener('submit', async (event) => {
 
 app.addEventListener('click', async (event) => {
   if (event.target.closest('[data-page]')) return;
+  const editionButton = event.target.closest('[data-action="select-edition"]');
+  if (editionButton) {
+    userEdition = editionButton.dataset.edition === 'pro' ? 'pro' : 'lite';
+    writeUserEdition(persistentAccountStorage, userEdition);
+    window.location.hash = userEdition === 'pro' ? '#/pro' : '#/home';
+    return;
+  }
   if (event.target.closest('[data-action="set-auto-theme"]')) {
     themePreference = 'auto';
     saveThemePreference();

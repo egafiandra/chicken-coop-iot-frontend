@@ -24,8 +24,11 @@ test('user app starts on login with no admin, weight, flow-rate, history, or YOL
   assert.equal('waterFlowLpm' in state.telemetry, false);
   assert.equal(normalizePage('history'), 'home');
   assert.equal(normalizePage('admin'), 'home');
+  assert.equal(normalizePage('monitor'), 'home');
+  assert.equal(normalizePage('settings'), 'settings');
+  assert.equal(normalizePage('pro'), 'pro');
   assert.equal(normalizePage('notifications'), 'notifications');
-  assert.equal(normalizePage('profile'), 'profile');
+  assert.equal(normalizePage('profile'), 'settings');
   assert.equal(normalizePage('signup'), 'signup');
 });
 

@@ -1,19 +1,22 @@
-export function renderMonitorDashboard(model, helpers) {
+function renderMonitorEnvironment(model, helpers) {
+  const { icon, statePill } = helpers;
+  return `<section class="environment-masthead monitor-environment" aria-label="Ringkasan sensor kandang">
+    <div class="environment-main">
+      <div class="environment-temperature"><span class="environment-kicker">${icon('activity')} Suhu kandang</span><div class="environment-reading"><strong>${model.temperatureC}</strong><small>°C</small></div><p>Udara kandang</p></div>
+      <div class="environment-divider" aria-hidden="true"></div>
+      <div class="environment-humidity"><span class="environment-humidity-icon">${icon('water')}</span><div><small>Kelembapan</small><strong>${model.humidityPercent}%</strong><small>Udara kandang</small></div></div>
+    </div>
+    <div class="environment-statuses">
+      <div class="environment-status"><span class="module-icon">${icon('feed')}</span><div><small>Pakan</small>${statePill(model.feedLabel, model.feedLabel === 'Tersedia' ? 'active' : 'neutral')}</div></div>
+      <div class="environment-status"><span class="module-icon">${icon('water')}</span><div><small>Air minum</small>${statePill(model.valveLabel, model.valveLabel === 'Terbuka' ? 'active' : 'neutral')}</div></div>
+    </div>
+  </section>`;
+}
+
+export function renderMonitorDetails(model, helpers) {
   const { icon, sectionHeading, statePill, trendChart } = helpers;
 
-  return `<div class="page-stack monitor-dashboard">
-    <section class="environment-masthead monitor-environment" aria-label="Ringkasan sensor kandang">
-      <div class="environment-main">
-        <div class="environment-temperature"><span class="environment-kicker">${icon('activity')} Suhu kandang</span><div class="environment-reading"><strong>${model.temperatureC}</strong><small>°C</small></div><p>Udara kandang</p></div>
-        <div class="environment-divider" aria-hidden="true"></div>
-        <div class="environment-humidity"><span class="environment-humidity-icon">${icon('water')}</span><div><small>Kelembapan</small><strong>${model.humidityPercent}%</strong><small>Udara kandang</small></div></div>
-      </div>
-      <div class="environment-statuses">
-        <div class="environment-status"><span class="module-icon">${icon('feed')}</span><div><small>Pakan</small>${statePill(model.feedLabel, model.feedLabel === 'Tersedia' ? 'active' : 'neutral')}</div></div>
-        <div class="environment-status"><span class="module-icon">${icon('water')}</span><div><small>Air minum</small>${statePill(model.valveLabel, model.valveLabel === 'Terbuka' ? 'active' : 'neutral')}</div></div>
-      </div>
-    </section>
-
+  return `<div class="page-stack monitor-details" id="monitoring-section">
     <section class="monitor-trend-section">${sectionHeading('Tren lingkungan kandang', 'Pembacaan sensor selama 30 menit terakhir.')}
       <div class="trend-grid">${trendChart('Suhu udara', model.temperatureSeries, model.chartLabels, '°C', '#7e5700')}${trendChart('Kelembapan udara', model.humiditySeries, model.chartLabels, '%', '#4b7d83')}</div>
     </section>
@@ -25,4 +28,8 @@ export function renderMonitorDashboard(model, helpers) {
       </div>
     </section>
   </div>`;
+}
+
+export function renderMonitorDashboard(model, helpers) {
+  return `<div class="page-stack monitor-dashboard">${renderMonitorEnvironment(model, helpers)}${renderMonitorDetails(model, helpers)}</div>`;
 }
