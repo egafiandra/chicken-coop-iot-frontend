@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Move the user Monitoring view into Beranda and add Lite/Pro edition switching to user Pengaturan, embedding the existing admin app as Pro without editing it.
+**Goal:** Move the user Monitoring view into Beranda and add Lite/Pro edition switching in Pengaturan, with Pro as a user-only dashboard inspired by the admin visual hierarchy.
 
-**Architecture:** Add a small user-edition preference module for safe local-storage reads/writes. Compose existing monitoring charts/device status into the home renderer while keeping one set of sensor summaries. The Lite and Pro user-shell routes remain separate from the standalone admin app; Pro embeds the existing `admin.html` in an iframe, while the admin source remains untouched.
+**Architecture:** Add a small user-edition preference module for safe local-storage reads/writes. Compose existing monitoring charts/device status into Beranda while keeping one set of sensor summaries. Render Pro from a dedicated user-dashboard module using the same user state and routes; do not embed or import the admin application.
 
 **Tech Stack:** Vanilla JavaScript ES modules, CSS, Node.js built-in test runner, browser verification.
 
@@ -16,8 +16,8 @@
 - The user app and admin app remain separate.
 - Do not edit `admin.html`, `src/admin/**`, admin state, admin navigation, or admin behavior.
 - Lite is the current user-facing application.
-- Pro displays the existing admin page embedded in the user application's content area.
-- Keep the user app shell/navigation around Pro so the user can return to Pengaturan and select Lite.
+- Pro displays a dedicated user dashboard built from existing user data and routes.
+- Do not embed, import, or display `admin.html` from Pro.
 - Keep the mode choice in local browser storage. Start new browsers in Lite mode.
 - Preserve current fixture telemetry and disconnected IoT/camera disclosures; add no new sensor values or backend behavior.
 
@@ -26,8 +26,8 @@
 - Storage missing, throwing, or containing an unknown edition must resolve to Lite; test each case in Task 1.
 - Legacy `#/monitor` and `#/profile` bookmarks must resolve to the intended pages after route changes; test aliases in Task 2.
 - Home already contains environment readings duplicated by Monitoring; test that moved charts/device status appear once and environment values are not duplicated in Task 2.
-- Switching to Pro while on settings and reloading while Pro is selected must leave outer settings navigation usable; test mode routing/rendering in Task 3.
-- Embedded admin content must fit narrow and desktop viewports without horizontal overflow, while the admin files remain unchanged; verify in Task 3 browser checks.
+- Switching to Pro while on settings and reloading while Pro is selected must leave all user routes accessible; test mode routing in Task 3.
+- Pro must show no admin-only values or functions and must not render an iframe; test its content and verify admin files remain unchanged in Task 3.
 
 ---
 
@@ -78,25 +78,28 @@
 - Modify: `src/main.mjs`
 - Modify: `src/user-mobile.css`
 - Create: `src/user-edition-view.mjs`
+- Create: `src/user-pro-dashboard.mjs`
 - Create: `tests/user-edition-ui.test.mjs`
+- Create: `tests/user-pro-dashboard.test.mjs`
 - Verify: browser at `http://127.0.0.1:4174/`
 
 **Interfaces:**
 - `renderEditionSettings(activeEdition) -> HTML string` in `src/user-edition-view.mjs` produces the accessible Lite/Pro controls with a visible selected state and `aria-pressed` values.
-- `renderProPanel() -> HTML string` in `src/user-edition-view.mjs` returns an iframe targeting `./admin.html` with an informative title.
+- `renderSettingsShortcut(icon) -> HTML string` produces the user-only gear link to Pengaturan.
+- `renderUserProDashboard(model, helpers) -> HTML string` in `src/user-pro-dashboard.mjs` renders only existing user metrics, statuses, notification preview, and links to user routes.
 - The user navigation page is `settings` with label `Pengaturan`; its renderer retains the existing profile form and uses `renderEditionSettings`.
-- In Lite, retain the current user navigation. In Pro, render the Pro iframe in the user app shell and keep an outer Pengaturan link available; selecting Lite returns to `#/home`.
+- In Lite, retain the current user navigation. In Pro, use `proPage` plus the existing user controls/camera/notifications/settings routes; the Pro dashboard is not an iframe.
 - Initialize the edition from `readUserEdition(localStorage)`; edition controls update in-memory state and persist through `writeUserEdition`.
-- The admin page remains a separate document and its files are unchanged.
+- `admin.html` and `src/admin/**` remain unchanged.
 
-- [ ] **Step 1: Add failing UI tests** in `tests/user-edition-ui.test.mjs` for `renderEditionSettings` (both choices and selected `aria-pressed` state) and `renderProPanel` (same-origin `./admin.html` source and descriptive iframe title).
-- [ ] **Step 2: Run the focused UI tests** with `node --test tests/user-edition-ui.test.mjs`. Expected: FAIL because the module is not implemented.
-- [ ] **Step 3: Implement `renderEditionSettings(activeEdition)` and `renderProPanel()`** in `src/user-edition-view.mjs`; use semantic buttons and an iframe title for assistive technology.
-- [ ] **Step 4: Implement edition initialization and selection** in `src/main.mjs`; wire Lite to Home and Pro to the internal Pro route, preserving settings as an accessible route in both modes.
-- [ ] **Step 5: Add settings and iframe styles** in `src/styles.css` for visible selection, keyboard focus, responsive width, and a bounded viewport-height content area.
-- [ ] **Step 6: Run the focused UI tests** with `node --test tests/user-edition-ui.test.mjs`. Expected: all pass.
-- [ ] **Step 7: Verify in a browser** at 390 px and desktop width: Lite Home contains the former Monitoring trends/status, the Monitoring nav item is absent, Pengaturan retains profile form and edition controls, Pro loads `admin.html` inside the user shell, and Pengaturan can return to Lite. Check the iframe document width for horizontal overflow.
-- [ ] **Step 8: Verify admin files are unchanged** with `git diff --exit-code -- admin.html src/admin` and run the full suite with `node --test tests/*.test.mjs`. Expected: no admin diff and all tests pass.
+- [ ] **Step 1: Add failing tests.** In `tests/user-edition-ui.test.mjs`, cover Lite/Pro selected states and the labeled settings shortcut. In `tests/user-pro-dashboard.test.mjs`, assert existing user metrics/statuses and user routes render, admin-only values/functions and iframe do not, and values are escaped.
+- [ ] **Step 2: Run the focused tests** with `node --test tests/user-edition-ui.test.mjs tests/user-pro-dashboard.test.mjs`. Expected: FAIL because the new Pro renderer is not implemented.
+- [ ] **Step 3: Implement `renderUserProDashboard(model, helpers)`** in `src/user-pro-dashboard.mjs` using only the approved user data: flock count, temperature, humidity, feed, valve, lamp, music, unread notifications, and existing notification preview. Add links to user controls, camera, and notifications; do not calculate unsupported metrics.
+- [ ] **Step 4: Implement edition routing in `src/main.mjs`.** Pro must render the user dashboard at `#/pro` and preserve user Controls/Camera/Notifications/Settings routes. Remove the old iframe renderer/import. Settings remains accessible to switch back to Lite.
+- [ ] **Step 5: Style the Pro user dashboard** in `src/user-mobile.css` with an admin-inspired summary, four user metric cards, device statuses, and notification panel. Do not reuse admin CSS or edit `src/admin/**`.
+- [ ] **Step 6: Run focused tests** with `node --test tests/user-edition-ui.test.mjs tests/user-pro-dashboard.test.mjs`. Expected: all pass, including absence of iframe/admin content.
+- [ ] **Step 7: Verify in a browser** at 390 px and desktop width: Settings switches Lite/Pro, Pro displays user-only data, links to user routes work, Settings remains reachable, and there is no horizontal overflow.
+- [ ] **Step 8: Verify admin files are unchanged** with `git diff --exit-code -- admin.html src/admin` and run `node --test tests/*.test.mjs`. Expected: no admin diff and all tests pass.
 
 ## Final Verification
 

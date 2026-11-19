@@ -17,7 +17,8 @@ import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user
 import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-56';
 import { renderMonitorDetails } from './monitor-dashboard.mjs?v=user-app-56';
 import { readUserEdition, writeUserEdition } from './user-edition.mjs?v=user-app-56';
-import { renderEditionSettings, renderProPanel, renderSettingsShortcut } from './user-edition-view.mjs?v=user-app-58';
+import { renderEditionSettings, renderSettingsShortcut } from './user-edition-view.mjs?v=user-app-60';
+import { renderUserProDashboard } from './user-pro-dashboard.mjs?v=user-app-60';
 import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-56';
 import { attachScrollReveal } from './scroll-reveal.mjs?v=user-app-56';
 import { attachFeatureEntryCards, shouldPlayFeatureEntry } from './feature-entry.mjs?v=user-app-56';
@@ -46,7 +47,8 @@ const pages = [
   { id: 'settings', label: 'Pengaturan', mobileLabel: 'Pengaturan', icon: 'user', title: 'Pengaturan', subtitle: 'Profil pengguna dan versi aplikasi.' },
 ];
 
-const proPage = { id: 'pro', label: 'Pro', mobileLabel: 'Pro', icon: 'activity', title: 'Smart Poultry Pro', subtitle: 'Panel admin tertanam dalam aplikasi pengguna.' };
+const proPage = { id: 'pro', label: 'Dashboard', mobileLabel: 'Home', icon: 'activity', title: 'Dashboard kandang', subtitle: 'Ringkasan kondisi kandang Anda.' };
+const proNavigationPages = [proPage, ...pages.filter((item) => item.id !== 'home')];
 
 const iconPaths = {
   home: '<path d="m3 10 9-7 9 7"/><path d="M5 9.5V21h14V9.5M9 21v-6h6v6"/>',
@@ -253,6 +255,15 @@ function renderHome() {
 
 
 
+function renderPro() {
+  return renderUserProDashboard(getHomeDashboardModel(state), {
+    escapeHTML,
+    icon,
+    sectionHeading,
+    statePill,
+  });
+}
+
 function renderControls() {
   return `<div class="page-stack"><figure class="controls-scene-strip"><img src="./src/assets/stitch/coop-controls.jpg" alt="Pratinjau kandang ayam dengan tenggeran dan tempat pakan"><figcaption>Area tenggeran dan pakan</figcaption></figure><div class="control-grid">
     <article class="surface-card control-card"><div class="control-card-head"><span class="control-icon water-icon">${icon('water')}</span><span class="control-kicker">Air minum</span></div><h2>Valve air</h2><p class="control-description">Buka atau tutup aliran air minum.</p>
@@ -304,7 +315,7 @@ const renderers = {
   camera: renderCamera,
   notifications: renderNotifications,
   settings: renderSettings,
-  pro: renderProPanel,
+  pro: renderPro,
 };
 
 function renderDemoCryptoNotice() {
@@ -360,11 +371,9 @@ function renderApp() {
     window.location.hash = '#/home';
     return;
   }
-  if (userEdition === 'pro' && !['login', 'signup', 'settings'].includes(pageId)) pageId = 'pro';
+  if (userEdition === 'pro' && pageId === 'home') pageId = 'pro';
   if (userEdition === 'lite' && pageId === 'pro') pageId = 'home';
-  const navigationPages = userEdition === 'pro'
-    ? [proPage, pages.find((item) => item.id === 'settings')]
-    : pages;
+  const navigationPages = userEdition === 'pro' ? proNavigationPages : pages;
   const page = pageId === 'pro' ? proPage : pages.find((item) => item.id === pageId) || pages[0];
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const playFeatureEntry = shouldPlayFeatureEntry(lastRenderedPageId, pageId);
@@ -378,7 +387,7 @@ function renderApp() {
     return;
   }
   app.innerHTML = `<div class="app-shell"><aside class="sidebar" aria-label="Navigasi pengguna"><a class="brand" href="#/home" data-page="home"><span class="brand-name">Smart Poultry</span><span class="brand-caption">Monitoring ayam</span></a><div class="sidebar-label">Menu pengguna</div><nav class="nav-list">${renderNavigation(pageId, false, navigationPages)}</nav></aside>
-    <div class="main-area"><header class="topbar"><div class="page-context"><p>Monitoring kandang</p><h1 id="page-title" tabindex="-1">${page.title}</h1><span>${page.subtitle}</span></div><div class="topbar-meta"><span class="demo-badge" aria-label="Mode demo">DEMO</span>${pageId === 'home' ? '' : `<div class="connection-state"><span class="status-mark" aria-hidden="true"></span><span>${escapeHTML(getHomeDashboardModel(state).connectionLabel)}</span></div>`}${renderTimeThemeControls()}${userEdition === 'pro' ? '' : renderNotificationBell()}${renderSettingsShortcut(icon)}</div></header><main class="page-content" id="main-content" tabindex="-1">${renderers[pageId]()}</main></div>
+    <div class="main-area"><header class="topbar"><div class="page-context"><p>Monitoring kandang</p><h1 id="page-title" tabindex="-1">${page.title}</h1><span>${page.subtitle}</span></div><div class="topbar-meta"><span class="demo-badge" aria-label="Mode demo">DEMO</span>${pageId === 'home' || pageId === 'pro' ? '' : `<div class="connection-state"><span class="status-mark" aria-hidden="true"></span><span>${escapeHTML(getHomeDashboardModel(state).connectionLabel)}</span></div>`}${renderTimeThemeControls()}${userEdition === 'pro' ? '' : renderNotificationBell()}${renderSettingsShortcut(icon)}</div></header><main class="page-content" id="main-content" tabindex="-1">${renderers[pageId]()}</main></div>
     <nav class="bottom-nav" aria-label="Navigasi utama" style="--bottom-nav-count: ${navigationPages.length}">${renderNavigation(pageId, true, navigationPages)}</nav><div class="toast" id="toast" role="status" aria-live="polite"></div></div>`;
   const mainContent = document.querySelector('#main-content');
   if (playFeatureEntry) attachFeatureEntryCards(mainContent, prefersReducedMotion ? 80 : 100);
