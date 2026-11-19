@@ -9,6 +9,10 @@ export function renderEditionSettings(activeEdition) {
   </section>`;
 }
 
+export function renderSettingsShortcut(icon) {
+  return `<a class="settings-shortcut" href="#/settings" data-page="settings" aria-label="Pengaturan" title="Pengaturan">${icon('settings')}<span class="settings-shortcut-label">Pengaturan</span></a>`;
+}
+
 export function renderProPanel() {
   return `<section class="pro-panel" aria-label="Panel admin Pro">
     <iframe class="pro-embed-frame" src="./admin.html" title="Panel admin Smart Poultry Pro"></iframe>

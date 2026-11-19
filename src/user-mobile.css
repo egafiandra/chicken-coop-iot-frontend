@@ -30,9 +30,9 @@
 .theme-mode-toggle .icon { width: 16px; height: 16px; }
 .theme-mode-toggle:hover, .time-theme-readout.is-manual:hover { background: var(--surface-hover); }
 .theme-mode-toggle.is-active { border-color: var(--primary-button); color: var(--on-primary); background: var(--primary-button); }
-.notification-shortcut, .profile-shortcut { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 42px; min-height: 42px; gap: 7px; padding: 0 10px; border: 2px solid var(--user-line); border-radius: 10px; color: var(--user-pine); background: var(--user-surface); text-decoration: none; font-size: 11px; font-weight: 620; }
-.notification-shortcut:hover, .profile-shortcut:hover { background: var(--surface-hover); border-color: var(--line); }
-.notification-shortcut .icon, .profile-shortcut .icon { width: 18px; height: 18px; }
+.notification-shortcut, .settings-shortcut { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 42px; min-height: 42px; gap: 7px; padding: 0 10px; border: 2px solid var(--user-line); border-radius: 10px; color: var(--user-pine); background: var(--user-surface); text-decoration: none; font-size: 11px; font-weight: 620; }
+.notification-shortcut:hover, .settings-shortcut:hover { background: var(--surface-hover); border-color: var(--line); }
+.notification-shortcut .icon, .settings-shortcut .icon { width: 18px; height: 18px; }
 .notification-count { position: absolute; top: -5px; right: -5px; display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; border: 2px solid var(--user-paper); border-radius: 20px; color: var(--notification-badge-fg); background: var(--notification-badge-bg); font-size: 9px; font-weight: 750; }
 
 .coop-hero { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(235px, .65fr); grid-template-rows: 1fr auto; min-height: 270px; overflow: hidden; border: 2px solid var(--user-line); border-radius: 19px; background: var(--surface-muted); }
@@ -210,7 +210,7 @@ button[hidden] { display: none !important; }
 }
 
 @media (min-width: 821px) and (max-width: 1000px) {
-  .topbar-meta .notification-shortcut, .topbar-meta .profile-shortcut { display: none; }
+  .topbar-meta .notification-shortcut, .topbar-meta .settings-shortcut { display: none; }
 }
 
 @media (max-width: 1120px) {
@@ -226,7 +226,7 @@ button[hidden] { display: none !important; }
   .page-context h1 { font-size: 18px; line-height: 1.15; letter-spacing: -.45px; }
   .topbar-meta { grid-column: 2; display: flex; flex: 0 0 auto; flex-wrap: nowrap; align-items: center; gap: 5px; width: auto; min-width: 0; margin-left: 0; }
   .topbar-meta .connection-state { display: none; }
-  .topbar-meta .notification-shortcut, .topbar-meta .profile-shortcut { display: none; }
+  .topbar-meta .notification-shortcut { display: none; }
   .time-theme-controls { gap: 4px; }
   .time-theme-readout { min-height: 31px; gap: 4px; padding: 0 6px; }
   .time-mode-label { display: inline; color: var(--user-ink); font-size: 9px; font-weight: 600; }
@@ -236,8 +236,9 @@ button[hidden] { display: none !important; }
   .time-period-label { color: var(--user-ink); font-size: 9px; font-weight: 650; }
   .time-theme-readout.is-manual { min-height: 29px; padding: 0 6px; font-size: 8px; }
   .demo-badge { min-height: 22px; padding: 0 6px; font-size: 8px; }
-  .notification-shortcut, .profile-shortcut { min-width: 34px; min-height: 34px; padding: 0 6px; }
-  .notification-shortcut .icon, .profile-shortcut .icon { width: 16px; height: 16px; }
+  .notification-shortcut, .settings-shortcut { min-width: 34px; min-height: 34px; padding: 0 6px; }
+  .notification-shortcut .icon, .settings-shortcut .icon { width: 16px; height: 16px; }
+  .settings-shortcut-label { display: none; }
   .bottom-nav { position: fixed; z-index: 40; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(var(--bottom-nav-count, 5), minmax(0, 1fr)); gap: 2px; padding: 5px 8px calc(5px + env(safe-area-inset-bottom)); border-top: 2px solid var(--line); background: var(--bottom-nav-bg); }
   .bottom-nav .nav-link { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-width: 0; min-height: 52px; margin: 0; gap: 3px; padding: 4px 1px; border: 2px solid transparent; border-radius: 9px; color: var(--bottom-nav-fg); background: transparent; font-size: 9px; font-weight: 620; line-height: 1.1; text-decoration: none; white-space: nowrap; }
   .bottom-nav .nav-link .icon { width: 17px; height: 17px; color: currentColor; }

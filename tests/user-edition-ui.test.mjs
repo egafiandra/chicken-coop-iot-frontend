@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { renderEditionSettings, renderProPanel } from '../src/user-edition-view.mjs';
+import { renderEditionSettings, renderProPanel, renderSettingsShortcut } from '../src/user-edition-view.mjs';
 
 test('edition settings expose Lite and Pro with a selected state', () => {
   const html = renderEditionSettings('pro');
@@ -16,4 +16,13 @@ test('Pro panel embeds the existing admin page with an accessible title', () => 
   assert.match(html, /<iframe/);
   assert.match(html, /src="\.\/admin\.html"/);
   assert.match(html, /title="Panel admin Smart Poultry Pro"/);
+});
+
+test('Settings shortcut is a labeled gear link to user Pengaturan', () => {
+  const html = renderSettingsShortcut((name) => `<svg data-icon="${name}"></svg>`);
+  assert.match(html, /class="settings-shortcut"/);
+  assert.match(html, /href="#\/settings" data-page="settings"/);
+  assert.match(html, /aria-label="Pengaturan" title="Pengaturan"/);
+  assert.match(html, /data-icon="settings"/);
+  assert.match(html, />Pengaturan<\/span>/);
 });

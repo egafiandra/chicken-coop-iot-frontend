@@ -17,7 +17,7 @@ import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user
 import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-56';
 import { renderMonitorDetails } from './monitor-dashboard.mjs?v=user-app-56';
 import { readUserEdition, writeUserEdition } from './user-edition.mjs?v=user-app-56';
-import { renderEditionSettings, renderProPanel } from './user-edition-view.mjs?v=user-app-56';
+import { renderEditionSettings, renderProPanel, renderSettingsShortcut } from './user-edition-view.mjs?v=user-app-58';
 import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-56';
 import { attachScrollReveal } from './scroll-reveal.mjs?v=user-app-56';
 import { attachFeatureEntryCards, shouldPlayFeatureEntry } from './feature-entry.mjs?v=user-app-56';
@@ -52,6 +52,7 @@ const iconPaths = {
   home: '<path d="m3 10 9-7 9 7"/><path d="M5 9.5V21h14V9.5M9 21v-6h6v6"/>',
   activity: '<path d="M3 12h4l3-7 4 14 3-7h4"/>',
   sliders: '<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="18" r="2"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2.8v2M12 19.2v2M21.2 12h-2M4.8 12h-2M18.5 5.5l-1.4 1.4M6.9 17.1l-1.4 1.4M18.5 18.5l-1.4-1.4M6.9 6.9 5.5 5.5"/>',
   camera: '<path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v11H3V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/>',
   bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
@@ -377,7 +378,7 @@ function renderApp() {
     return;
   }
   app.innerHTML = `<div class="app-shell"><aside class="sidebar" aria-label="Navigasi pengguna"><a class="brand" href="#/home" data-page="home"><span class="brand-name">Smart Poultry</span><span class="brand-caption">Monitoring ayam</span></a><div class="sidebar-label">Menu pengguna</div><nav class="nav-list">${renderNavigation(pageId, false, navigationPages)}</nav></aside>
-    <div class="main-area"><header class="topbar"><div class="page-context"><p>Monitoring kandang</p><h1 id="page-title" tabindex="-1">${page.title}</h1><span>${page.subtitle}</span></div><div class="topbar-meta"><span class="demo-badge" aria-label="Mode demo">DEMO</span>${pageId === 'home' ? '' : `<div class="connection-state"><span class="status-mark" aria-hidden="true"></span><span>${escapeHTML(getHomeDashboardModel(state).connectionLabel)}</span></div>`}${renderTimeThemeControls()}${userEdition === 'pro' ? '' : renderNotificationBell()}<a class="profile-shortcut" href="#/settings" data-page="settings" aria-label="Buka pengaturan">${icon('user')}</a></div></header><main class="page-content" id="main-content" tabindex="-1">${renderers[pageId]()}</main></div>
+    <div class="main-area"><header class="topbar"><div class="page-context"><p>Monitoring kandang</p><h1 id="page-title" tabindex="-1">${page.title}</h1><span>${page.subtitle}</span></div><div class="topbar-meta"><span class="demo-badge" aria-label="Mode demo">DEMO</span>${pageId === 'home' ? '' : `<div class="connection-state"><span class="status-mark" aria-hidden="true"></span><span>${escapeHTML(getHomeDashboardModel(state).connectionLabel)}</span></div>`}${renderTimeThemeControls()}${userEdition === 'pro' ? '' : renderNotificationBell()}${renderSettingsShortcut(icon)}</div></header><main class="page-content" id="main-content" tabindex="-1">${renderers[pageId]()}</main></div>
     <nav class="bottom-nav" aria-label="Navigasi utama" style="--bottom-nav-count: ${navigationPages.length}">${renderNavigation(pageId, true, navigationPages)}</nav><div class="toast" id="toast" role="status" aria-live="polite"></div></div>`;
   const mainContent = document.querySelector('#main-content');
   if (playFeatureEntry) attachFeatureEntryCards(mainContent, prefersReducedMotion ? 80 : 100);
