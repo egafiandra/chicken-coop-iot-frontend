@@ -30,6 +30,10 @@ const helpers = {
 test('Pro dashboard presents only existing user metrics and device state', () => {
   const html = renderUserProDashboard(model, helpers);
   assert.match(html, /Dashboard kandang/);
+  assert.match(html, /class="hero user-pro-hero/);
+  assert.match(html, /class="kpi-grid user-pro-metric-grid"/);
+  assert.match(html, /class="duo-eq user-pro-panels"/);
+  assert.match(html, /class="card user-pro-devices"/);
   assert.match(html, /12/);
   assert.match(html, /28\.4/);
   assert.match(html, /67%/);
@@ -42,9 +46,7 @@ test('Pro dashboard presents only existing user metrics and device state', () =>
   assert.doesNotMatch(html, /Pengguna aktif|4\/6|Kandang terdaftar|admin\.html|Aturan & otomasi/i);
 });
 
-test('Pro dashboard links to user controls, camera, and notifications routes', () => {
+test('Pro dashboard links to the user notifications route', () => {
   const html = renderUserProDashboard(model, helpers);
-  assert.match(html, /href="#\/controls" data-page="controls"/);
-  assert.match(html, /href="#\/camera" data-page="camera"/);
   assert.match(html, /href="#\/notifications" data-page="notifications"/);
 });

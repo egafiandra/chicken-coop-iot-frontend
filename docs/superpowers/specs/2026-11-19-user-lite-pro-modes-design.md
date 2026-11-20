@@ -7,7 +7,7 @@ Status: Revised design approved in conversation; awaiting written-spec review be
 
 Implement the edition and monitoring revisions only in the user-facing application. The user app and admin app remain separate. Do not edit `admin.html`, `src/admin/**`, admin state, admin navigation, or admin behavior; the user's friend will handle future Lite/Pro selection in the admin app.
 
-Pro is a new user-facing dashboard in the existing user SPA. It may follow the admin screenshot's visual language, but it must use only user-facing data and functions. It must not embed, import, or display the admin application.
+Pro is a new user-facing dashboard in the existing user SPA. It follows the admin screenshot's visual language and may load `src/admin/styles.css` as a read-only visual CSS asset, but it uses only user-facing data and functions. It must not embed or import admin HTML, JavaScript, state, routes, or data.
 
 ## User decisions
 
@@ -47,7 +47,7 @@ Use the screenshot only as a visual reference for layout and hierarchy. Adapt a 
 - Existing unread notification count and links to user routes.
 - Existing demo/disconnected-IoT disclosures.
 
-Do not display admin-only concepts or data: user/account administration, multiple registered coops, device registration/online totals, admin rules/automation, admin logs, or admin demo records. Do not invent a health percentage, device total, alert severity, or sensor metric that the user model does not supply. Do not render an iframe or reuse `src/admin/**`.
+Do not display admin-only concepts or data: user/account administration, multiple registered coops, device registration/online totals, admin rules/automation, admin logs, or admin demo records. Do not invent a health percentage, device total, alert severity, or sensor metric that the user model does not supply. Do not render an iframe or reuse admin application markup, JavaScript, state, routes, or data; the existing admin stylesheet is allowed only as a read-only visual asset.
 
 ## Existing behavior to preserve
 

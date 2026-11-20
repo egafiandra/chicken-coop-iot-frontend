@@ -4,7 +4,7 @@
 
 **Goal:** Move the user Monitoring view into Beranda and add Lite/Pro edition switching in Pengaturan, with Pro as a user-only dashboard inspired by the admin visual hierarchy.
 
-**Architecture:** Add a small user-edition preference module for safe local-storage reads/writes. Compose existing monitoring charts/device status into Beranda while keeping one set of sensor summaries. Render Pro from a dedicated user-dashboard module using the same user state and routes; do not embed or import the admin application.
+**Architecture:** Add a small user-edition preference module for safe local-storage reads/writes. Compose existing monitoring charts/device status into Beranda while keeping one set of sensor summaries. Render Pro from a dedicated user-dashboard module using the same user state and routes; load the existing admin stylesheet only as a read-only visual asset, with no admin markup, JavaScript, state, routes, or data.
 
 **Tech Stack:** Vanilla JavaScript ES modules, CSS, Node.js built-in test runner, browser verification.
 
@@ -43,10 +43,10 @@
 - Produces `readUserEdition(storage) -> 'lite' | 'pro'`; reads the key safely and defaults to Lite for null storage, thrown access, or invalid stored values.
 - Produces `writeUserEdition(storage, edition) -> boolean`; stores only the normalized value and returns false if storage is unavailable or throws.
 
-- [ ] **Step 1: Write failing tests** named `defaults to Lite for missing or invalid preferences`, `reads a saved Pro preference`, and `handles unavailable or throwing storage safely`. Assert invalid values never select Pro and failed writes return false.
-- [ ] **Step 2: Run the focused tests** with `node --test tests/user-edition.test.mjs`. Expected: FAIL because the module is not implemented.
-- [ ] **Step 3: Implement the three exported interfaces** in `src/user-edition.mjs`, wrapping both storage access and writes in `try/catch`.
-- [ ] **Step 4: Run the focused tests** with `node --test tests/user-edition.test.mjs`. Expected: all pass.
+- [x] **Step 1: Write failing tests** named `defaults to Lite for missing or invalid preferences`, `reads a saved Pro preference`, and `handles unavailable or throwing storage safely`. Assert invalid values never select Pro and failed writes return false.
+- [x] **Step 2: Run the focused tests** with `node --test tests/user-edition.test.mjs`. Expected: FAIL because the module is not implemented.
+- [x] **Step 3: Implement the three exported interfaces** in `src/user-edition.mjs`, wrapping both storage access and writes in `try/catch`.
+- [x] **Step 4: Run the focused tests** with `node --test tests/user-edition.test.mjs`. Expected: all pass.
 
 ### Task 2: Move Monitoring content into Beranda and update user routes
 
@@ -65,41 +65,42 @@
 - `renderHomeDashboard(model, helpers, monitorDetails = '') -> HTML string` appends the supplied monitor details to current home content and removes the Monitoring quick-access link.
 - `normalizePage('monitor') -> 'home'`, `normalizePage('profile') -> 'settings'`; supported user page IDs replace `monitor/profile` with `settings` and include the internal `pro` page.
 
-- [ ] **Step 1: Add failing route and render tests.** In `tests/state.test.mjs`, assert old `monitor` resolves to `home`, old `profile` resolves to `settings`, and `settings`/`pro` remain valid. In home tests, assert monitor trends and device status appear in home once and no `#/monitor` link remains. In monitor tests, assert `renderMonitorDetails` contains both charts and device status but no masthead.
-- [ ] **Step 2: Run the focused tests** with `node --test tests/state.test.mjs tests/home-dashboard.test.mjs tests/monitor-dashboard.test.mjs`. Expected: FAIL on the new route aliases and renderer composition.
-- [ ] **Step 3: Extract `renderMonitorDetails(model, helpers)`** and compose it inside the existing `renderMonitorDashboard` without changing chart values or status text.
-- [ ] **Step 4: Update `renderHomeDashboard`** to append monitor details and remove only its Monitoring quick-access tile; retain controls, camera, and notifications links.
-- [ ] **Step 5: Update `src/state.mjs` and `src/main.mjs`** so the Lite pages use Beranda, Kontrol, Kamera, Notifikasi, and Pengaturan; legacy routes normalize as specified. Build monitor model from the existing fixture values when rendering Beranda.
-- [ ] **Step 6: Re-run the focused tests.** Expected: all pass, with no duplicate environment section and existing out-of-scope telemetry assertions intact.
+- [x] **Step 1: Add failing route and render tests.** In `tests/state.test.mjs`, assert old `monitor` resolves to `home`, old `profile` resolves to `settings`, and `settings`/`pro` remain valid. In home tests, assert monitor trends and device status appear in home once and no `#/monitor` link remains. In monitor tests, assert `renderMonitorDetails` contains both charts and device status but no masthead.
+- [x] **Step 2: Run the focused tests** with `node --test tests/state.test.mjs tests/home-dashboard.test.mjs tests/monitor-dashboard.test.mjs`. Expected: FAIL on the new route aliases and renderer composition.
+- [x] **Step 3: Extract `renderMonitorDetails(model, helpers)`** and compose it inside the existing `renderMonitorDashboard` without changing chart values or status text.
+- [x] **Step 4: Update `renderHomeDashboard`** to append monitor details and remove only its Monitoring quick-access tile; retain controls, camera, and notifications links.
+- [x] **Step 5: Update `src/state.mjs` and `src/main.mjs`** so the Lite pages use Beranda, Kontrol, Kamera, Notifikasi, and Pengaturan; legacy routes normalize as specified. Build monitor model from the existing fixture values when rendering Beranda.
+- [x] **Step 6: Re-run the focused tests.** Expected: all pass, with no duplicate environment section and existing out-of-scope telemetry assertions intact.
 
-### Task 3: Add user-only edition selection and embedded Pro view
+### Task 3: Add user-only edition selection and admin-styled Pro view
 
 **Files:**
 - Modify: `src/main.mjs`
 - Modify: `src/user-mobile.css`
 - Create: `src/user-edition-view.mjs`
 - Create: `src/user-pro-dashboard.mjs`
+- Create: `src/user-pro.css`
 - Create: `tests/user-edition-ui.test.mjs`
 - Create: `tests/user-pro-dashboard.test.mjs`
-- Verify: browser at `http://127.0.0.1:4174/`
+- Verify: browser at `http://127.0.0.1:4175/`
 
 **Interfaces:**
 - `renderEditionSettings(activeEdition) -> HTML string` in `src/user-edition-view.mjs` produces the accessible Lite/Pro controls with a visible selected state and `aria-pressed` values.
 - `renderSettingsShortcut(icon) -> HTML string` produces the user-only gear link to Pengaturan.
-- `renderUserProDashboard(model, helpers) -> HTML string` in `src/user-pro-dashboard.mjs` renders only existing user metrics, statuses, notification preview, and links to user routes.
+- `renderUserProDashboard(model, helpers) -> HTML string` in `src/user-pro-dashboard.mjs` renders only existing user metrics, statuses, and notification preview; the Pro shell supplies the user routes.
 - The user navigation page is `settings` with label `Pengaturan`; its renderer retains the existing profile form and uses `renderEditionSettings`.
 - In Lite, retain the current user navigation. In Pro, use `proPage` plus the existing user controls/camera/notifications/settings routes; the Pro dashboard is not an iframe.
 - Initialize the edition from `readUserEdition(localStorage)`; edition controls update in-memory state and persist through `writeUserEdition`.
 - `admin.html` and `src/admin/**` remain unchanged.
 
-- [ ] **Step 1: Add failing tests.** In `tests/user-edition-ui.test.mjs`, cover Lite/Pro selected states and the labeled settings shortcut. In `tests/user-pro-dashboard.test.mjs`, assert existing user metrics/statuses and user routes render, admin-only values/functions and iframe do not, and values are escaped.
-- [ ] **Step 2: Run the focused tests** with `node --test tests/user-edition-ui.test.mjs tests/user-pro-dashboard.test.mjs`. Expected: FAIL because the new Pro renderer is not implemented.
-- [ ] **Step 3: Implement `renderUserProDashboard(model, helpers)`** in `src/user-pro-dashboard.mjs` using only the approved user data: flock count, temperature, humidity, feed, valve, lamp, music, unread notifications, and existing notification preview. Add links to user controls, camera, and notifications; do not calculate unsupported metrics.
-- [ ] **Step 4: Implement edition routing in `src/main.mjs`.** Pro must render the user dashboard at `#/pro` and preserve user Controls/Camera/Notifications/Settings routes. Remove the old iframe renderer/import. Settings remains accessible to switch back to Lite.
-- [ ] **Step 5: Style the Pro user dashboard** in `src/user-mobile.css` with an admin-inspired summary, four user metric cards, device statuses, and notification panel. Do not reuse admin CSS or edit `src/admin/**`.
-- [ ] **Step 6: Run focused tests** with `node --test tests/user-edition-ui.test.mjs tests/user-pro-dashboard.test.mjs`. Expected: all pass, including absence of iframe/admin content.
-- [ ] **Step 7: Verify in a browser** at 390 px and desktop width: Settings switches Lite/Pro, Pro displays user-only data, links to user routes work, Settings remains reachable, and there is no horizontal overflow.
-- [ ] **Step 8: Verify admin files are unchanged** with `git diff --exit-code -- admin.html src/admin` and run `node --test tests/*.test.mjs`. Expected: no admin diff and all tests pass.
+- [x] **Step 1: Add failing tests.** In `tests/user-edition-ui.test.mjs`, cover Lite/Pro selected states and the labeled settings shortcut. In `tests/user-pro-dashboard.test.mjs`, assert existing user metrics/statuses and user routes render, admin-only values/functions and iframe do not, and values are escaped.
+- [x] **Step 2: Run the focused tests** with `node --test tests/user-edition-ui.test.mjs tests/user-pro-dashboard.test.mjs`. Expected: FAIL because the new Pro renderer is not implemented.
+- [x] **Step 3: Implement `renderUserProDashboard(model, helpers)`** in `src/user-pro-dashboard.mjs` using only the approved user data: flock count, temperature, humidity, feed, valve, lamp, music, unread notifications, and existing notification preview. Preserve user routes in the Pro sidebar and mobile bar; do not calculate unsupported metrics.
+- [x] **Step 4: Implement edition routing in `src/main.mjs`.** Pro must render the user dashboard at `#/pro` and preserve user Controls/Camera/Notifications/Settings routes. Remove the old iframe renderer/import. Settings remains accessible to switch back to Lite.
+- [x] **Step 5: Match the admin visual system without changing admin behavior.** Load `src/admin/styles.css` as a Pro-only, read-only stylesheet and use its shell, rail, topbar, hero, KPI, and card patterns for the user dashboard. Add only small user-scoped Pro overrides in `src/user-pro.css`; do not edit `src/admin/**`.
+- [x] **Step 6: Run focused tests** with `node --test tests/user-edition-ui.test.mjs tests/user-pro-dashboard.test.mjs`. Expected: all pass, including absence of iframe/admin content.
+- [x] **Step 7: Verify in a browser** at 390 px and desktop width: Settings switches Lite/Pro, the admin visual stylesheet loads only in Pro and is removed in Lite, Pro displays user-only data, all user routes work, Settings remains reachable, and there is no horizontal overflow.
+- [x] **Step 8: Verify admin files are unchanged** with `git diff --exit-code -- admin.html src/admin` and run `node --test tests/*.test.mjs`. Expected: no admin diff and all tests pass.
 
 ## Final Verification
 

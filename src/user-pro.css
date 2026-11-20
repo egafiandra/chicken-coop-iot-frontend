@@ -1,0 +1,17 @@
+.user-pro-shell .user-pro-dashboard { max-width: 1380px; margin-inline: auto; }
+.user-pro-shell .user-pro-kpi .kpi-value small { margin-left: 4px; }
+.user-pro-shell .user-pro-connection { gap: 10px; }
+.user-pro-shell .user-pro-connection-ring { display: grid; place-content: center; justify-items: center; gap: 6px; width: 112px; height: 112px; border: 7px solid var(--line); border-radius: 50%; background: var(--surface); box-shadow: inset 0 0 0 4px var(--surface-2); }
+.user-pro-shell .user-pro-connection-ring .state-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 0 5px var(--amber-tint); }
+.user-pro-shell .user-pro-connection-ring b { color: var(--ink); font-size: 11px; letter-spacing: .12em; }
+.user-pro-shell .user-pro-connection-label { max-width: 150px; color: var(--muted); font-size: 10px; font-weight: 650; line-height: 1.4; text-align: center; }
+.user-pro-shell .user-pro-notification { grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; }
+.user-pro-shell .user-pro-notification time { color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+.user-pro-shell .user-pro-empty { color: var(--muted); font-size: 12px; }
+
+@media (max-width: 560px) {
+  .user-pro-shell .user-pro-connection-ring { width: 86px; height: 86px; }
+  .user-pro-shell .user-pro-connection-label { max-width: 120px; }
+  .user-pro-shell .user-pro-notification { grid-template-columns: 34px minmax(0, 1fr); }
+  .user-pro-shell .user-pro-notification time { grid-column: 2; }
+}

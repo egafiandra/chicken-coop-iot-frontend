@@ -18,7 +18,7 @@ import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-56';
 import { renderMonitorDetails } from './monitor-dashboard.mjs?v=user-app-56';
 import { readUserEdition, writeUserEdition } from './user-edition.mjs?v=user-app-56';
 import { renderEditionSettings, renderSettingsShortcut } from './user-edition-view.mjs?v=user-app-60';
-import { renderUserProDashboard } from './user-pro-dashboard.mjs?v=user-app-60';
+import { renderUserProDashboard } from './user-pro-dashboard.mjs?v=user-app-61';
 import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-56';
 import { attachScrollReveal } from './scroll-reveal.mjs?v=user-app-56';
 import { attachFeatureEntryCards, shouldPlayFeatureEntry } from './feature-entry.mjs?v=user-app-56';
@@ -146,6 +146,8 @@ function applyTimeTheme(date = new Date()) {
   root.dataset.colorMode = theme.colorMode;
   root.dataset.themePreference = themePreference;
   root.style.colorScheme = theme.colorMode;
+  if (userEdition === 'pro' && state.isAuthenticated) root.dataset.theme = theme.colorMode === 'dark' ? 'night' : 'light';
+  else root.removeAttribute('data-theme');
   const themeColor = document.querySelector('meta[name="theme-color"]');
   if (themeColor) themeColor.content = theme.colorMode === 'dark' ? '#0c1510' : theme.period === 'sore' ? '#fcf5e8' : '#faf9f4';
 
@@ -357,9 +359,82 @@ function renderNavigation(activePage, mobile = false, navigationPages = pages) {
   }).join('');
 }
 
+const PRO_VISUAL_STYLESHEETS = [
+  { id: 'user-pro-admin-visual-stylesheet', href: './src/admin/styles.css?v=20261164' },
+  { id: 'user-pro-visual-overrides', href: './src/user-pro.css?v=user-app-62' },
+];
+
+function syncProVisualStyles(enabled) {
+  for (const asset of PRO_VISUAL_STYLESHEETS) {
+    const existing = document.getElementById(asset.id);
+    if (enabled && !existing) {
+      const stylesheet = document.createElement('link');
+      stylesheet.id = asset.id;
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = asset.href;
+      document.head.append(stylesheet);
+    } else if (!enabled) {
+      existing?.remove();
+    }
+  }
+}
+
+function renderProRailItem(pageId, page) {
+  const active = pageId === page.id;
+  return `<a class="rail-item${active ? ' is-active' : ''}" href="#/${page.id}" data-page="${page.id}"${active ? ' aria-current="page"' : ''} title="${escapeHTML(page.label)}">${icon(page.id === 'settings' ? 'settings' : page.icon)}<span class="rail-label">${escapeHTML(page.label)}</span></a>`;
+}
+
+function renderProAppShell(pageId, page) {
+  const userName = state.profile.name || 'Pengguna';
+  const initials = escapeHTML(userName.trim().split(' ').filter(Boolean).map((word) => word[0]).slice(0, 2).join(''));
+  const safeUserName = escapeHTML(userName);
+  const isDark = getTimeTheme(new Date(), themePreference).colorMode === 'dark';
+  const proNav = [
+    renderProRailItem(pageId, proPage),
+    renderProRailItem(pageId, pages.find((item) => item.id === 'controls')),
+    '<span class="rail-sep" aria-hidden="true"></span>',
+    renderProRailItem(pageId, pages.find((item) => item.id === 'camera')),
+    renderProRailItem(pageId, pages.find((item) => item.id === 'notifications')),
+    '<span class="rail-sep" aria-hidden="true"></span>',
+    renderProRailItem(pageId, pages.find((item) => item.id === 'settings')),
+  ].join('');
+  const pageContent = pageId === 'pro'
+    ? renderers.pro()
+    : `<div class="page-head rise" style="--i:0"><div><h1 id="page-title" tabindex="-1">${escapeHTML(page.title)}</h1><p>${escapeHTML(page.subtitle)}</p></div></div>${renderers[pageId]()}`;
+  return `<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="shell user-pro-shell">
+      <aside class="rail" aria-label="Navigasi pengguna Pro">
+        <a class="rail-logo" href="#/pro" data-page="pro" aria-label="Smart Poultry Pro, dashboard">
+          <span class="rail-mark">${icon('home')}</span><span class="rail-word"><b>Smart Poultry</b><span>Mode Pro</span></span>
+        </a>
+        <nav class="rail-nav">${proNav}</nav>
+        <div class="rail-foot">
+          <button class="rail-item" type="button" data-action="toggle-dark-mode" title="Ganti tema" aria-label="Ganti tema">${icon(isDark ? 'sun' : 'moon')}<span class="rail-label">Tema ${isDark ? 'gelap' : 'terang'}</span></button>
+          <button class="rail-item" type="button" data-action="logout" title="Keluar" aria-label="Keluar">${icon('logout')}<span class="rail-label">Keluar</span></button>
+          <div class="rail-user"><span class="avatar">${initials}</span><span class="rail-user-copy"><strong>${safeUserName}</strong><small>Pengguna</small></span></div>
+        </div>
+      </aside>
+      <div class="main">
+        <header class="topbar">
+          <div class="topbar-left"><div class="crumb"><span>Smart Poultry</span>${icon('arrow')}<b>${escapeHTML(page.label)}</b></div></div>
+          <div class="topbar-right"><span class="pill-sim"><i></i>DEMO</span>${renderTimeThemeControls()}${renderSettingsShortcut(icon)}</div>
+        </header>
+        <main class="canvas" id="main-content" tabindex="-1">${pageContent}</main>
+      </div>
+      <nav class="bottombar" aria-label="Navigasi utama Pro">
+        ${proNavigationPages.map((item) => {
+          const active = item.id === pageId;
+          return `<a class="bb-item${active ? ' is-active' : ''}" href="#/${item.id}" data-page="${item.id}"${active ? ' aria-current="page"' : ''}>${icon(item.id === 'settings' ? 'settings' : item.icon)}<span>${escapeHTML(item.mobileLabel)}</span></a>`;
+        }).join('')}
+      </nav>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>`;
+}
+
 function renderApp() {
   scrollRevealCleanup();
   scrollRevealCleanup = () => {};
+  syncProVisualStyles(userEdition === 'pro' && state.isAuthenticated);
   applyTimeTheme();
   let pageId = currentPage();
   const publicRoute = pageId === 'login' || pageId === 'signup';
@@ -371,8 +446,14 @@ function renderApp() {
     window.location.hash = '#/home';
     return;
   }
-  if (userEdition === 'pro' && pageId === 'home') pageId = 'pro';
-  if (userEdition === 'lite' && pageId === 'pro') pageId = 'home';
+  if (userEdition === 'pro' && pageId === 'home') {
+    pageId = 'pro';
+    if (window.location.hash !== '#/pro') window.history.replaceState(null, '', '#/pro');
+  }
+  if (userEdition === 'lite' && pageId === 'pro') {
+    pageId = 'home';
+    if (window.location.hash !== '#/home') window.history.replaceState(null, '', '#/home');
+  }
   const navigationPages = userEdition === 'pro' ? proNavigationPages : pages;
   const page = pageId === 'pro' ? proPage : pages.find((item) => item.id === pageId) || pages[0];
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -384,6 +465,11 @@ function renderApp() {
   }
   if (pageId === 'signup') {
     app.innerHTML = renderSignup();
+    return;
+  }
+  if (userEdition === 'pro') {
+    app.innerHTML = renderProAppShell(pageId, page);
+    applyTimeTheme();
     return;
   }
   app.innerHTML = `<div class="app-shell"><aside class="sidebar" aria-label="Navigasi pengguna"><a class="brand" href="#/home" data-page="home"><span class="brand-name">Smart Poultry</span><span class="brand-caption">Monitoring ayam</span></a><div class="sidebar-label">Menu pengguna</div><nav class="nav-list">${renderNavigation(pageId, false, navigationPages)}</nav></aside>
