@@ -112,19 +112,27 @@ test('admin tidak bisa menonaktifkan akunnya sendiri', () => {
   assert.equal(next.auditLog[0].action, 'Mengaktifkan pengguna');
 });
 
-test('aturan otomasi memvalidasi angka, urutan batas, dan warna lampu', () => {
+test('aturan otomasi memvalidasi angka dan urutan batas', () => {
   const state = createAdminState();
   assert.equal(setRuleValue(state, 'temperature', 'max', 34).rules.temperature.max, 34);
   assert.equal(typeof setRuleValue(state, 'temperature', 'min', '26').rules.temperature.min, 'number');
-  assert.equal(setRuleValue(state, 'lighting', 'color', 'red').rules.lighting.color, 'red');
   assert.equal(setRuleValue(state, 'feed', 'notifyWhenEmpty', false).rules.feed.notifyWhenEmpty, false);
 
   assert.throws(() => setRuleValue(state, 'temperature', 'max', 'panas'), /harus berupa angka/);
   assert.throws(() => setRuleValue(state, 'temperature', 'max', -1), /tidak boleh negatif/);
   assert.throws(() => setRuleValue(state, 'temperature', 'min', 40), /minimum harus lebih kecil/);
-  assert.throws(() => setRuleValue(state, 'lighting', 'color', 'biru'), /tidak didukung/);
   assert.throws(() => setRuleValue(state, 'tidakAda', 'min', 1), /Aturan tidak dikenal/);
   assert.throws(() => setRuleValue(state, 'temperature', 'tidakAda', 1), /Kolom aturan tidak dikenal/);
+});
+
+test('aturan tidak lagi memuat warna lampu atau ambang telur (selaras panel pengguna)', () => {
+  const state = createAdminState();
+  // panel pengguna mengunci mode lampu merah + warm white, jadi admin tidak boleh memilih warna
+  assert.equal('color' in state.rules.lighting, false);
+  assert.throws(() => setRuleValue(state, 'lighting', 'color', 'red'), /Kolom aturan tidak dikenal/);
+  // panel pengguna tidak punya sensor berat, jadi ambang telur tidak ada
+  assert.equal('egg' in state.rules, false);
+  assert.throws(() => setRuleValue(state, 'egg', 'thresholdGram', 50), /Aturan tidak dikenal/);
 });
 
 test('toggle aturan mengubah status aktif dan tercatat di log', () => {

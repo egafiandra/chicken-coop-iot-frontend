@@ -8,6 +8,7 @@ import {
   enterAsAdmin,
   exitSession,
   filterUsers,
+  getEnvironmentModel,
   getTimeTheme,
   markAllNotificationsRead,
   markNotificationRead,
@@ -91,7 +92,7 @@ const NAV = [
   { id: 'control', label: 'Kontrol', icon: 'power', title: 'Kontrol perangkat', lede: 'Nyalakan atau matikan valve air, lampu kandang, dan musik langsung dari panel admin.' },
   { id: 'notifications', label: 'Notifikasi', icon: 'bell', title: 'Notifikasi', lede: 'Pemberitahuan kandang yang juga tampil di panel pengguna.' },
   { id: 'rules', label: 'Aturan', icon: 'sliders', title: 'Aturan & otomasi', lede: 'Ambang sensor, jadwal aktuator, dan notifikasi yang dibaca panel pengguna.' },
-  { id: 'cameras', label: 'Kamera', icon: 'camera', title: 'Kamera & model', lede: 'Sumber stream, ambang keyakinan, dan aksi trigger untuk deteksi YOLO.' },
+  { id: 'cameras', label: 'Kamera', icon: 'camera', title: 'Kamera kandang', lede: 'Sumber stream yang terdaftar. Stream langsung belum aktif di kedua panel.' },
   { id: 'logs', label: 'Log', icon: 'logs', title: 'Log aktivitas', lede: 'Jejak setiap perubahan konfigurasi yang dilakukan admin.' },
   { id: 'settings', label: 'Pengaturan', icon: 'gear', title: 'Pengaturan', lede: 'Profil admin, mode data, dan status sistem.' },
 ];
@@ -99,6 +100,77 @@ const NAV = [
 const cur = () => normalizeAdminPage(window.location.hash.replace(/^#\/?/, ''));
 const coopName = (id) => state.coops.find((c) => c.id === id)?.name || 'Tanpa kandang';
 const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('');
+const THEME_LABEL = { aurora: 'Terang', sore: 'Sore', night: 'Gelap' };
+
+/* ---------- tema: preferensi tersimpan (sama seperti panel pengguna) ---------- */
+
+const THEME_KEY = 'smart-poultry-admin-theme-v1';
+const storage = (() => { try { return window.localStorage; } catch { return null; } })();
+
+function loadThemePreference() {
+  try {
+    const saved = storage?.getItem(THEME_KEY);
+    const savedTheme = storage?.getItem(`${THEME_KEY}-mode`);
+    const theme = savedTheme === 'night' || savedTheme === 'aurora' || savedTheme === 'sore' ? savedTheme : null;
+    if (saved === 'auto' || saved === 'manual') return { preference: saved, theme };
+    if (theme) return { preference: 'manual', theme };
+  } catch { /* penyimpanan tidak tersedia */ }
+  return { preference: null, theme: null };
+}
+
+function saveThemePreference() {
+  try {
+    storage?.setItem(THEME_KEY, state.themePreference);
+    storage?.setItem(`${THEME_KEY}-mode`, state.theme);
+  } catch { /* abaikan */ }
+}
+
+/* ---------- jam lokal + zona waktu (cermin panel pengguna) ---------- */
+
+function localTimeZoneLabel(date) {
+  try {
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const indonesiaZones = {
+      'Asia/Jakarta': 'WIB',
+      'Asia/Pontianak': 'WIB',
+      'Asia/Makassar': 'WITA',
+      'Asia/Jayapura': 'WIT',
+    };
+    if (indonesiaZones[zone]) return indonesiaZones[zone];
+    return new Intl.DateTimeFormat('id-ID', { timeZoneName: 'short' })
+      .formatToParts(date)
+      .find((part) => part.type === 'timeZoneName')?.value || '';
+  } catch {
+    return '';
+  }
+}
+
+function twoDigits(value) {
+  return String(value).padStart(2, '0');
+}
+
+function clockLabel(date = new Date()) {
+  return `${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
+}
+
+function timeReadout() {
+  const now = new Date();
+  const theme = getTimeTheme(now, 'auto');
+  const zone = localTimeZoneLabel(now);
+  return `<div class="clock-block" aria-label="Waktu lokal ${clockLabel(now)} ${zone}, periode ${theme.periodLabel}">
+    <time class="clock-time" id="admin-clock" datetime="${now.toISOString()}">${clockLabel(now)}</time>
+    ${zone ? `<span class="clock-zone">${zone}</span>` : ''}
+    <span class="clock-period" data-period="${theme.period}">${theme.periodLabel}</span>
+  </div>`;
+}
+
+function tickClock() {
+  const now = new Date();
+  const el = document.querySelector('#admin-clock');
+  if (!el) return;
+  el.textContent = clockLabel(now);
+  el.dateTime = now.toISOString();
+}
 
 function head(title, detail, extra = '') {
   return `<div class="card-head"><div><h2>${title}</h2>${detail ? `<p>${detail}</p>` : ''}</div>${extra}</div>`;
@@ -131,7 +203,7 @@ function spark(values, color, idx = 0) {
 function ring(online, warning, offline, size = 104) {
   const total = online + warning + offline || 1;
   const R = size / 2 - 8, C = 2 * Math.PI * R, c = size / 2;
-  const seg = [[online, '#7cc47f'], [warning, '#e0b862'], [offline, '#d9917f']];
+  const seg = [[online, 'var(--fresh)'], [warning, 'var(--gold)'], [offline, 'var(--orange)']];
   let off = 0;
   const arcs = seg.filter(([n]) => n > 0).map(([n, col], i) => {
     const len = (n / total) * C;
@@ -153,6 +225,50 @@ function ring(online, warning, offline, size = 104) {
 }
 
 /* ---------- gerbang (tidak dipakai lagi) ---------- */
+
+/* ---------- lingkungan kandang (data yang sama dengan panel pengguna) ---------- */
+
+function environmentPill(text, tone) {
+  return `<span class="env-pill env-pill--${tone}"><i></i>${text}</span>`;
+}
+
+const TEMP_TONE = { ok: ['ok', 'Dalam batas'], high: ['warn', 'Di atas batas'], low: ['warn', 'Di bawah batas'], off: ['neutral', 'Aturan mati'] };
+const HUM_TONE = { ok: ['ok', 'Dalam batas'], high: ['warn', 'Di atas batas'], low: ['warn', 'Di bawah batas'], off: ['neutral', 'Aturan mati'] };
+
+function renderEnvironment() {
+  const e = getEnvironmentModel(state);
+  const [tempTone, tempText] = TEMP_TONE[e.temperatureState] || TEMP_TONE.off;
+  const [humTone, humText] = HUM_TONE[e.humidityState] || HUM_TONE.off;
+
+  return `<section class="card env-card rise" style="--i:4">
+    ${head('Lingkungan kandang', 'Pembacaan sensor yang juga tampil di panel pengguna.', link('Atur ambang', '#/rules', 'rules'))}
+    <div class="env-grid">
+      <div class="env-main">
+        <div class="env-reading">
+          <span class="env-kicker">${icon('activity')}Suhu kandang</span>
+          <div class="env-value"><b>${e.temperatureC}</b><small>°C</small></div>
+          <div class="env-meta">${environmentPill(tempText, tempTone)}<span class="env-range">${e.temperatureRange}</span></div>
+        </div>
+        <div class="env-divider" aria-hidden="true"></div>
+        <div class="env-reading">
+          <span class="env-kicker">${icon('water')}Kelembapan</span>
+          <div class="env-value"><b>${e.humidityPercent}</b><small>%</small></div>
+          <div class="env-meta">${environmentPill(humText, humTone)}<span class="env-range">${e.humidityRange}</span></div>
+        </div>
+      </div>
+      <div class="env-side">
+        <div class="env-feed">
+          <span class="env-kicker">${icon('activity')}Pakan</span>
+          <div class="env-meta">${environmentPill(e.feedLabel, e.feedAvailable ? 'ok' : 'warn')}</div>
+          <div class="env-meter" role="img" aria-label="Level pakan ${e.feedLevelPercent}%">
+            <i style="width:${e.feedLevelPercent}%"></i>
+          </div>
+          <span class="env-range">Level ${e.feedLevelPercent}%</span>
+        </div>
+      </div>
+    </div>
+  </section>`;
+}
 
 /* ---------- dashboard ---------- */
 
@@ -232,6 +348,8 @@ function renderDashboard() {
     </section>
 
     <div class="kpi-grid">${kpiCards}</div>
+
+    ${renderEnvironment()}
 
     <div class="duo rise" style="--i:5">
       <section class="card">
@@ -544,17 +662,11 @@ function renderRules() {
           </select><span class="hint">Panel pengguna menampilkan alert pakan habis.</span></label>`, 3)}
       ${ruleCard('waterValve', 'Otomasi valve air', 'Buka valve bila kelembapan turun di bawah batas.', r.waterValve.enabled,
         num('waterValve', 'openBelow', 'Buka di bawah', r.waterValve.openBelow, '% kelembapan'), 4)}
-      ${ruleCard('lighting', 'Jadwal lampu', 'Waktu nyala dan warna lampu kandang.', r.lighting.enabled,
+      ${ruleCard('lighting', 'Jadwal lampu', 'Waktu nyala dan padam lampu kandang.', r.lighting.enabled,
         timeF('lighting', 'onTime', 'Nyala', r.lighting.onTime) + timeF('lighting', 'offTime', 'Padam', r.lighting.offTime) +
-        `<label class="field field-full"><span class="label">Warna lampu</span>
-          <select class="select" data-action="rule-color" data-section="lighting" data-field="color">
-            <option value="warm-white"${r.lighting.color === 'warm-white' ? ' selected' : ''}>Warm white</option>
-            <option value="red"${r.lighting.color === 'red' ? ' selected' : ''}>Merah</option>
-          </select><span class="hint">Pilihan sama dengan panel pengguna.</span></label>`, 5)}
+        `<p class="rule-locked">${icon('info')}Mode cahaya dikunci merah + warm white, sama seperti panel pengguna.</p>`, 5)}
       ${ruleCard('music', 'Jadwal musik klasik', 'Pemutaran musik pada rentang waktu tertentu.', r.music.enabled,
         timeF('music', 'onTime', 'Mulai', r.music.onTime) + timeF('music', 'offTime', 'Selesai', r.music.offTime), 6)}
-      ${ruleCard('egg', 'Ambang indikasi telur', 'Selisih berat minimum agar dicatat sebagai indikasi.', r.egg.enabled,
-        num('egg', 'thresholdGram', 'Selisih minimum', r.egg.thresholdGram, 'gram', 'belum konfirmasi telur'), 7)}
     </div>
   </div>`;
 }
@@ -566,25 +678,25 @@ function renderCameras() {
     <td><div class="cell-id"><span class="row-icon">${icon('camera')}</span>
       <span class="cell-id-copy"><span class="cell-strong">${c.name}</span><span class="cell-sub">${c.streamUrl}</span></span></div></td>
     <td>${coopName(c.coopId)}</td>
-    <td><span class="cell-sub">${c.confidence}%</span></td>
-    <td><span class="cell-sub">${c.triggerAction === 'valve' ? 'Buka valve air' : 'Catat ke riwayat'}</span></td>
+    <td><span class="chip chip--neutral">Belum terhubung</span></td>
     <td>${c.active ? '<span class="chip chip--ok">Aktif</span>' : '<span class="chip chip--neutral">Nonaktif</span>'}</td>
     <td class="is-right"><button class="btn btn--sm${c.active ? ' btn--danger' : ''}" type="button" data-action="toggle-camera" data-camera-id="${c.id}">${c.active ? 'Nonaktifkan' : 'Aktifkan'}</button></td>
   </tr>`).join('');
 
   return `<div class="stack">
-    <section class="card card--flush rise" style="--i:0">
-      <div class="card-pad">${head('Kamera terdaftar', 'Sumber stream dan aturan deteksi.')}</div>
+    <div class="note rise" style="--i:0">${icon('info')}<span>Panel pengguna menampilkan foto pratinjau statis berlabel "kamera belum terhubung". Stream langsung belum aktif di kedua panel.</span></div>
+    <section class="card card--flush rise" style="--i:1">
+      <div class="card-pad">${head('Kamera terdaftar', 'Sumber stream yang terdaftar untuk tiap kandang.')}</div>
       <div class="tbl-wrap">
         <table class="tbl">
-          <thead><tr><th>Kamera</th><th>Kandang</th><th>Keyakinan</th><th>Aksi trigger</th><th>Status</th><th class="is-right">Aksi</th></tr></thead>
+          <thead><tr><th>Kamera</th><th>Kandang</th><th>Koneksi</th><th>Status</th><th class="is-right">Aksi</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>
     </section>
-    <section class="card rise" style="--i:1">
+    <section class="card rise" style="--i:2">
       ${head('Belum tersedia', 'Cakupan prototipe front-end.')}
-      ${empty('Stream video belum aktif', 'Panel pengguna masih memakai placeholder kamera. Preview stream, unggah model, dan pengujian keyakinan belum diimplementasikan.', 'camera')}
+      ${empty('Stream video belum aktif', 'Panel pengguna masih memakai foto pratinjau. Preview stream langsung belum diimplementasikan di kedua panel.', 'camera')}
     </section>
   </div>`;
 }
@@ -633,7 +745,7 @@ function renderSettings() {
       </section>
     </div>
     <section class="card rise" style="--i:1">
-      ${head('Tampilan', 'Ikuti siklus hari seperti panel pengguna, atau pilih manual.')}
+      ${head('Tampilan', 'Ikuti siklus hari seperti panel pengguna (siang, sore, malam), atau pilih manual.')}
       <div class="segmented" role="group" aria-label="Preferensi tema">
         <button type="button" class="${auto ? 'is-on' : ''}" data-action="theme-auto" aria-pressed="${auto}">Otomatis</button>
         <button type="button" class="${!auto ? 'is-on' : ''}" data-action="theme-manual" aria-pressed="${!auto}">Manual</button>
@@ -641,10 +753,10 @@ function renderSettings() {
       <div class="row" style="margin-top:14px">
         <span class="row-icon">${icon(effective === 'night' ? 'moon' : 'sun')}</span>
         <span class="row-copy">
-          <strong>Tema ${effective === 'night' ? 'night' : 'aurora'}${auto ? ' (otomatis)' : ''}</strong>
+          <strong>Tema ${THEME_LABEL[effective] || effective}${auto ? ' (otomatis)' : ''}</strong>
           <small>${auto ? `Sekarang ${t.periodLabel} — tema mengikuti jam perangkat.` : 'Tema manual, tidak mengikuti jam.'}</small>
         </span>
-        ${auto ? '' : `<button class="switch" type="button" data-action="toggle-theme" aria-pressed="${effective === 'night'}"><i></i>${effective === 'night' ? 'Night' : 'Aurora'}</button>`}
+        ${auto ? '' : `<button class="switch" type="button" data-action="toggle-theme" aria-pressed="${effective === 'night'}"><i></i>${THEME_LABEL[effective] || effective}</button>`}
       </div>
     </section>
   </div>`;
@@ -687,7 +799,7 @@ function renderApp() {
       </nav>
       <div class="rail-foot">
         <button class="rail-item" type="button" data-action="toggle-theme" title="Ganti tema">
-          ${icon(dark ? 'sun' : 'moon')}<span class="rail-label">Tema ${dark ? 'night' : 'aurora'}</span></button>
+          ${icon(dark ? 'sun' : 'moon')}<span class="rail-label">Tema ${THEME_LABEL[effectiveTheme] || effectiveTheme}</span></button>
         <button class="rail-item" type="button" data-action="exit" title="Keluar">
           ${icon('logout')}<span class="rail-label">Keluar</span></button>
         <div class="rail-user">
@@ -706,6 +818,10 @@ function renderApp() {
         </div>
         <div class="topbar-right">
           <span class="pill-sim"><i></i>Simulasi</span>
+          ${timeReadout()}
+          <a class="icon-btn bell-btn" href="#/notifications" data-page="notifications" aria-label="Notifikasi, ${unreadNotificationCount(state)} belum dibaca" title="Notifikasi">
+            ${icon('bell')}${unreadNotificationCount(state) ? `<span class="bell-count">${unreadNotificationCount(state)}</span>` : ''}
+          </a>
           <button class="icon-btn" type="button" data-action="toggle-theme" aria-label="Ganti tema" title="Ganti tema">${icon(dark ? 'sun' : 'moon')}</button>
         </div>
       </header>
@@ -747,7 +863,7 @@ function renderApp() {
           }).join('')}
         </div>
         <div class="more-foot">
-          <button class="btn btn--ghost" type="button" data-action="toggle-theme">${icon(dark ? 'sun' : 'moon')}Tema ${dark ? 'night' : 'aurora'}</button>
+          <button class="btn btn--ghost" type="button" data-action="toggle-theme">${icon(dark ? 'sun' : 'moon')}Tema ${THEME_LABEL[effectiveTheme] || effectiveTheme}</button>
           <button class="btn btn--ghost" type="button" data-action="exit">${icon('logout')}Keluar</button>
         </div>
       </div>
@@ -812,8 +928,10 @@ app.addEventListener('click', (e) => {
   }
   if (t.closest('[data-action="toggle-theme"]')) {
     state = toggleTheme(state);
+    state = { ...state, themePreference: 'manual' };
+    saveThemePreference();
     paint();
-    toast(state.theme === 'night' ? 'Tema night aktif.' : 'Tema aurora aktif.');
+    toast(`Tema ${THEME_LABEL[state.theme] || state.theme} aktif.`);
     return;
   }
 
@@ -884,10 +1002,12 @@ app.addEventListener('click', (e) => {
 
   if (t.closest('[data-action="theme-auto"]')) {
     act(() => setThemePreference(state, 'auto'), 'Tema mengikuti siklus siang/sore/malam.');
+    saveThemePreference();
     return;
   }
   if (t.closest('[data-action="theme-manual"]')) {
     act(() => setThemePreference(state, 'manual'), 'Tema manual aktif.');
+    saveThemePreference();
     return;
   }
 
@@ -915,9 +1035,6 @@ app.addEventListener('change', (e) => {
 
   const n = e.target.closest('[data-action="rule-number"]');
   if (n) { act(() => setRuleValue(state, n.dataset.section, n.dataset.field, n.value), 'Aturan disimpan.'); return; }
-
-  const c = e.target.closest('[data-action="rule-color"]');
-  if (c) { act(() => setRuleValue(state, c.dataset.section, c.dataset.field, c.value), 'Warna lampu disimpan.'); return; }
 
   const x = e.target.closest('[data-action="rule-text"]');
   if (x) {
@@ -966,6 +1083,16 @@ app.addEventListener('keydown', (e) => {
 // Panel admin dibuka langsung tanpa gerbang pilih peran.
 // Pintu masuk demo ada di halaman login pengguna (index.html).
 state = enterAsAdmin(state);
+
+// Preferensi tema tersimpan lokal, sama seperti panel pengguna.
+{
+  const saved = loadThemePreference();
+  if (saved.preference) state = { ...state, themePreference: saved.preference };
+  if (saved.theme) state = { ...state, theme: saved.theme };
+}
+
+// Jam lokal diperbarui berkala seperti panel pengguna.
+window.setInterval(tickClock, 15000);
 
 let skipFocus = !window.location.hash;
 window.addEventListener('hashchange', () => {

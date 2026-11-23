@@ -10,18 +10,18 @@ import {
   toggleControl,
   unreadCount,
   updateProfile,
-} from './state.mjs?v=user-app-56';
-import { getDemoLoginStatus, isValidDemoEmail } from './auth-demo.mjs?v=user-app-56';
-import { createAccountSession, navigateToAppRoute, resetDemoAccountSession, startDemoPreview, validateSignupInput } from './auth-flow.mjs?v=user-app-56';
-import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user-app-56';
-import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-56';
-import { renderMonitorDetails } from './monitor-dashboard.mjs?v=user-app-56';
-import { readUserEdition, writeUserEdition } from './user-edition.mjs?v=user-app-56';
-import { renderEditionSettings, renderProProfileShortcut, renderSettingsShortcut } from './user-edition-view.mjs?v=user-app-61';
-import { renderUserProDashboard } from './user-pro-dashboard.mjs?v=user-app-61';
-import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-56';
-import { attachScrollReveal } from './scroll-reveal.mjs?v=user-app-56';
-import { attachFeatureEntryCards, shouldPlayFeatureEntry } from './feature-entry.mjs?v=user-app-56';
+} from './state.mjs?v=user-app-64';
+import { getDemoLoginStatus, isValidDemoEmail } from './auth-demo.mjs?v=user-app-64';
+import { createAccountSession, navigateToAppRoute, resetDemoAccountSession, startDemoPreview, validateSignupInput } from './auth-flow.mjs?v=user-app-64';
+import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user-app-64';
+import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-64';
+import { renderMonitorDetails } from './monitor-dashboard.mjs?v=user-app-64';
+import { readUserEdition, writeUserEdition } from './user-edition.mjs?v=user-app-64';
+import { renderEditionSettings, renderProProfileShortcut, renderSettingsShortcut } from './user-edition-view.mjs?v=user-app-64';
+import { renderUserProDashboard } from './user-pro-dashboard.mjs?v=user-app-64';
+import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-64';
+import { attachScrollReveal } from './scroll-reveal.mjs?v=user-app-64';
+import { attachFeatureEntryCards, shouldPlayFeatureEntry } from './feature-entry.mjs?v=user-app-64';
 
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
@@ -67,6 +67,10 @@ const iconPaths = {
   logout: '<path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>',
   moon: '<path d="M20.7 14.3A8 8 0 0 1 9.7 3.3 8 8 0 1 0 20.7 14.3Z"/>',
+  lock: '<rect x="4.5" y="10.5" width="15" height="10.5" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>',
+  eye: '<path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.9"/>',
+  mail: '<rect x="2.8" y="5.2" width="18.4" height="13.6" rx="2.4"/><path d="m3.6 7 8.4 6.2L20.4 7"/>',
+  phone: '<path d="M6.4 3.4h3.2l1.6 4-2.2 1.6a12 12 0 0 0 6 6l1.6-2.2 4 1.6v3.2a2 2 0 0 1-2.2 2A17.4 17.4 0 0 1 4.4 5.6a2 2 0 0 1 2-2.2Z"/>',
 };
 
 function icon(name, className = '') {
@@ -327,22 +331,164 @@ function renderDemoCryptoNotice() {
     : '<p class="login-footnote">Mode demo: kata sandi tidak diverifikasi pada koneksi ini. Untuk autentikasi nyata, gunakan HTTPS dan backend.</p>';
 }
 
+/* ---------- panggung auth (login & daftar) ---------- */
+
+function authBrandPanel({ eyebrow, headline, lede, facts }) {
+  return `<section class="auth-brand">
+    <div class="auth-brand-top">
+      <a class="auth-brand-link" href="./landing.html" aria-label="Smart Poultry, ke beranda">
+        <span class="auth-brand-mark"><img src="./src/assets/logo-smart-poultry-mark-256.png" alt="" width="40" height="40" aria-hidden="true"></span>
+        <span class="auth-brand-word"><b>Smart Poultry</b><small>Monitoring kandang</small></span>
+      </a>
+      <div class="auth-brand-tools">
+        <span class="demo-badge" aria-label="Mode demo">DEMO</span>
+        ${renderTimeThemeControls()}
+      </div>
+    </div>
+
+    <div class="auth-brand-copy">
+      <p class="auth-eyebrow">${eyebrow}</p>
+      <h1>${headline}</h1>
+      <p class="auth-lede">${lede}</p>
+      <ul class="auth-facts">
+        ${facts.map(([value, label]) => `<li><b>${value}</b><span>${label}</span></li>`).join('')}
+      </ul>
+    </div>
+
+    <p class="auth-brand-foot">Prototipe front-end · data simulasi</p>
+  </section>`;
+}
+
+function authSocialRow() {
+  return `<div class="auth-alt">
+    <span class="auth-alt-label">atau coba tanpa akun</span>
+    <div class="auth-alt-actions">
+      <button class="auth-alt-btn" type="button" data-action="demo-preview">${icon('user')}Pengguna demo</button>
+      <a class="auth-alt-btn" href="./admin.html" data-admin-demo>${icon('sliders')}Admin demo</a>
+    </div>
+  </div>`;
+}
+
 function renderLogin() {
-  return `<main class="login-screen"><section class="login-brand-panel"><div class="login-brand-top"><a class="brand-name" href="#/login">Smart Poultry</a><div class="login-brand-tools"><span class="demo-badge" aria-label="Mode demo">DEMO</span>${renderTimeThemeControls()}</div></div><div class="login-brand-copy"><p class="eyebrow">Monitoring kandang</p><h1>Pantau kandang ayam dari satu layar.</h1><p>Kondisi udara, pakan, air, pencahayaan, dan kamera kandang.</p></div><div class="login-flock"><strong>12</strong><span>ekor, rencana awal</span></div></section>
-    <section class="login-form-panel"><div class="login-card"><span class="login-mark">${icon('user')}</span><p class="eyebrow">Akun pengguna</p><h2>Masuk</h2><p class="login-intro">Masukkan email dan kata sandi akun pengguna.</p><form id="login-form" novalidate><div class="form-field"><label for="login-email">Email</label><input id="login-email" name="email" type="email" autocomplete="username" required placeholder="nama@email.com"></div><div class="form-field"><label for="login-password">Kata sandi</label><input id="login-password" name="password" type="password" autocomplete="current-password" minlength="8" required placeholder="Masukkan kata sandi"></div><p id="login-message" class="form-message" role="status" aria-live="polite"></p><button class="primary-button" type="submit">Masuk ke kandang</button></form>${renderDemoCryptoNotice()}<p class="login-footnote">Belum punya akun? <a href="#/signup" data-page="signup">Buat akun</a></p><button class="secondary-button demo-preview-button" type="button" data-action="demo-preview">Masuk sebagai pengguna demo</button><a class="secondary-button demo-preview-button" href="./admin.html" data-admin-demo>Masuk sebagai admin demo</a></div></section>
+  return `<main class="auth-screen">
+    ${authBrandPanel({
+      eyebrow: 'Monitoring kandang',
+      headline: 'Pantau kandang ayam dari satu layar.',
+      lede: 'Suhu, kelembapan, pakan, air minum, pencahayaan, dan kamera kandang — terbaca dalam sekali lihat.',
+      facts: [['12', 'ekor tercatat'], ['3', 'kandang'], ['24/7', 'pemantauan']],
+    })}
+
+    <section class="auth-panel">
+      <div class="auth-card">
+        <p class="auth-back"><a href="./landing.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11.5 5.5 5 12l6.5 6.5"/></svg><span>Kembali ke beranda</span></a></p>
+        <header class="auth-card-head">
+          <span class="auth-mark">${icon('user')}</span>
+          <p class="auth-kicker">Akun pengguna</p>
+          <h2>Masuk</h2>
+          <p class="auth-intro">Masukkan email dan kata sandi akun pengguna.</p>
+        </header>
+
+        <form id="login-form" novalidate>
+          <div class="auth-field">
+            <label for="login-email">Email</label>
+            <div class="auth-input-wrap">
+              <span class="auth-input-icon" aria-hidden="true">${icon('user')}</span>
+              <input id="login-email" name="email" type="email" autocomplete="username" required placeholder="nama@email.com">
+            </div>
+          </div>
+          <div class="auth-field">
+            <label for="login-password">Kata sandi</label>
+            <div class="auth-input-wrap">
+              <span class="auth-input-icon" aria-hidden="true">${icon('lock')}</span>
+              <input id="login-password" name="password" type="password" autocomplete="current-password" minlength="8" required placeholder="Masukkan kata sandi">
+              <button class="auth-reveal" type="button" data-action="toggle-password" data-target="login-password" aria-label="Tampilkan kata sandi" aria-pressed="false">${icon('eye')}</button>
+            </div>
+          </div>
+          <p id="login-message" class="form-message" role="status" aria-live="polite"></p>
+          <button class="auth-submit" type="submit">
+            Masuk ke kandang
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M12.5 5.5 19 12l-6.5 6.5"/></svg>
+          </button>
+        </form>
+
+        ${renderDemoCryptoNotice()}
+        ${authSocialRow()}
+
+        <p class="auth-switch">Belum punya akun? <a href="#/signup" data-page="signup">Buat akun</a></p>
+      </div>
+    </section>
   </main><div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 }
 
 function renderSignup() {
-  return `<main class="login-screen"><section class="login-brand-panel"><div class="login-brand-top"><a class="brand-name" href="#/login">Smart Poultry</a><div class="login-brand-tools"><span class="demo-badge" aria-label="Mode demo">DEMO</span>${renderTimeThemeControls()}</div></div><div class="login-brand-copy"><p class="eyebrow">Akun pengguna</p><h1>Buat akun kandang.</h1><p>Daftarkan profil pengguna untuk membuka halaman pemantauan.</p></div><div class="login-flock"><strong>12</strong><span>ekor, rencana awal</span></div></section>
-    <section class="login-form-panel"><div class="login-card"><span class="login-mark">${icon('user')}</span><p class="eyebrow">Pendaftaran pengguna</p><h2>Buat akun</h2><p class="login-intro">Lengkapi informasi akun pengguna.</p><form id="signup-form" novalidate>
-      <div class="form-field"><label for="signup-name">Nama</label><input id="signup-name" name="name" type="text" maxlength="80" autocomplete="name" required placeholder="Nama pengguna"></div>
-      <div class="form-field"><label for="signup-email">Email</label><input id="signup-email" name="email" type="email" autocomplete="email" required placeholder="nama@email.com"></div>
-      <div class="form-field"><label for="signup-phone">Nomor telepon</label><input id="signup-phone" name="phone" type="tel" maxlength="30" autocomplete="tel" placeholder="Opsional"></div>
-      <div class="form-field"><label for="signup-password">Kata sandi</label><input id="signup-password" name="password" type="password" autocomplete="new-password" minlength="8" required></div>
-      <div class="form-field"><label for="signup-confirm">Ulangi kata sandi</label><input id="signup-confirm" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required></div>
-      <p id="signup-message" class="form-message" role="status" aria-live="polite"></p><button id="reset-demo-account" class="secondary-button" type="button" data-action="reset-demo-account" hidden>Ganti akun demo dan masuk</button><button class="primary-button" type="submit">Buat akun pengguna</button>
-    </form><p class="login-footnote">Akun demo tersimpan secara lokal di browser ini.</p>${renderDemoCryptoNotice()}<p class="login-footnote">Sudah punya akun? <a href="#/login" data-page="login">Masuk</a></p></div></section>
+  return `<main class="auth-screen">
+    ${authBrandPanel({
+      eyebrow: 'Akun pengguna',
+      headline: 'Buat akun kandang.',
+      lede: 'Daftarkan profil pengguna untuk membuka halaman pemantauan dan kontrol kandang.',
+      facts: [['Gratis', 'tanpa kartu'], ['Lokal', 'tersimpan di browser'], ['Aman', 'kata sandi di-hash']],
+    })}
+
+    <section class="auth-panel">
+      <div class="auth-card">
+        <p class="auth-back"><a href="./landing.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11.5 5.5 5 12l6.5 6.5"/></svg><span>Kembali ke beranda</span></a></p>
+        <header class="auth-card-head">
+          <span class="auth-mark">${icon('user')}</span>
+          <p class="auth-kicker">Pendaftaran pengguna</p>
+          <h2>Buat akun</h2>
+          <p class="auth-intro">Lengkapi informasi akun pengguna.</p>
+        </header>
+
+        <form id="signup-form" novalidate>
+          <div class="auth-field">
+            <label for="signup-name">Nama</label>
+            <div class="auth-input-wrap">
+              <span class="auth-input-icon" aria-hidden="true">${icon('user')}</span>
+              <input id="signup-name" name="name" type="text" maxlength="80" autocomplete="name" required placeholder="Nama pengguna">
+            </div>
+          </div>
+          <div class="auth-field">
+            <label for="signup-email">Email</label>
+            <div class="auth-input-wrap">
+              <span class="auth-input-icon" aria-hidden="true">${icon('mail')}</span>
+              <input id="signup-email" name="email" type="email" autocomplete="email" required placeholder="nama@email.com">
+            </div>
+          </div>
+          <div class="auth-field">
+            <label for="signup-phone">Nomor telepon <em>opsional</em></label>
+            <div class="auth-input-wrap">
+              <span class="auth-input-icon" aria-hidden="true">${icon('phone')}</span>
+              <input id="signup-phone" name="phone" type="tel" maxlength="30" autocomplete="tel" placeholder="08xx xxxx xxxx">
+            </div>
+          </div>
+          <div class="auth-field">
+            <label for="signup-password">Kata sandi</label>
+            <div class="auth-input-wrap">
+              <span class="auth-input-icon" aria-hidden="true">${icon('lock')}</span>
+              <input id="signup-password" name="password" type="password" autocomplete="new-password" minlength="8" required placeholder="Minimal 8 karakter">
+              <button class="auth-reveal" type="button" data-action="toggle-password" data-target="signup-password" aria-label="Tampilkan kata sandi" aria-pressed="false">${icon('eye')}</button>
+            </div>
+          </div>
+          <div class="auth-field">
+            <label for="signup-confirm">Ulangi kata sandi</label>
+            <div class="auth-input-wrap">
+              <span class="auth-input-icon" aria-hidden="true">${icon('lock')}</span>
+              <input id="signup-confirm" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Ulangi kata sandi">
+            </div>
+          </div>
+          <p id="signup-message" class="form-message" role="status" aria-live="polite"></p>
+          <button id="reset-demo-account" class="auth-reset" type="button" data-action="reset-demo-account" hidden>Ganti akun demo dan masuk</button>
+          <button class="auth-submit" type="submit">
+            Buat akun pengguna
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M12.5 5.5 19 12l-6.5 6.5"/></svg>
+          </button>
+        </form>
+
+        <p class="auth-hint">Akun demo tersimpan secara lokal di browser ini.</p>
+        ${renderDemoCryptoNotice()}
+        <p class="auth-switch">Sudah punya akun? <a href="#/login" data-page="login">Masuk</a></p>
+      </div>
+    </section>
   </main><div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 }
 
@@ -724,6 +870,17 @@ app.addEventListener('click', async (event) => {
   }
   if (event.target.closest('[data-action="reset-demo-account"]')) {
     await resetDemoAccountFromSignup();
+    return;
+  }
+  const revealBtn = event.target.closest('[data-action="toggle-password"]');
+  if (revealBtn) {
+    const input = document.querySelector(`#${revealBtn.dataset.target}`);
+    if (!input) return;
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    revealBtn.setAttribute('aria-pressed', String(show));
+    revealBtn.setAttribute('aria-label', show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+    revealBtn.classList.toggle('is-on', show);
     return;
   }
   const controlButton = event.target.closest('[data-action="toggle-control"]');

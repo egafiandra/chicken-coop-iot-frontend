@@ -1,6 +1,5 @@
 const ADMIN_PAGES = new Set(['dashboard', 'users', 'coops', 'control', 'notifications', 'rules', 'cameras', 'logs', 'settings']);
 const ROLES = new Set(['admin', 'pengguna']);
-const LIGHT_COLORS = new Set(['red', 'warm-white']);
 const DEVICE_STATES = new Set(['online', 'offline', 'warning']);
 
 const SEED_USERS = [
@@ -19,21 +18,31 @@ const SEED_COOPS = [
 const SEED_DEVICES = [
   { id: 'dev-1', name: 'Node ESP Kandang Utama', type: 'esp', coopId: 'coop-1', status: 'online', firmware: 'v1.2.0', lastHeartbeat: '12 detik lalu', simulated: true },
   { id: 'dev-2', name: 'Sensor Suhu DHT22', type: 'sensor', coopId: 'coop-1', status: 'online', firmware: 'v1.2.0', lastHeartbeat: '12 detik lalu', simulated: true },
-  { id: 'dev-3', name: 'Sensor Berat Load Cell', type: 'sensor', coopId: 'coop-1', status: 'warning', firmware: 'v1.1.4', lastHeartbeat: '6 menit lalu', simulated: true },
-  { id: 'dev-4', name: 'Kamera YOLO Atas', type: 'camera', coopId: 'coop-1', status: 'offline', firmware: 'v0.9.2', lastHeartbeat: '2 jam lalu', simulated: true },
+  { id: 'dev-3', name: 'Sensor Pakan Ultrasonik', type: 'sensor', coopId: 'coop-1', status: 'warning', firmware: 'v1.1.4', lastHeartbeat: '6 menit lalu', simulated: true },
+  { id: 'dev-4', name: 'Kamera Atas', type: 'camera', coopId: 'coop-1', status: 'offline', firmware: 'v0.9.2', lastHeartbeat: '2 jam lalu', simulated: true },
   { id: 'dev-5', name: 'Node ESP Pembesaran', type: 'esp', coopId: 'coop-2', status: 'online', firmware: 'v1.2.0', lastHeartbeat: '30 detik lalu', simulated: true },
   { id: 'dev-6', name: 'Valve Air Otomatis', type: 'actuator', coopId: 'coop-2', status: 'online', firmware: 'v1.2.0', lastHeartbeat: '30 detik lalu', simulated: true },
 ];
 
+const SEED_TELEMETRY = {
+  temperatureC: 28.4,
+  humidityPercent: 67,
+  feedAvailable: true,
+  feedLevelPercent: 62,
+  chartLabels: ['08:00', '08:06', '08:12', '08:18', '08:24', '08:30'],
+  temperature: [27.6, 27.9, 28.1, 28.0, 28.3, 28.4],
+  humidity: [71, 70, 69, 68, 67, 67],
+};
+
 const SEED_CAMERAS = [
-  { id: 'cam-1', name: 'Kamera Atas', coopId: 'coop-1', streamUrl: 'rtsp://192.168.1.20/stream1', confidence: 70, triggerAction: 'catat', active: true, simulated: true },
-  { id: 'cam-2', name: 'Kamera Telur', coopId: 'coop-1', streamUrl: 'rtsp://192.168.1.21/stream1', confidence: 60, triggerAction: 'valve', active: false, simulated: true },
+  { id: 'cam-1', name: 'Kamera Atas', coopId: 'coop-1', streamUrl: 'rtsp://192.168.1.20/stream1', active: true, connected: false, simulated: true },
+  { id: 'cam-2', name: 'Kamera Telur', coopId: 'coop-1', streamUrl: 'rtsp://192.168.1.21/stream1', active: false, connected: false, simulated: true },
 ];
 
 const SEED_ALERTS = [
-  { id: 'al-1', level: 'kritis', title: 'Kamera YOLO terputus', detail: 'Kamera YOLO Atas tidak mengirim data selama 2 jam.', coopId: 'coop-1', time: '10:12', acknowledged: false, simulated: true },
-  { id: 'al-2', level: 'peringatan', title: 'Sensor berat lambat', detail: 'Heartbeat sensor berat terlambat 6 menit dari jadwal.', coopId: 'coop-1', time: '09:58', acknowledged: false, simulated: true },
-  { id: 'al-3', level: 'info', title: 'Firmware usang', detail: 'Sensor Berat Load Cell masih v1.1.4, tersedia v1.2.0.', coopId: 'coop-1', time: '09:40', acknowledged: false, simulated: true },
+  { id: 'al-1', level: 'kritis', title: 'Kamera kandang terputus', detail: 'Kamera Atas tidak mengirim data selama 2 jam.', coopId: 'coop-1', time: '10:12', acknowledged: false, simulated: true },
+  { id: 'al-2', level: 'peringatan', title: 'Suhu mendekati batas atas', detail: 'Suhu 31.6 °C, ambang maksimum 32 °C.', coopId: 'coop-1', time: '09:58', acknowledged: false, simulated: true },
+  { id: 'al-3', level: 'info', title: 'Firmware usang', detail: 'Node ESP Kandang Utama masih v1.1.4, tersedia v1.2.0.', coopId: 'coop-1', time: '09:40', acknowledged: false, simulated: true },
 ];
 
 const SEED_NOTIFICATIONS = [
@@ -58,6 +67,7 @@ export function createAdminState() {
     coops: SEED_COOPS.map((item) => ({ ...item })),
     devices: SEED_DEVICES.map((item) => ({ ...item })),
     cameras: SEED_CAMERAS.map((item) => ({ ...item })),
+    telemetry: { ...SEED_TELEMETRY },
     alerts: SEED_ALERTS.map((item) => ({ ...item })),
     auditLog: SEED_AUDIT.map((item) => ({ ...item })),
     rules: {
@@ -65,9 +75,8 @@ export function createAdminState() {
       humidity: { min: 55, max: 75, unit: '%', enabled: true },
       feed: { enabled: true, notifyWhenEmpty: true },
       waterValve: { enabled: false, openBelow: 60 },
-      lighting: { enabled: true, onTime: '17:00', offTime: '22:00', color: 'warm-white' },
+      lighting: { enabled: true, onTime: '17:00', offTime: '22:00' },
       music: { enabled: false, onTime: '06:00', offTime: '09:00' },
-      egg: { enabled: true, thresholdGram: 50 },
     },
     ui: { userSearch: '', userRole: 'all', coopFilter: 'all', modal: null },
     actuators: {
@@ -202,8 +211,7 @@ export function setRuleValue(state, section, field, value) {
   const current = state.rules[section];
   if (!current) throw new Error(`Aturan tidak dikenal: ${section}`);
   if (!(field in current)) throw new Error(`Kolom aturan tidak dikenal: ${section}.${field}`);
-  if (field === 'color' && !LIGHT_COLORS.has(value)) throw new Error(`Warna lampu tidak didukung: ${value}`);
-  if (field === 'min' || field === 'max' || field === 'openBelow' || field === 'thresholdGram') {
+  if (field === 'min' || field === 'max' || field === 'openBelow') {
     const number = Number(value);
     if (!Number.isFinite(number)) throw new Error(`Nilai ${field} harus berupa angka`);
     if (number < 0) throw new Error(`Nilai ${field} tidak boleh negatif`);
@@ -291,6 +299,41 @@ export function toggleTheme(state) {
   return { ...state, theme: state.theme === 'night' ? 'aurora' : 'night' };
 }
 
+/* ---------- lingkungan kandang (cermin panel pengguna) ---------- */
+
+export function getEnvironmentModel(state) {
+  const t = state.telemetry;
+  const rule = state.rules;
+  const tempState = !rule.temperature.enabled
+    ? 'off'
+    : t.temperatureC > rule.temperature.max
+      ? 'high'
+      : t.temperatureC < rule.temperature.min
+        ? 'low'
+        : 'ok';
+  const humState = !rule.humidity.enabled
+    ? 'off'
+    : t.humidityPercent > rule.humidity.max
+      ? 'high'
+      : t.humidityPercent < rule.humidity.min
+        ? 'low'
+        : 'ok';
+  return {
+    temperatureC: t.temperatureC,
+    humidityPercent: t.humidityPercent,
+    feedAvailable: t.feedAvailable,
+    feedLevelPercent: t.feedLevelPercent,
+    feedLabel: t.feedAvailable ? 'Tersedia' : 'Habis',
+    temperatureState: tempState,
+    humidityState: humState,
+    temperatureRange: `${rule.temperature.min}–${rule.temperature.max} °C`,
+    humidityRange: `${rule.humidity.min}–${rule.humidity.max}%`,
+    chartLabels: t.chartLabels,
+    temperatureSeries: t.temperature,
+    humiditySeries: t.humidity,
+  };
+}
+
 /* ---------- kontrol aktuator ---------- */
 
 const ACTUATORS = new Set(['waterValve', 'lighting', 'music']);
@@ -376,8 +419,10 @@ export function getTimeTheme(date = new Date(), preference = 'auto') {
 
 export function resolveTheme(state, date = new Date()) {
   if (state.themePreference === 'manual') return state.theme;
-  const { colorMode } = getTimeTheme(date, 'auto');
-  return colorMode === 'dark' ? 'night' : 'aurora';
+  const { period } = getTimeTheme(date, 'auto');
+  if (period === 'malam') return 'night';
+  if (period === 'sore') return 'sore';
+  return 'aurora';
 }
 
 export function setThemePreference(state, preference) {
@@ -392,4 +437,4 @@ export function resetAdminDemo(state) {
   return { ...fresh, session: state.session, currentUser: state.currentUser, theme: state.theme };
 }
 
-export { ADMIN_PAGES, ROLES, LIGHT_COLORS, DEVICE_STATES };
+export { ADMIN_PAGES, ROLES, DEVICE_STATES };
