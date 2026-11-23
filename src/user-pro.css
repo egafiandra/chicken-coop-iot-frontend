@@ -9,6 +9,22 @@
 .user-pro-shell .user-pro-notification time { color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
 .user-pro-shell .user-pro-empty { color: var(--muted); font-size: 12px; }
 
+.user-pro-shell a.rail-user {
+  color: var(--sidebar-fg);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.user-pro-shell a.rail-user:hover,
+.user-pro-shell a.rail-user.is-active {
+  background: var(--sidebar-active-bg);
+}
+
+.user-pro-shell a.rail-user:focus-visible {
+  outline: 2px solid #f2c84b;
+  outline-offset: 2px;
+}
+
 @media (max-width: 560px) {
   .user-pro-shell .user-pro-connection-ring { width: 86px; height: 86px; }
   .user-pro-shell .user-pro-connection-label { max-width: 120px; }

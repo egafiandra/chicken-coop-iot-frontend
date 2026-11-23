@@ -12,3 +12,10 @@ export function renderEditionSettings(activeEdition) {
 export function renderSettingsShortcut(icon) {
   return `<a class="settings-shortcut" href="#/settings" data-page="settings" aria-label="Pengaturan" title="Pengaturan">${icon('settings')}<span class="settings-shortcut-label">Pengaturan</span></a>`;
 }
+
+export function renderProProfileShortcut(name, initials, active = false) {
+  const escape = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[char]);
+  return `<a class="rail-user${active ? ' is-active' : ''}" href="#/settings" data-page="settings" aria-label="Buka Pengaturan profil pengguna"${active ? ' aria-current="page"' : ''}><span class="avatar">${escape(initials)}</span><span class="rail-user-copy"><strong>${escape(name)}</strong><small>Pengguna</small></span></a>`;
+}

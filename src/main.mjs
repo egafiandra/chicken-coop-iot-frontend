@@ -17,7 +17,7 @@ import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user
 import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-56';
 import { renderMonitorDetails } from './monitor-dashboard.mjs?v=user-app-56';
 import { readUserEdition, writeUserEdition } from './user-edition.mjs?v=user-app-56';
-import { renderEditionSettings, renderSettingsShortcut } from './user-edition-view.mjs?v=user-app-60';
+import { renderEditionSettings, renderProProfileShortcut, renderSettingsShortcut } from './user-edition-view.mjs?v=user-app-61';
 import { renderUserProDashboard } from './user-pro-dashboard.mjs?v=user-app-61';
 import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-56';
 import { attachScrollReveal } from './scroll-reveal.mjs?v=user-app-56';
@@ -361,7 +361,7 @@ function renderNavigation(activePage, mobile = false, navigationPages = pages) {
 
 const PRO_VISUAL_STYLESHEETS = [
   { id: 'user-pro-admin-visual-stylesheet', href: './src/admin/styles.css?v=20261164' },
-  { id: 'user-pro-visual-overrides', href: './src/user-pro.css?v=user-app-62' },
+  { id: 'user-pro-visual-overrides', href: './src/user-pro.css?v=user-app-63' },
 ];
 
 function syncProVisualStyles(enabled) {
@@ -386,8 +386,7 @@ function renderProRailItem(pageId, page) {
 
 function renderProAppShell(pageId, page) {
   const userName = state.profile.name || 'Pengguna';
-  const initials = escapeHTML(userName.trim().split(' ').filter(Boolean).map((word) => word[0]).slice(0, 2).join(''));
-  const safeUserName = escapeHTML(userName);
+  const initials = userName.trim().split(' ').filter(Boolean).map((word) => word[0]).slice(0, 2).join('');
   const isDark = getTimeTheme(new Date(), themePreference).colorMode === 'dark';
   const proNav = [
     renderProRailItem(pageId, proPage),
@@ -411,7 +410,7 @@ function renderProAppShell(pageId, page) {
         <div class="rail-foot">
           <button class="rail-item" type="button" data-action="toggle-dark-mode" title="Ganti tema" aria-label="Ganti tema">${icon(isDark ? 'sun' : 'moon')}<span class="rail-label">Tema ${isDark ? 'gelap' : 'terang'}</span></button>
           <button class="rail-item" type="button" data-action="logout" title="Keluar" aria-label="Keluar">${icon('logout')}<span class="rail-label">Keluar</span></button>
-          <div class="rail-user"><span class="avatar">${initials}</span><span class="rail-user-copy"><strong>${safeUserName}</strong><small>Pengguna</small></span></div>
+          ${renderProProfileShortcut(userName, initials, pageId === 'settings')}
         </div>
       </aside>
       <div class="main">
