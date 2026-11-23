@@ -1,39 +1,47 @@
 /* Landing page — interaktif.
 
-   Fitur:
-   - Nav sticky yang berubah saat scroll.
-   - Pratinjau tema siang/sore/malam (tersimpan di localStorage).
-   - Demo kandang: toggle valve/lampu/musik yang mengubah suhu, kelembapan,
-     grafik, dan label — meniru perilaku panel pengguna.
-   - Animasi reveal progressive-enhancement (konten tetap terlihat tanpa JS). */
+   - Nav sticky + scroll progress bar
+   - Pratinjau tema (malam default, tersimpan di localStorage)
+   - Demo kandang: toggle aktuator memengaruhi suhu, kelembapan, grafik
+   - Panel hero ikut menampilkan angka yang sama
+   - Counter angka statistik
+   - Reveal progressive-enhancement (konten terlihat tanpa JS) */
 
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const REVEAL_SELECTOR = [
-  '.sec-head', '.feat', '.demo', '.vs', '.band-item',
-  '.showcase-copy', '.showcase-photo', '.hero-photo',
-  '.cta-in > *',
+  '.sec-head', '.cell', '.step', '.console', '.vs', '.stat',
+  '.showcase-copy', '.showcase-visual', '.hero-copy', '.hero-panel',
+  '.faq', '.cta-in > *',
 ].join(', ');
 
-/* ---------- nav sticky ---------- */
+/* ---------- nav + progress ---------- */
 
-function initStickyNav() {
+function initScrollUI() {
   const nav = document.querySelector('#nav');
-  if (!nav) return;
+  const bar = document.querySelector('#scroll-bar');
   let ticking = false;
+
   const update = () => {
-    nav.classList.toggle('is-stuck', window.scrollY > 24);
+    if (nav) nav.classList.toggle('is-stuck', window.scrollY > 24);
+    if (bar) {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = max > 0 ? Math.min((window.scrollY / max) * 100, 100) : 0;
+      bar.style.width = `${pct}%`;
+    }
     ticking = false;
   };
+
   update();
   window.addEventListener('scroll', () => {
     if (ticking) return;
     ticking = true;
     window.requestAnimationFrame(update);
   }, { passive: true });
+  window.addEventListener('resize', update, { passive: true });
 }
 
-/* ---------- pratinjau tema ---------- */
+/* ---------- tema ---------- */
 
 const THEME_KEY = 'smart-poultry-landing-theme';
 
@@ -44,7 +52,7 @@ function initTheme() {
   const apply = (theme) => {
     document.documentElement.dataset.theme = theme;
     buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === theme)));
-    try { localStorage.setItem(THEME_KEY, theme); } catch { /* penyimpanan diblokir */ }
+    try { localStorage.setItem(THEME_KEY, theme); } catch { /* diblokir */ }
   };
 
   buttons.forEach((b) => b.addEventListener('click', () => apply(b.dataset.themeSet)));
@@ -54,7 +62,7 @@ function initTheme() {
   if (saved === 'siang' || saved === 'sore' || saved === 'malam') apply(saved);
 }
 
-/* ---------- demo kandang interaktif ---------- */
+/* ---------- demo kandang ---------- */
 
 const BASE = { temp: 28.4, hum: 67 };
 
@@ -69,11 +77,11 @@ const state = {
   },
 };
 
-/* Efek tiap aktuator terhadap sensor — sengaja sederhana dan dapat dijelaskan. */
+/* Efek tiap aktuator terhadap sensor. */
 const EFFECT = {
-  valve: { temp: -0.8, hum: 5 },   // air mengalir: lebih sejuk & lembap
-  lamp: { temp: 1.4, hum: -3 },    // lampu menyala: lebih hangat & kering
-  music: { temp: -0.3, hum: 1 },   // musik: ayam tenang, sedikit stabil
+  valve: { temp: -0.8, hum: 5 },
+  lamp: { temp: 1.4, hum: -3 },
+  music: { temp: -0.3, hum: 1 },
 };
 
 const LABEL = {
@@ -93,7 +101,6 @@ function computeReading() {
   return { temp: Math.round(temp * 10) / 10, hum: Math.round(hum) };
 }
 
-/* Bangun path SVG dari deret angka. */
 function buildPath(values, width, height, min, max) {
   const pad = 10;
   const span = max - min || 1;
@@ -116,8 +123,6 @@ function renderChart() {
   const H = 200;
   const { temp, hum } = state.series;
 
-  // Skala terpisah per seri: suhu (°C) dan kelembapan (%) beda satuan,
-  // jadi menyamakan skala membuat salah satu garis tampak rata.
   const tempMin = Math.min(...temp) - 1.2;
   const tempMax = Math.max(...temp) + 1.2;
   const humMin = Math.min(...hum) - 4;
@@ -133,7 +138,7 @@ function renderChart() {
   const dots = document.querySelector('#chart-dots');
   if (dots) {
     dots.innerHTML = t.pts.map(([x, y], i) =>
-      `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.4" fill="#0F2A1B" stroke="#7BD64E" stroke-width="2">`
+      `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="#071410" stroke="#55B82A" stroke-width="2">`
       + `<title>${state.series.labels[i]}: ${temp[i]} °C</title></circle>`).join('');
   }
 
@@ -149,25 +154,21 @@ function renderDemo() {
   if (tempEl) tempEl.textContent = temp.toFixed(1);
   if (humEl) humEl.textContent = String(hum);
 
+  // cermin di panel hero
+  const hTemp = document.querySelector('#hero-temp');
+  const hHum = document.querySelector('#hero-hum');
+  if (hTemp) hTemp.textContent = temp.toFixed(1);
+  if (hHum) hHum.textContent = String(hum);
+
   const stateEl = document.querySelector('#demo-temp-state');
   if (stateEl) {
     const warn = temp > 32 || temp < 24;
     stateEl.textContent = warn ? 'Di luar ambang' : 'Dalam batas';
-    document.querySelector('.readout-value')?.classList.toggle('is-warn', warn);
+    document.querySelector('.ro-v')?.classList.toggle('is-warn', warn);
   }
 
-  // cermin di mockup ponsel
-  const psTemp = document.querySelector('#ps-temp');
-  const psHum = document.querySelector('#ps-hum');
-  if (psTemp) psTemp.textContent = temp.toFixed(1);
-  if (psHum) psHum.textContent = String(hum);
-  const psState = document.querySelector('#ps-temp-state');
-  if (psState) psState.textContent = (temp > 32 || temp < 24) ? 'Di luar ambang' : 'Dalam batas';
-
-  // label & status tombol
   document.querySelectorAll('[data-demo-toggle]').forEach((btn) => {
-    const key = btn.dataset.demoToggle;
-    btn.setAttribute('aria-pressed', String(state[key]));
+    btn.setAttribute('aria-pressed', String(state[btn.dataset.demoToggle]));
   });
   document.querySelectorAll('[data-demo-label]').forEach((el) => {
     const key = el.dataset.demoLabel;
@@ -196,7 +197,8 @@ function initDemo() {
       state[key] = !state[key];
       pushReading();
       renderDemo();
-      say(`${LABEL[key][state[key] ? 'on' : 'off']} · ${key === 'valve' ? 'valve air' : key === 'lamp' ? 'lampu kandang' : 'musik klasik'}.`);
+      const name = key === 'valve' ? 'valve air' : key === 'lamp' ? 'lampu kandang' : 'musik klasik';
+      say(`${LABEL[key][state[key] ? 'on' : 'off']} · ${name}.`);
     });
   });
 
@@ -216,23 +218,59 @@ function initDemo() {
   renderDemo();
 }
 
-/* ---------- jam + umur pembacaan ---------- */
+/* ---------- counter angka ---------- */
 
-function initClock() {
-  const clock = document.querySelector('#ps-clock');
-  const age = document.querySelector('#live-age');
-  if (!clock) return;
+function initCounters() {
+  const targets = [...document.querySelectorAll('[data-count]')];
+  if (!targets.length || prefersReducedMotion) return;
 
-  let seconds = 12;
-  const tick = () => {
-    const now = new Date();
-    clock.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    seconds += 1;
-    if (age) age.textContent = `Diperbarui ${seconds} detik lalu`;
-    if (seconds > 59) seconds = 1;
+  const animate = (el) => {
+    const end = parseFloat(el.dataset.count);
+    if (!Number.isFinite(end)) return;
+    const dur = 1000;
+    const t0 = performance.now();
+    const step = (now) => {
+      const p = Math.min((now - t0) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = String(Math.round(end * eased));
+      if (p < 1) requestAnimationFrame(step);
+      else el.textContent = String(end);
+    };
+    requestAnimationFrame(step);
   };
-  tick();
-  window.setInterval(tick, 5000);
+
+  if (!('IntersectionObserver' in window)) {
+    targets.forEach(animate);
+    return;
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      animate(e.target);
+      io.unobserve(e.target);
+    });
+  }, { threshold: 0.4 });
+
+  targets.forEach((el) => io.observe(el));
+}
+
+/* ---------- FAQ: satu terbuka pada satu waktu ---------- */
+
+function initFaq() {
+  const items = [...document.querySelectorAll('#faq .q')];
+  if (!items.length) return;
+
+  items.forEach((item) => {
+    item.addEventListener('toggle', () => {
+      if (!item.open) return;
+      // event 'toggle' async: tutup yang lain pada tick berikutnya agar
+      // tidak bertabrakan dengan perubahan state milik browser.
+      queueMicrotask(() => {
+        items.forEach((other) => { if (other !== item) other.open = false; });
+      });
+    });
+  });
 }
 
 /* ---------- reveal ---------- */
@@ -304,9 +342,10 @@ function initActiveNav() {
   map.forEach((_, section) => observer.observe(section));
 }
 
-initStickyNav();
+initScrollUI();
 initTheme();
 initDemo();
-initClock();
+initCounters();
+initFaq();
 initReveal();
 initActiveNav();

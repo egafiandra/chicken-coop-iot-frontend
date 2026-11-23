@@ -1,72 +1,62 @@
 /* ==========================================================================
    Panel Admin — arah visual "Blueprint"
-   Kanvas ivory dengan grid teknik, kartu bersudut tegas, tipografi rapat,
+   Kanvas cream dengan grid teknik, kartu bersudut tegas, tipografi rapat,
    angka monospace, dan motion presisi.
-
-   Palet resmi (5 warna):
-     Dark Forest  #315C42   struktur, sidebar, aksi utama
-     Moss Green   #78966B   aksen hidup, indikator "sehat"
-     Muted Khaki  #C5B98B   penanda, badge, sorot aktif
-     Sand Beige   #E8D9B5   permukaan hangat, pita, tint
-     Ivory        #F8F5EB   kanvas
-     Putih        #FFFFFF   kartu dan permukaan
    ========================================================================== */
 
 /* ---- Palet resmi Smart Poultry (admin) ------------------------------
-   Dark Forest #315C42 · Moss Green #78966B · Muted Khaki #C5B98B
-   Sand Beige #E8D9B5 · Ivory #F8F5EB
-   Kanvas ivory, kartu putih, sidebar dark forest, aksen khaki untuk penanda.
+   Forest Green #006B35 · Deep Green #00843D · Fresh Green #55B82A
+   Vibrant Orange #FF8A00 · Golden Yellow #FFB515 · Cream #FFF4D8 · White #FFFFFF
+   Kanvas cream, kartu putih, sidebar forest, aksen emas untuk penanda.
+   Catatan kontras: Fresh/Orange/Gold hanya untuk latar, titik, dan isian —
+   bukan warna teks di kanvas cream (2.32 / 2.16 / 1.62).
    ------------------------------------------------------------------- */
 :root {
   color-scheme: light;
 
-  /* Token aktif — dipakai oleh var(--) di seluruh file.
-     Moss/Khaki/Sand/Ivory tersedia lewat alias di bawah agar tidak ada
-     deklarasi menganggur: khaki -> --gold, moss -> --fresh, ivory -> --cream. */
-  --forest: #315C42;
-
-  /* alias lama dipertahankan agar 347 referensi var(--) tetap hidup */
-  --deep: #3A6B4C;
-  --fresh: #78966B;   /* Moss Green */
-  --gold: #C5B98B;    /* Muted Khaki */
-  --cream: #F8F5EB;   /* Ivory */
+  --forest: #006B35;
+  --deep: #00843D;
+  --fresh: #55B82A;
+  --orange: #FF8A00;
+  --gold: #FFB515;
+  --cream: #FFF4D8;
   --white: #FFFFFF;
 
-  --canvas: #F8F5EB;
-  --canvas-2: #EFE7D2;
-  --surface: rgba(255, 255, 255, .94);
+  --canvas: #FFF4D8;
+  --canvas-2: #FCEBC4;
+  --surface: rgba(255, 255, 255, .92);
   --surface-solid: #FFFFFF;
-  --surface-2: rgba(255, 255, 255, .72);
-  --surface-3: #E8D9B5;   /* Sand Beige */
+  --surface-2: rgba(255, 255, 255, .70);
+  --surface-3: #F1F5E9;
 
-  --ink: #1E3A2A;
-  --ink-2: #2F4C3A;
-  --ink-3: #3F6149;
-  --muted: #3F6149;
+  --ink: #0F2A1B;
+  --ink-2: #2E4A39;
+  --ink-3: #44614F;
+  --muted: #526E5C;
 
-  --line: #D9CFAC;
-  --line-2: #E8E1CD;
-  --line-strong: #C5B98B;
+  --line: #C9DBBF;
+  --line-2: #E4EEDC;
+  --line-strong: #A6C2A9;
 
-  /* aksen utama memakai dark forest; moss/khaki jadi pendukung */
-  --violet: #315C42;
-  --violet-2: #3A6B4C;
-  --cyan: #78966B;
-  --mint: #3A6B4C;
-  --amber: #C5B98B;
-  --rose: #8A5A20;
+  /* aksen utama memakai hijau palet; cyan/amber/rose jadi pendukung */
+  --violet: #006B35;
+  --violet-2: #00843D;
+  --cyan: #55B82A;
+  --mint: #00843D;
+  --amber: #FFB515;
+  --rose: #FF8A00;
 
-  --violet-tint: rgba(49, 92, 66, .10);
-  --cyan-tint: rgba(120, 150, 107, .16);
-  --mint-tint: rgba(58, 107, 76, .12);
-  --amber-tint: rgba(197, 185, 139, .26);
-  --rose-tint: rgba(138, 90, 32, .12);
+  --violet-tint: rgba(0, 107, 53, .09);
+  --cyan-tint: rgba(85, 184, 42, .14);
+  --mint-tint: rgba(0, 132, 61, .11);
+  --amber-tint: rgba(255, 181, 21, .20);
+  --rose-tint: rgba(255, 138, 0, .12);
 
-  --ok-fg: #315C42;   --ok-bg: rgba(49, 92, 66, .10);    --ok-dot: #3A6B4C;
-  --warn-fg: #6B4A18; --warn-bg: rgba(197, 185, 139, .30); --warn-dot: #C5B98B;
-  --bad-fg: #7A4A12;  --bad-bg: rgba(138, 90, 32, .14);   --bad-dot: #8A5A20;
-  --info-fg: #315C42; --info-bg: rgba(120, 150, 107, .16); --info-dot: #78966B;
-  --neutral-fg: #3F6149; --neutral-bg: rgba(30, 58, 42, .05); --neutral-dot: #78966B;
+  --ok-fg: #006B35;   --ok-bg: rgba(0, 107, 53, .10);    --ok-dot: #00843D;
+  --warn-fg: #7A3F00; --warn-bg: rgba(255, 181, 21, .22); --warn-dot: #FFB515;
+  --bad-fg: #B23C00;  --bad-bg: rgba(255, 138, 0, .15);   --bad-dot: #FF8A00;
+  --info-fg: #006B35; --info-bg: rgba(85, 184, 42, .13);  --info-dot: #55B82A;
+  --neutral-fg: #44614F; --neutral-bg: rgba(15, 42, 27, .05); --neutral-dot: #8AA79A;
 
   /* Sudut tegas: blueprint, bukan kapsul */
   --r-2xl: 18px;
@@ -75,11 +65,11 @@
   --r-md: 8px;
   --r-sm: 6px;
 
-  --sh-xs: 0 1px 2px rgba(30, 58, 42, .06);
-  --sh-sm: 0 2px 8px rgba(30, 58, 42, .07), 0 1px 2px rgba(30, 58, 42, .04);
-  --sh-md: 0 10px 28px rgba(30, 58, 42, .10), 0 2px 6px rgba(30, 58, 42, .05);
-  --sh-lg: 0 24px 56px rgba(30, 58, 42, .20);
-  --sh-glow: 0 6px 20px rgba(49, 92, 66, .24);
+  --sh-xs: 0 1px 2px rgba(15, 42, 27, .06);
+  --sh-sm: 0 2px 8px rgba(15, 42, 27, .07), 0 1px 2px rgba(15, 42, 27, .04);
+  --sh-md: 0 10px 28px rgba(15, 42, 27, .10), 0 2px 6px rgba(15, 42, 27, .05);
+  --sh-lg: 0 24px 56px rgba(15, 42, 27, .20);
+  --sh-glow: 0 6px 20px rgba(0, 107, 53, .24);
 
   /* sidebar permanen: selalu lebar dengan ikon + teks */
   --rail-w: 236px;
@@ -87,118 +77,119 @@
   --ease-bounce: cubic-bezier(.34, 1.4, .64, 1);
   --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", monospace;
 
-  /* sidebar Dark Forest dengan teks ivory + penanda khaki */
-  --sidebar-bg: #315C42;
-  --sidebar-bg-2: #284D37;
-  --sidebar-fg: #F8F5EB;
-  --sidebar-muted: #DCCFA8;
-  --sidebar-line: rgba(248, 245, 235, .16);
-  --sidebar-hover: rgba(248, 245, 235, .10);
-  --sidebar-active-bg: #3A6B4C;
+  /* sidebar Forest Green dengan teks cream + penanda emas */
+  --sidebar-bg: #006B35;
+  --sidebar-bg-2: #00552A;
+  --sidebar-fg: #FFF4D8;
+  --sidebar-muted: #DCF0E2;
+  --sidebar-line: rgba(255, 244, 216, .16);
+  --sidebar-hover: rgba(255, 244, 216, .10);
+  --sidebar-active-bg: #00843D;
   --sidebar-active-fg: #FFFFFF;
-  --sidebar-active-icon: #C5B98B;
-  --on-gold: #1E3A2A;
+  --sidebar-active-icon: #FFB515;
+  --on-gold: #0F2A1B;
 }
 
 /* Sore: kanvas krem lebih pekat dan hangat, mengikuti siklus jam pengguna */
+/* Sore: kanvas cream lebih pekat dan hangat, mengikuti siklus jam pengguna */
 [data-theme="sore"] {
-  --canvas: #EFE4C8;
-  --canvas-2: #E8D9B5;
-  --surface: rgba(255, 253, 247, .95);
-  --surface-solid: #FFFDF7;
-  --surface-2: rgba(252, 248, 238, .74);
-  --surface-3: #F4EDDD;
+  --canvas: #FFE9B8;
+  --canvas-2: #FFDFA0;
+  --surface: rgba(255, 252, 242, .93);
+  --surface-solid: #FFFCF2;
+  --surface-2: rgba(255, 250, 235, .72);
+  --surface-3: #FBF0D6;
 
-  --ink: #2A2416;
-  --ink-2: #3F3826;
-  --ink-3: #554C36;
-  --muted: #554C36;
+  --ink: #2A1F0C;
+  --ink-2: #4A3A20;
+  --ink-3: #6B5733;
+  --muted: #7A6540;
 
-  --line: #D5C7A2;
-  --line-2: #E6DCC2;
-  --line-strong: #C5B98B;
+  --line: #E8CE9B;
+  --line-2: #F3E3C4;
+  --line-strong: #D6B678;
 
-  --violet: #315C42;
-  --violet-2: #3A6B4C;
-  --cyan: #78966B;
-  --mint: #3A6B4C;
-  --amber: #C5B98B;
-  --rose: #8A5A20;
+  --violet: #006B35;
+  --violet-2: #00843D;
+  --cyan: #55B82A;
+  --mint: #00843D;
+  --amber: #FF8A00;
+  --rose: #FF8A00;
 
-  --violet-tint: rgba(49, 92, 66, .11);
-  --cyan-tint: rgba(120, 150, 107, .17);
-  --mint-tint: rgba(58, 107, 76, .13);
-  --amber-tint: rgba(197, 185, 139, .30);
-  --rose-tint: rgba(138, 90, 32, .13);
+  --violet-tint: rgba(0, 107, 53, .10);
+  --cyan-tint: rgba(85, 184, 42, .15);
+  --mint-tint: rgba(0, 132, 61, .12);
+  --amber-tint: rgba(255, 138, 0, .16);
+  --rose-tint: rgba(255, 138, 0, .14);
 
-  --ok-fg: #315C42;   --ok-bg: rgba(49, 92, 66, .11);    --ok-dot: #3A6B4C;
-  --warn-fg: #6B4A18; --warn-bg: rgba(197, 185, 139, .34); --warn-dot: #C5B98B;
-  --bad-fg: #7A4A12;  --bad-bg: rgba(138, 90, 32, .16);   --bad-dot: #8A5A20;
-  --info-fg: #315C42; --info-bg: rgba(120, 150, 107, .18); --info-dot: #78966B;
-  --neutral-fg: #554C36; --neutral-bg: rgba(42, 36, 22, .06); --neutral-dot: #8F8560;
+  --ok-fg: #006B35;   --ok-bg: rgba(0, 107, 53, .11);    --ok-dot: #00843D;
+  --warn-fg: #8A4A00; --warn-bg: rgba(255, 138, 0, .16);  --warn-dot: #FF8A00;
+  --bad-fg: #A33600;  --bad-bg: rgba(255, 138, 0, .18);   --bad-dot: #FF8A00;
+  --info-fg: #006B35; --info-bg: rgba(85, 184, 42, .15);  --info-dot: #55B82A;
+  --neutral-fg: #6B5733; --neutral-bg: rgba(42, 31, 12, .06); --neutral-dot: #A98F62;
 
-  --sh-xs: 0 1px 2px rgba(74, 62, 34, .07);
-  --sh-sm: 0 2px 8px rgba(74, 62, 34, .08), 0 1px 2px rgba(74, 62, 34, .04);
-  --sh-md: 0 10px 28px rgba(74, 62, 34, .11), 0 2px 6px rgba(74, 62, 34, .05);
-  --sh-lg: 0 24px 56px rgba(74, 62, 34, .20);
-  --sh-glow: 0 6px 20px rgba(49, 92, 66, .22);
-  --on-gold: #1E3A2A;
+  --sh-xs: 0 1px 2px rgba(90, 66, 20, .07);
+  --sh-sm: 0 2px 8px rgba(90, 66, 20, .08), 0 1px 2px rgba(90, 66, 20, .04);
+  --sh-md: 0 10px 28px rgba(90, 66, 20, .11), 0 2px 6px rgba(90, 66, 20, .05);
+  --sh-lg: 0 24px 56px rgba(90, 66, 20, .20);
+  --sh-glow: 0 6px 20px rgba(0, 107, 53, .22);
+  --on-gold: #2A1F0C;
 }
 
 [data-theme="night"] {
   color-scheme: dark;
 
-  --canvas: #14241B;
-  --canvas-2: #1A2E22;
-  --surface: rgba(26, 46, 34, .88);
-  --surface-solid: #1A2E22;
-  --surface-2: rgba(33, 55, 42, .74);
-  --surface-3: #23392C;
+  --canvas: #0A1A11;
+  --canvas-2: #0E2116;
+  --surface: rgba(15, 36, 24, .86);
+  --surface-solid: #0F2418;
+  --surface-2: rgba(18, 42, 28, .72);
+  --surface-3: #16301F;
 
-  --ink: #F8F5EB;
-  --ink-2: #DCD5C0;
-  --ink-3: #B5AF9A;
-  --muted: #B5AF9A;
+  --ink: #EAF6EC;
+  --ink-2: #C2D8C9;
+  --ink-3: #9DBAAB;
+  --muted: #8AA79A;
 
-  --line: #34503F;
-  --line-2: #24382B;
-  --line-strong: #4A6B54;
+  --line: #2C4436;
+  --line-2: #1C3025;
+  --line-strong: #476754;
 
-  --violet: #C5B98B;
-  --violet-2: #D8CCA4;
-  --cyan: #8FB07F;
-  --mint: #8FB07F;
-  --amber: #C5B98B;
-  --rose: #D8CCA4;
+  --violet: #55B82A;
+  --violet-2: #7BD64E;
+  --cyan: #55B82A;
+  --mint: #7BD64E;
+  --amber: #FFB515;
+  --rose: #FF8A00;
 
-  --violet-tint: rgba(197, 185, 139, .16);
-  --cyan-tint: rgba(120, 150, 107, .18);
-  --mint-tint: rgba(143, 176, 127, .15);
-  --amber-tint: rgba(197, 185, 139, .18);
-  --rose-tint: rgba(216, 204, 164, .14);
+  --violet-tint: rgba(85, 184, 42, .14);
+  --cyan-tint: rgba(85, 184, 42, .13);
+  --mint-tint: rgba(123, 214, 78, .13);
+  --amber-tint: rgba(255, 181, 21, .16);
+  --rose-tint: rgba(255, 138, 0, .15);
 
-  --ok-fg: #A8C79A;   --ok-bg: rgba(120, 150, 107, .20);  --ok-dot: #8FB07F;
-  --warn-fg: #E3D5A8; --warn-bg: rgba(197, 185, 139, .20); --warn-dot: #C5B98B;
-  --bad-fg: #E0B98A;  --bad-bg: rgba(216, 204, 164, .16);  --bad-dot: #D8CCA4;
-  --info-fg: #A8C79A; --info-bg: rgba(143, 176, 127, .16); --info-dot: #8FB07F;
-  --neutral-fg: #B5AF9A; --neutral-bg: rgba(248, 245, 235, .07); --neutral-dot: #8F8A78;
+  --ok-fg: #8FE06A;   --ok-bg: rgba(85, 184, 42, .16);   --ok-dot: #55B82A;
+  --warn-fg: #FFC95C; --warn-bg: rgba(255, 181, 21, .16); --warn-dot: #FFB515;
+  --bad-fg: #FFA94D;  --bad-bg: rgba(255, 138, 0, .16);   --bad-dot: #FF8A00;
+  --info-fg: #8FE06A; --info-bg: rgba(85, 184, 42, .14);  --info-dot: #7BD64E;
+  --neutral-fg: #9DBAAB; --neutral-bg: rgba(234, 246, 236, .07); --neutral-dot: #8AA79A;
 
   --sh-xs: 0 1px 2px rgba(0, 0, 0, .5);
   --sh-sm: 0 3px 10px rgba(0, 0, 0, .40);
   --sh-md: 0 12px 30px rgba(0, 0, 0, .50);
   --sh-lg: 0 28px 64px rgba(0, 0, 0, .65);
-  --sh-glow: 0 6px 24px rgba(197, 185, 139, .22);
+  --sh-glow: 0 6px 24px rgba(85, 184, 42, .26);
 
-  --sidebar-bg: #101C15;
-  --sidebar-bg-2: #0B1510;
-  --sidebar-fg: #F8F5EB;
-  --sidebar-muted: #B5AF9A;
-  --sidebar-line: rgba(248, 245, 235, .14);
-  --sidebar-hover: rgba(248, 245, 235, .08);
-  --sidebar-active-bg: #315C42;
+  --sidebar-bg: #06140C;
+  --sidebar-bg-2: #04100A;
+  --sidebar-fg: #FFF4D8;
+  --sidebar-muted: #9DBAAB;
+  --sidebar-line: rgba(255, 244, 216, .13);
+  --sidebar-hover: rgba(255, 244, 216, .08);
+  --sidebar-active-bg: #006B35;
   --sidebar-active-fg: #FFFFFF;
-  --sidebar-active-icon: #C5B98B;
-  --on-gold: #1E3A2A;
+  --sidebar-active-icon: #FFB515;
+  --on-gold: #0F2A1B;
 }
 
 /* ---------- base ---------- */
@@ -1196,6 +1187,10 @@ a { color: inherit; text-decoration: none; }
   transition: border-color 170ms var(--ease), transform 170ms var(--ease);
 }
 .alert:hover { border-color: var(--line-strong); transform: translateX(2px); }
+
+/* garis aksen kiri menandai alert yang belum dibaca */
+.alert.is-unread { box-shadow: inset 3px 0 0 var(--orange); }
+.alert.is-unread:hover { box-shadow: inset 3px 0 0 var(--orange), var(--sh-xs); }
 
 .alert-dot {
   display: grid;
