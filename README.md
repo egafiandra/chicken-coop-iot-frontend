@@ -12,7 +12,30 @@ Dari folder project:
 python -m http.server 4174 --bind 127.0.0.1
 ```
 
-Buka `http://127.0.0.1:4174`.
+Buka `http://127.0.0.1:4174/landing.html`.
+
+Halaman:
+
+- `landing.html` — landing page publik (titik masuk). Tombol mengarah ke login/pendaftaran.
+- `index.html` — panel pengguna (`#/login`, `#/home`, `#/monitor`, `#/controls`, `#/camera`, `#/notifications`, `#/profile`).
+- `admin.html` — panel admin (dashboard, pengguna, kandang, kontrol, notifikasi, aturan, kamera, log, pengaturan).
+
+## Palet
+
+Tujuh warna resmi dipakai di landing page dan panel admin:
+
+| Warna | Nama | HEX |
+| --- | --- | --- |
+| | Forest Green | `#006B35` |
+| | Deep Green | `#00843D` |
+| | Fresh Green | `#55B82A` |
+| | Vibrant Orange | `#FF8A00` |
+| | Golden Yellow | `#FFB515` |
+| | Cream | `#FFF4D8` |
+| | White | `#FFFFFF` |
+
+Logo: `src/assets/logo-smart-poultry.png` (asli), serta turunan transparan
+`logo-smart-poultry-mark.png` dan `logo-smart-poultry-mark-256.png`.
 
 ## Fitur front-end
 
