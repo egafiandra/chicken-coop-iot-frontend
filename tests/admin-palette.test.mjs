@@ -3,15 +3,14 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createAdminState, getEnvironmentModel, resolveTheme, setRuleValue } from '../src/admin/state.mjs';
 
-// Palet admin: warna resmi -> token tempat ia hidup.
-// Moss/Khaki/Ivory sengaja tidak punya token sendiri agar tidak ada
-// deklarasi menganggur; nilainya dipakai lewat alias --fresh/--gold/--cream.
+// Palet admin resmi: 7 warna, masing-masing punya token sendiri.
 const PALETTE = [
-  ['forest', '#315C42', 'Dark Forest'],
-  ['fresh',  '#78966B', 'Moss Green'],
-  ['gold',   '#C5B98B', 'Muted Khaki'],
-  ['surface-3', '#E8D9B5', 'Sand Beige'],
-  ['cream',  '#F8F5EB', 'Ivory'],
+  ['forest', '#006B35', 'Forest Green'],
+  ['deep',   '#00843D', 'Deep Green'],
+  ['fresh',  '#55B82A', 'Fresh Green'],
+  ['orange', '#FF8A00', 'Vibrant Orange'],
+  ['gold',   '#FFB515', 'Golden Yellow'],
+  ['cream',  '#FFF4D8', 'Cream'],
   ['white',  '#FFFFFF', 'White'],
 ];
 
@@ -40,7 +39,7 @@ function contrast(a, b) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-test('panel admin memakai lima warna palet resmi sebagai token', async () => {
+test('panel admin memakai tujuh warna palet resmi sebagai token', async () => {
   const css = await readAdminStyles();
   const root = block(css, ':root');
 
@@ -49,12 +48,12 @@ test('panel admin memakai lima warna palet resmi sebagai token', async () => {
   }
 
   // kanvas ivory, permukaan putih
-  assert.equal(token(root, 'canvas').toUpperCase(), '#F8F5EB');
+  assert.equal(token(root, 'canvas').toUpperCase(), '#FFF4D8');
   assert.equal(token(root, 'surface-solid').toUpperCase(), '#FFFFFF');
 
   // sidebar memakai Dark Forest, penanda Muted Khaki
-  assert.equal(token(root, 'sidebar-bg').toUpperCase(), '#315C42');
-  assert.equal(token(root, 'sidebar-active-icon').toUpperCase(), '#C5B98B');
+  assert.equal(token(root, 'sidebar-bg').toUpperCase(), '#006B35');
+  assert.equal(token(root, 'sidebar-active-icon').toUpperCase(), '#FFB515');
 });
 
 test('warna palet lama tidak tersisa di panel admin', async () => {

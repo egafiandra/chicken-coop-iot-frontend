@@ -315,7 +315,7 @@ function renderDashboard() {
   </div>`).join('');
 
   const alerts = open.length
-    ? `<div class="alert-list">${open.map((a) => `<div class="alert">
+    ? `<div class="alert-list">${open.map((a) => `<div class="alert is-unread">
         <span class="alert-dot is-${a.level}">${icon(a.level === 'info' ? 'info' : a.level === 'kritis' ? 'warn' : 'bell')}</span>
         <div class="alert-body">
           <strong>${a.title}</strong><p>${a.detail}</p>

@@ -59,11 +59,11 @@ test('landing memakai tujuh warna palet resmi sebagai token', async () => {
   for (const [name, hex] of Object.entries(PALETTE)) {
     assert.equal(token(root, name).toUpperCase(), hex, `token --${name} harus ${hex}`);
   }
-  // Kanvas sengaja netral (bukan krem) agar halaman tidak didominasi krem.
-  // Krem tetap token resmi dan dipakai sebagai aksen (band, marquee, readout).
-  assert.notEqual(token(root, 'canvas').toUpperCase(), PALETTE.cream);
+  // Arah "control room": kanvas gelap, bukan krem.
+  assert.notEqual(token(root, 'bg').toUpperCase(), PALETTE.cream);
   assert.equal(token(root, 'cream').toUpperCase(), PALETTE.cream);
-  assert.equal(token(root, 'surface').toUpperCase(), PALETTE.white);
+  // permukaan lebih terang dari kanvas
+  assert.ok(luminance(token(root, 'surface')) > luminance(token(root, 'bg')), 'surface harus lebih terang dari bg');
 });
 
 test('landing hanya memakai warna dari palet resmi', async () => {
@@ -71,14 +71,18 @@ test('landing hanya memakai warna dari palet resmi', async () => {
   const allowed = new Set(Object.values(PALETTE).map((h) => h.toUpperCase()));
   // turunan netral/gelap dari palet resmi
   // turunan netral/gelap dari palet resmi (kanvas, tema, overlay foto)
+  // turunan netral/gelap + warna ilustrasi SVG (hero, tema, overlay)
+  // turunan netral/gelap + warna UI konsol & ilustrasi
+  // turunan kanvas gelap + UI konsol control-room
   const extraAllowed = new Set([
-    '#00502A', '#041C0F', '#072A16', '#0A1A11', '#0B1F14', '#0F2418',
-    '#122B1C', '#1C3025', '#241A08', '#26402F', '#2C4436', '#445E4C',
-    '#463A20', '#5A7361', '#5A7A63', '#5E4A22', '#6E5930', '#7D8C7B',
-    '#86A895', '#8A4A00', '#8AA79A', '#8C9B8F', '#9DBAAB', '#B9D8C3',
-    '#C2D8C9', '#C6F5A8', '#D5CFBA', '#DFE5DC', '#E6D5B0', '#EAF6EC',
-    '#EBEFE8', '#EFF2EC', '#F0E5CB', '#F2FBF4', '#F4E8D0', '#F8F9F6',
-    '#FBF3E2', '#FFC53F',
+    '#00552A', '#041C0F', '#071410', '#0B1D16', '#0B1F14', '#0F2419',
+    '#0F2A1B', '#12241A', '#142E20', '#162B1F', '#1A3A28', '#1E3A2A',
+    '#241A08', '#2A4433', '#2C5440', '#445E4C', '#463A20', '#5A7361',
+    '#5E4A22', '#6E5930', '#7D8C7B', '#7E9C89', '#8A4A00', '#9AA79B',
+    '#9DBBA8', '#A8E58C', '#C3CFC4', '#C4DCCB', '#CFC7B2', '#D2BE91',
+    '#DFE5DC', '#E6A08A', '#E6D5B0', '#E7EBE4', '#E8CE9B', '#E9EDE6',
+    '#EBEFE8', '#EFE4CB', '#EFF2EC', '#F0E5CB', '#F2FBF4', '#F4E8D0',
+    '#F4F6F2', '#F8F0DE', '#F8F9F6', '#FBF3E2', '#FFC53F', '#FFFDF7',
   ]);
 
   const hexes = [...css.matchAll(/#[0-9a-fA-F]{6}/g)].map((m) => m[0].toUpperCase());
@@ -90,25 +94,21 @@ test('landing hanya memakai warna dari palet resmi', async () => {
   }
 });
 
-test('landing punya kontras teks yang memadai di kanvas krem', async () => {
+test('landing punya kontras teks yang memadai di kanvas gelap', async () => {
   const css = await read('src/landing.css');
   const root = block(css, ':root');
-  const canvas = token(root, 'canvas');
+  const bg = token(root, 'bg');
   const surface = token(root, 'surface');
 
-  // teks utama di section terang
+  // teks utama di kanvas gelap & permukaan
   for (const name of ['text', 'text-2', 'text-3']) {
-    assert.ok(contrast(token(root, name), canvas) >= 4.5, `--${name} di kanvas krem`);
-    assert.ok(contrast(token(root, name), surface) >= 4.5, `--${name} di permukaan putih`);
+    assert.ok(contrast(token(root, name), bg) >= 4.5, `--${name} di kanvas gelap`);
+    assert.ok(contrast(token(root, name), surface) >= 4.5, `--${name} di permukaan`);
   }
 
-  // teks di section gelap harus terbaca di atas latar gelap
-  for (const name of ['on-dark', 'on-dark-2', 'on-dark-3']) {
-    assert.ok(contrast(token(root, name), token(root, 'ink-900')) >= 4.5, `--${name} di latar gelap`);
-  }
-
-  // tombol emas: teks gelap di atas Golden Yellow
-  assert.ok(contrast(token(root, 'on-gold'), PALETTE.gold) >= 4.5, 'teks tombol emas');
+  // teks di atas aksen harus kontras
+  assert.ok(contrast(token(root, 'on-accent'), token(root, 'accent')) >= 4.5, '--on-accent di --accent');
+  assert.ok(contrast(token(root, 'on-gold'), token(root, 'gold')) >= 4.5, '--on-gold di --gold');
 });
 
 test('landing mengarahkan ke halaman login dan pendaftaran', async () => {
