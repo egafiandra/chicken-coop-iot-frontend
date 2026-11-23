@@ -1,7 +1,7 @@
 # Smart Poultry Landing Lottie Design
 
 Date: 2026-11-23
-Status: Design direction approved in conversation; awaiting review of this written spec.
+Status: Design direction and written spec approved by user.
 
 ## Goal and scope
 
