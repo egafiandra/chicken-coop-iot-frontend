@@ -142,3 +142,59 @@ test('panel login menyediakan jalan kembali ke landing', async () => {
   // brand di halaman auth mengarah ke landing, bukan ke rute login
   assert.match(main, /class="auth-brand-link" href="\.\/landing\.html"/);
 });
+
+test('hero Lottie asset has a valid local animation structure', async () => {
+  const raw = await read('src/assets/lottie/coop-hen.json');
+  const animation = JSON.parse(raw);
+
+  assert.match(animation.v, /^\d+\.\d+\.\d+$/);
+  assert.equal(animation.fr, 30);
+  assert.equal(animation.w, 960, 'composition matches the source photo width');
+  assert.equal(animation.h, 300, 'composition matches the cropped photo strip');
+  assert.ok(animation.op > animation.ip);
+  assert.ok(Array.isArray(animation.layers) && animation.layers.length > 0);
+  assert.equal(animation.assets.length, 1, 'one real feeding photograph composes the scene');
+  assert.equal(animation.assets[0].p, 'coop-hen-poster.jpg');
+  assert.equal(animation.assets[0].u, '');
+  assert.equal(animation.assets[0].w, 960);
+  assert.equal(animation.assets[0].h, 1280);
+  assert.ok(animation.layers.every((layer) => layer.ty === 2), 'the Lottie scene uses a local image layer');
+  const photo = animation.layers.find((layer) => /feeding photograph/i.test(layer.nm));
+  assert.equal(photo?.ks.s.a, 1, 'camera push is visibly animated');
+  const zoomPeak = Math.max(...photo.ks.s.k.flatMap((frame) => [...frame.s, ...(frame.e ?? [])]));
+  assert.ok(zoomPeak >= 108, 'camera push must be visible in the compact hero frame');
+  assert.equal(photo?.ks.p.a, 1, 'camera framing shifts during the loop');
+  assert.doesNotMatch(raw, /https?:\/\//i);
+});
+
+test('hero poster is a local JPEG fallback', async () => {
+  const image = await readFile(new URL('../src/assets/lottie/coop-hen-poster.jpg', import.meta.url));
+  assert.deepEqual([...image.subarray(0, 3)], [0xff, 0xd8, 0xff], 'poster must be a JPEG');
+  assert.ok(image.byteLength > 50_000, 'poster must contain a real photograph');
+});
+
+test('real hero photograph preserves its CC BY 4.0 attribution', async () => {
+  const credits = await read('src/assets/lottie/ATTRIBUTION.txt');
+  assert.match(credits, /Opossumsrule/);
+  assert.match(credits, /CC BY 4\.0/);
+  assert.match(credits, /Chicken_eating_food_in_its_enclosure/);
+});
+
+test('hen animation contains no telemetry values, status indicators, or live-status text', async () => {
+  const animation = JSON.parse(await read('src/assets/lottie/coop-hen.json'));
+  assert.equal(animation.layers.some((layer) => layer.ty === 5), false, 'decorative scene should not add text layers');
+  assert.equal(animation.layers.some((layer) => /sensor|status/i.test(layer.nm)), false, 'illustration should not mimic a live sensor indicator');
+  assert.doesNotMatch(JSON.stringify(animation), /LIVE|°C|%|\d+\s*ekor/i);
+});
+
+test('landing hero provides local Lottie runtime and poster fallback', async () => {
+  const html = await read('landing.html');
+  const script = await read('src/landing.mjs');
+  assert.match(html, /id="hero-chicken-animation"/);
+  assert.match(html, /coop-hen-poster\.jpg/);
+  assert.match(html, /<div class="hero-hen-art" aria-hidden="true">/);
+  assert.match(html, /id="hero-hen-toggle"[^>]+aria-label="Putar animasi"/);
+  assert.doesNotMatch(html, /hero-hen-label/);
+  assert.ok(html.indexOf('lottie-light.min.js') < html.indexOf('src/landing.mjs'), 'runtime loads before the landing module');
+  assert.match(script, /coop-hen\.json/);
+});

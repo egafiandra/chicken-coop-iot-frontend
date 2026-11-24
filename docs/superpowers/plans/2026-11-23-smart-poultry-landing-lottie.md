@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add one original, local Lottie hen-and-coop animation to the Smart Poultry landing hero without implying live hardware data.
+**Goal:** Add a local Lottie camera push/pan over a real, attributed hen-feeding photograph in the Smart Poultry landing hero.
 
-**Architecture:** Add a small Lottie JSON asset and a static SVG poster fallback. Vendor the pinned `lottie-web` runtime locally so the static landing page has no new runtime network dependency. Keep playback lifecycle in a small, dependency-injected hero-only initializer that honors reduced motion, pauses when hidden/offscreen, and keeps the poster visible when playback fails.
+**Architecture:** Use a licensed local JPEG of a real hen eating from a feeder as both the static poster and the image layer in a short Lottie camera push/pan. Store attribution beside the asset. Vendor the pinned `lottie-web` runtime locally so the static landing page has no new runtime network dependency. Keep playback lifecycle in a small, dependency-injected hero-only initializer that respects reduced motion, supports explicit play/pause, pauses when hidden/offscreen, and keeps the photo visible when playback fails.
 
-**Tech Stack:** Static HTML/CSS, browser JavaScript modules, Lottie JSON, `lottie-web` 5.13.0, Node built-in test runner.
+**Tech Stack:** Static HTML/CSS, browser JavaScript modules, Lottie JSON, `lottie-web` 5.13.0 SVG light build, Node built-in test runner.
 
 **Spec:** `docs/superpowers/specs/2026-11-23-smart-poultry-landing-lottie-design.md`
 
@@ -16,17 +16,18 @@
 - Preserve the interactive dashboard preview and all existing links/routes.
 - Use the approved Smart Poultry palette: Forest Green `#006B35`, Deep Green `#00843D`, Fresh Green `#55B82A`, Golden Yellow `#FFB515`, Cream `#FFF4D8`.
 - Animation is illustrative, never a live sensor or hardware connection claim.
-- Respect `prefers-reduced-motion`; show the static poster instead of autoplaying.
-- Keep local poster fallback visible if runtime initialization or JSON loading fails.
+- Use a real photo rather than generated/cartoon art; preserve its source attribution in `src/assets/lottie/ATTRIBUTION.txt`.
+- Respect `prefers-reduced-motion`; show the still photo and an explicit Play control instead of autoplaying.
+- Keep the local photo fallback visible if runtime initialization or JSON loading fails.
 - Do not push unless separately requested.
 
 ## Review Focus
 
-- Reduced-motion preference: runtime must not autoplay, and the static poster remains visible. Test: `reduced motion shows poster without initializing player`.
-- Missing runtime or malformed/unavailable animation JSON: page remains complete and poster remains visible. Tests: `missing player leaves poster visible` and `failed animation data restores poster`.
+- Reduced-motion preference: runtime must not autoplay, the real photo remains visible, and the Play control opts in only after an explicit click. Tests: `reduced motion shows poster without initializing player` and `reduced-motion play control explicitly starts the animation`.
+- Missing runtime or malformed/unavailable animation JSON: page remains complete and the photo remains visible. Tests: `missing player leaves poster visible` and `failed animation data restores poster`.
 - Hero leaves viewport or browser tab becomes hidden: pause; resume only when visible again. Tests: `animation pauses offscreen and resumes in view` and `animation pauses while hidden and resumes when visible`.
-- Narrow viewport and each landing theme: animation stays within hero bounds and its fallback remains legible. Test: browser check at 320 px, 390 px, and desktop in Siang/Sore/Malam.
-- Animation data could accidentally imply real telemetry: keep sensor pulse purely illustrative and omit numerical labels. Test: `hen animation contains no telemetry values or live-status text`.
+- Narrow viewport and each landing theme: photo and control stay within hero bounds. Browser check at 320 px, 390 px, and desktop in Siang/Sore/Malam.
+- Animation data could accidentally imply real telemetry: the single photo layer contains no sensor/status names or numerical labels. Test: `hen animation contains no telemetry values, status indicators, or live-status text`.
 
 ---
 
@@ -34,18 +35,19 @@
 
 **Files:**
 - Create: `src/assets/lottie/coop-hen.json`
-- Create: `src/assets/lottie/coop-hen-poster.svg`
-- Create: `src/vendor/lottie.min.js` from `lottie-web@5.13.0`
+- Create: `src/assets/lottie/coop-hen-poster.jpg`
+- Create: `src/assets/lottie/ATTRIBUTION.txt`
+- Create: `src/vendor/lottie-light.min.js` from `lottie-web@5.13.0`
 - Create: `src/vendor/lottie-web.LICENSE.txt`
 - Test: `tests/landing.test.mjs`
 
 **Interfaces:**
-- Produces: `coop-hen.json`, a Bodymovin/Lottie animation loaded from a local path; `coop-hen-poster.svg`, a static view of the same hen-and-coop scene; and local `window.lottie` runtime.
+- Produces: `coop-hen.json`, a Bodymovin/Lottie image-layer camera move over the local `coop-hen-poster.jpg`; a `CC BY 4.0` credit in `ATTRIBUTION.txt`; and local `window.lottie` runtime.
 
-- [ ] **Step 1: Write failing asset tests** named `hero Lottie asset has a valid local animation structure`, `hero poster is a local SVG fallback`, and `hen animation contains no telemetry values or live-status text`. Parse JSON, assert `v`, `fr`, `ip`, `op`, `w`, `h`, and `layers`, assert poster SVG dimensions/viewBox, and assert no text layer contains sensor values or `LIVE`.
-- [ ] **Step 2: Run the focused tests** with `node --test tests/landing.test.mjs`. Expected: FAIL because the Lottie and poster assets do not exist.
-- [ ] **Step 3: Add the minimal hen-pecking animation and poster** using only the approved palette and no numerical/status copy; vendor the runtime and its license from the pinned `lottie-web@5.13.0` package.
-- [ ] **Step 4: Run the focused tests** with `node --test tests/landing.test.mjs`. Expected: PASS for all asset assertions.
+- [x] **Step 1: Write failing asset tests** for local photo-JPEG fallback, attribution, Lottie image-layer structure, visible camera push/pan keyframes, and no telemetry/status text. Assert the exact composition and local asset paths; parse JPEG magic bytes and CC BY 4.0 credit.
+- [x] **Step 2: Run the focused tests** with `node.exe --test tests/landing.test.mjs`. Expected: FAIL because the Lottie and poster assets do not exist.
+- [x] **Step 3: Bundle the real feeding photograph and attribution** in `src/assets/lottie/`, and create the short camera push/pan in the Lottie image layer. The photo is CC BY 4.0; do not recolor it into a cartoon or add sensor/status graphics. Vendor `lottie-web@5.13.0` and its license.
+- [x] **Step 4: Run the focused tests** with `node.exe --test tests/landing.test.mjs`. Expected: PASS for all asset assertions.
 
 ### Task 2: Integrate accessible playback into the landing hero
 
@@ -58,16 +60,16 @@
 - Test: `tests/landing.test.mjs`
 
 **Interfaces:**
-- Consumes: local `coop-hen.json`, `coop-hen-poster.svg`, `window.lottie`, and the existing `prefersReducedMotion` value.
-- Produces: `initHeroLottie({ container, fallback, lottie, reducedMotion, IntersectionObserverCtor, visibilityTarget, animationPath }) -> cleanup function` in `src/hero-lottie.mjs`; `src/landing.mjs` calls it for the decorative `#hero-chicken-animation` container.
+- Consumes: local `coop-hen.json`, `coop-hen-poster.jpg`, `window.lottie`, and the existing `prefersReducedMotion` value.
+- Produces: `initHeroLottie({ container, fallback, observerTarget, control, lottie, reducedMotion, IntersectionObserverCtor, visibilityTarget, animationPath }) -> cleanup function` in `src/hero-lottie.mjs`; `src/landing.mjs` calls it for the decorative photo layer and accessible play/pause control.
 
-- [ ] **Step 1: Write failing landing markup tests** named `landing hero provides local Lottie runtime and poster fallback`. Assert the container ID, local runtime script before the module, local animation path, poster asset, and `aria-hidden` decorative semantics.
-- [ ] **Step 2: Run the focused landing test** with `node --test tests/landing.test.mjs`. Expected: FAIL because the hero markup does not yet include the animation.
-- [ ] **Step 3: Write failing lifecycle unit tests** named `reduced motion shows poster without initializing player`, `missing player leaves poster visible`, `failed animation data restores poster`, `animation pauses offscreen and resumes in view`, and `animation pauses while hidden and resumes when visible`. Inject fake player, observer, and visibility target; assert calls, fallback visibility, and cleanup.
-- [ ] **Step 4: Run the focused lifecycle tests** with `node --test tests/hero-lottie.test.mjs`. Expected: FAIL because `src/hero-lottie.mjs` does not exist.
-- [ ] **Step 5: Implement `initHeroLottie(...)`** with SVG renderer, looping idle playback, static reduced-motion behavior, IntersectionObserver and page-visibility pause/resume, and an error path that leaves the poster visible. Keep the hero animation subordinate to the existing preview and limit CSS changes to the hero.
-- [ ] **Step 6: Add the hero container and local script ordering** in `landing.html`, initialize `initHeroLottie(...)` from `src/landing.mjs`, and add responsive/fallback styling in `src/landing.css`.
-- [ ] **Step 7: Run focused tests** with `node --test tests/hero-lottie.test.mjs tests/landing.test.mjs`. Expected: PASS.
+- [x] **Step 1: Write failing landing markup tests** for the local photo fallback, `aria-hidden` artwork, and keyboard-accessible Play/Pause button. Assert local runtime before the module and the Lottie photo path.
+- [x] **Step 2: Run the focused landing test** with `node.exe --test tests/landing.test.mjs`. Expected: FAIL because the hero markup does not yet include the animation.
+- [x] **Step 3: Write failing lifecycle unit tests** for reduced-motion opt-in, play/pause state, missing player, load failure, offscreen/hidden pause-resume, and cleanup. Inject the player, observer, visibility target, and button; assert fallback/control states and listener cleanup.
+- [x] **Step 4: Run the focused lifecycle tests** with `node.exe --test tests/hero-lottie.test.mjs`. Expected: FAIL because `src/hero-lottie.mjs` does not exist.
+- [x] **Step 5: Implement `initHeroLottie(...)`** with a local SVG image layer, camera push/pan keyframes, auto-play only when reduced motion is off, explicit opt-in otherwise, a stable hero-wrapper observer, page-visibility pause/resume, and load-failure fallback. Do not animate sensor indicators or alter unrelated hero content.
+- [x] **Step 6: Add the photo and accessible motion control** in `landing.html`, initialize the controller with `#hero-hen-toggle`, and style the crop/fallback/control in `src/landing.css`. Keep the play/pause target at least 44 px.
+- [x] **Step 7: Run focused tests** with `node.exe --test tests/hero-lottie.test.mjs tests/landing.test.mjs`. Expected: PASS.
 
 ### Task 3: Verify the running landing page
 
@@ -79,7 +81,7 @@
 - Consumes: completed local assets and hero playback behavior from Tasks 1–2.
 - Produces: verified landing animation behavior and a clean full-suite result.
 
-- [ ] **Step 1: Run all tests** with `node --test tests/*.test.mjs`. Expected: all tests pass.
-- [ ] **Step 2: Run the landing page in a browser** and verify animation playback, poster fallback, reduced-motion mode, pause/resume after scrolling away and returning, and no console/resource errors.
-- [ ] **Step 3: Check responsive/theme states** at 320 px, 390 px, and desktop, with Siang, Sore, and Malam selected. Expected: no overflow, clipped artwork, or contrast loss.
-- [ ] **Step 4: Run `git diff --check`** and verify only in-scope landing/Lottie/test files changed; confirm user Pro and admin files are untouched.
+- [x] **Step 1: Run all tests** with `node.exe --test tests/*.test.mjs`. Expected: all tests pass.
+- [x] **Step 2: Run the landing page in a browser** and verify the photo poster, automatic camera motion under no-preference, explicit Play/Pause under reduced motion, offscreen/tab pause-resume, and no console/resource errors.
+- [x] **Step 3: Check responsive/theme states** at 320 px, 390 px, and desktop with Siang, Sore, and Malam. Expected: no page overflow, the hen/feeder remain visible in the crop, and the 44 px control stays in bounds.
+- [x] **Step 4: Run `git diff --check`** and verify only in-scope landing/Lottie/test files changed; confirm user Pro and admin files are untouched.

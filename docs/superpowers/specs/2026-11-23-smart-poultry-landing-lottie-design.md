@@ -1,28 +1,28 @@
 # Smart Poultry Landing Lottie Design
 
 Date: 2026-11-23
-Status: Design direction and written spec approved by user.
+Status: The initial vector direction was approved; the illustration was replaced by a licensed real photograph after user feedback.
 
 ## Goal and scope
 
-Add one original Lottie animation to the existing Smart Poultry landing-page hero. Keep the interactive dashboard preview, copy, login, signup, user Pro, Lite, and admin behavior unchanged. The animation is an illustration, not telemetry or a claim that a real coop is connected.
+Add a locally bundled, real photograph of a hen feeding to the existing Smart Poultry landing-page hero. Use Lottie for a restrained camera push/pan across the photograph, with an explicit play control when reduced motion is enabled. Keep the interactive dashboard preview, copy, login, signup, user Pro, Lite, and admin behavior unchanged. The visual is illustrative, not telemetry or a claim that a real coop is connected.
 
-## Approved visual direction
+## Revised visual direction
 
 Reading this as: an agricultural product landing page for poultry farmers, using Smart Poultry's forest-green, cream, and gold identity; ENERGY 2 / RHYTHM 2 / MOTION 2.
 
-The focal illustration is a hen calmly pecking feed beside a simple coop silhouette. One small sensor-shaped pulse may echo the monitoring theme, but it must read as illustration and not as a live sensor indicator. Use the existing palette: Forest Green `#006B35`, Deep Green `#00843D`, Fresh Green `#55B82A`, Golden Yellow `#FFB515`, and Cream `#FFF4D8`. Keep Plus Jakarta Sans for any accompanying label.
+The visual is a candid, licensed photograph of a hen eating from a feeder in an outdoor enclosure. Do not draw or generate a cartoon substitute, and do not add a sensor/status mark. Keep the photograph natural; use the existing palette in the surrounding UI: Forest Green `#006B35`, Deep Green `#00843D`, Fresh Green `#55B82A`, Golden Yellow `#FFB515`, and Cream `#FFF4D8`. The Lottie motion shifts and gently zooms the camera framing; it does not animate the hen's anatomy or imply live data.
 
-Place the animation in the existing hero visual composition without obscuring or replacing the interactive dashboard preview. Keep it visually secondary to the headline and dashboard preview. Motion should be a slow, short idle loop that adds poultry-specific character without pulling attention from the controls.
+Place the photograph in the existing hero visual composition without obscuring or replacing the interactive dashboard preview. Keep it visually secondary to the headline and dashboard preview. Motion is a restrained camera push/pan across the feeding moment; do not suggest the animal or telemetry is live.
 
 ## Asset and runtime
 
-Create the animation locally as a Lottie JSON asset under `src/assets/lottie/`. The user does not need to upload files. Render it in the landing page using a pinned Lottie-compatible web runtime. Keep a local static fallback so the hero remains complete if animation playback is unavailable.
+Use one local Lottie JSON image layer and the licensed JPEG as its source and static fallback. Store the photo attribution in `src/assets/lottie/ATTRIBUTION.txt`. The user does not need to upload files. Vendor the pinned Lottie-compatible web runtime locally so no new runtime network dependency is introduced.
 
 ## Accessibility and states
 
 - Treat the animation as decorative and hide it from assistive technology; the page's existing text remains the source of meaning.
-- Respect `prefers-reduced-motion`: do not autoplay or loop for users who request reduced motion; show the static fallback instead.
+- Respect `prefers-reduced-motion`: show the still photo by default, with a visible Play control for explicit opt-in; otherwise auto-play the Lottie camera move.
 - Pause playback while the hero is outside the viewport or the page is hidden.
 - Do not label the visual `LIVE`, report sensor values, or imply hardware connectivity.
 - Keep the layout usable at mobile and desktop widths and in all landing-page themes.
@@ -33,4 +33,4 @@ Validate the JSON structure and runtime load, verify the fallback and reduced-mo
 
 ## Self-review
 
-Scope is limited to the landing hero. The animation is locally authored, poultry-specific, and subordinate to the existing dashboard preview. Its only loop is a slow character idle, not a live-status claim. Reduced-motion users receive a still fallback. No unsupported metrics, external customer assets, or new navigation are introduced.
+Scope is limited to the landing hero. The vector illustration was replaced with a real, attributed photograph after the user rejected the cartoon look. Lottie now adds a restrained camera move only; the visible Play control provides explicit opt-in under reduced motion. No sensor/status motif, unsupported metrics, external runtime, or new navigation is introduced.

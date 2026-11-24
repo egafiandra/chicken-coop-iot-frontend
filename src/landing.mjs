@@ -1,3 +1,5 @@
+import { initHeroLottie } from './hero-lottie.mjs?v=hero-lottie-2';
+
 /* Landing page — interaktif.
 
    - Nav sticky + scroll progress bar
@@ -349,3 +351,14 @@ initCounters();
 initFaq();
 initReveal();
 initActiveNav();
+initHeroLottie({
+  container: document.querySelector('#hero-chicken-animation'),
+  fallback: document.querySelector('#hero-hen-poster'),
+  observerTarget: document.querySelector('.hero-hen-scene'),
+  control: document.querySelector('#hero-hen-toggle'),
+  lottie: window.lottie,
+  reducedMotion: prefersReducedMotion,
+  IntersectionObserverCtor: window.IntersectionObserver,
+  visibilityTarget: document,
+  animationPath: './src/assets/lottie/coop-hen.json?v=photo-1',
+});

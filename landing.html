@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="./src/assets/logo-smart-poultry-mark-256.png">
-    <link rel="stylesheet" href="./src/landing.css?v=landing-42">
+    <link rel="stylesheet" href="./src/landing.css?v=landing-47">
   </head>
   <body>
     <a class="skip" href="#main">Lewati ke konten</a>
@@ -106,6 +106,17 @@
                   <span class="pill is-on"><span class="pill-dot" aria-hidden="true"></span>Valve air</span>
                   <span class="pill"><span class="pill-dot" aria-hidden="true"></span>Lampu</span>
                   <span class="pill is-on"><span class="pill-dot" aria-hidden="true"></span>Musik</span>
+                </div>
+
+                <div class="hero-hen-scene">
+                  <div class="hero-hen-art" aria-hidden="true">
+                    <img id="hero-hen-poster" class="hero-hen-poster" src="./src/assets/lottie/coop-hen-poster.jpg" alt="" width="960" height="1280">
+                    <div id="hero-chicken-animation" class="hero-hen-animation" hidden></div>
+                  </div>
+                  <button id="hero-hen-toggle" class="hero-hen-toggle" type="button" aria-label="Putar animasi" aria-pressed="false" data-state="paused" hidden>
+                    <svg class="hero-hen-play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.7c0-.9 1-1.4 1.8-.9l10 6.2c.7.4.7 1.4 0 1.8l-10 6.2c-.8.5-1.8 0-1.8-.9V5.7Z"/></svg>
+                    <svg class="hero-hen-pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
+                  </button>
                 </div>
 
                 <div class="panel-foot">
@@ -509,6 +520,7 @@
       </div>
     </footer>
 
-    <script type="module" src="./src/landing.mjs?v=landing-42"></script>
+    <script src="./src/vendor/lottie-light.min.js?v=lottie-web-5.13.0"></script>
+    <script type="module" src="./src/landing.mjs?v=landing-47"></script>
   </body>
 </html>

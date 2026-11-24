@@ -558,6 +558,58 @@ button, summary { font: inherit; }
 .panel-float b { display: block; color: var(--text); font-size: 11.5px; font-weight: 750; }
 .panel-float small { display: block; color: var(--muted); font-size: 9.5px; }
 
+/* A field-guide drawing replaces the status-card look; this control is a real opt-in under reduced motion. */
+.hero-hen-scene {
+  position: relative;
+  width: 100%;
+  height: 146px;
+  overflow: hidden;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  background: var(--surface-2);
+}
+.hero-hen-scene[hidden],
+.hero-hen-scene [hidden] { display: none !important; }
+.hero-hen-art {
+  position: absolute;
+  inset: 0;
+}
+.hero-hen-poster,
+.hero-hen-animation {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.hero-hen-poster { object-fit: cover; object-position: center 58%; }
+.hero-hen-animation svg { display: block; width: 100% !important; height: 100% !important; }
+.hero-hen-toggle {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 2;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  color: var(--text-2);
+  background: var(--surface);
+  box-shadow: 0 2px 6px rgb(11 36 24 / 12%);
+  cursor: pointer;
+  transition: background-color .16s ease, color .16s ease, transform .16s ease;
+}
+.hero-hen-toggle[hidden] { display: none !important; }
+.hero-hen-toggle:hover { color: var(--text); background: var(--bg-2); }
+.hero-hen-toggle:active { transform: translateY(1px); }
+.hero-hen-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hero-hen-toggle svg { width: 16px; height: 16px; fill: currentColor; }
+.hero-hen-toggle[data-state="playing"] .hero-hen-play-icon,
+.hero-hen-toggle[data-state="paused"] .hero-hen-pause-icon { display: none; }
+
 /* ---------- ticker ---------- */
 
 .ticker {
@@ -1309,6 +1361,7 @@ html[data-theme="sore"] .device { background: #E7EBE4; }
   .cell--wide { grid-column: span 1; }
   .hero-cta .btn { width: 100%; }
   .panel-float { position: static; margin-top: 10px; animation: none; }
+  .hero-hen-scene { height: 118px; }
   .stats-in { grid-template-columns: minmax(0, 1fr); }
   .foot-links { margin-left: 0; }
   .cta-acts { width: 100%; }

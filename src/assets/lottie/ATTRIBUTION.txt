@@ -1,0 +1,9 @@
+Image asset attribution
+
+File: Chicken_eating_food_in_its_enclosure.jpg (960 px Wikimedia Commons derivative)
+Creator: Opossumsrule
+Source: https://commons.wikimedia.org/wiki/File:Chicken_eating_food_in_its_enclosure.jpg
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+License text: https://creativecommons.org/licenses/by/4.0/
+
+The photo is used as a local, decorative hero image. The page crops it with CSS; the Lottie image layer adds a gentle camera push/pan. No live sensor data is represented.
