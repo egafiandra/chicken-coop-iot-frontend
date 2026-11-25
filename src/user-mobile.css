@@ -802,6 +802,9 @@ button[hidden] { display: none !important; }
   .topbar { min-height: 52px; padding: 7px 12px; }
   .page-context h1 { font-size: 16px; letter-spacing: -.3px; }
   .topbar-meta { justify-content: flex-end; gap: 4px; }
+  .app-shell .time-zone-label, .app-shell .time-mode-label { display: none; }
+  .app-shell .theme-mode-label-short { display: none; }
+  .app-shell .theme-mode-toggle { width: 34px; min-width: 34px; padding: 0; }
   .page-content { padding: 10px 12px calc(72px + env(safe-area-inset-bottom)); }
   .coop-hero { grid-template-rows: 116px auto; border-radius: 15px; }
   .coop-hero-art { min-height: 116px; }

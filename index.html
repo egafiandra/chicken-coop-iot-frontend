@@ -10,11 +10,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <title>Smart Poultry</title>
     <link rel="stylesheet" href="./src/styles.css?v=user-app-64">
-    <link rel="stylesheet" href="./src/user-mobile.css?v=user-app-64">
+    <link rel="stylesheet" href="./src/user-mobile.css?v=user-app-73">
+    <link rel="stylesheet" href="./src/assets/coop/coop-3d.css?v=user-app-72">
   </head>
   <body>
     <div id="app"></div>
     <div id="live-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-    <script type="module" src="./src/main.mjs?v=user-app-64"></script>
+    <script type="importmap">
+      {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}
+    </script>
+    <script type="module" src="./src/main.mjs?v=user-app-75"></script>
   </body>
 </html>

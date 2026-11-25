@@ -1,0 +1,6 @@
+.coop-3d {position:relative;width:100%;height:clamp(260px,42vw,560px);background:radial-gradient(ellipse at 50% 60%,#f7f9f4,#e9eee5);border-radius:18px;overflow:hidden;}
+.coop-3d canvas{display:block;width:100%;height:100%;touch-action:pan-y;}
+.coop-3d canvas:focus-visible{outline:3px solid var(--user-copper,#d5a03c);outline-offset:-4px;}
+
+.coop-3d[data-coop-period="sore"]{background:radial-gradient(ellipse at 50% 60%,#fff3dc,#e9c7a0);}
+.coop-3d[data-coop-period="malam"]{background:radial-gradient(ellipse at 50% 60%,#30445b,#111f2e);}

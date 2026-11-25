@@ -14,11 +14,11 @@ import {
 import { getDemoLoginStatus, isValidDemoEmail } from './auth-demo.mjs?v=user-app-64';
 import { createAccountSession, navigateToAppRoute, resetDemoAccountSession, startDemoPreview, validateSignupInput } from './auth-flow.mjs?v=user-app-64';
 import { loadDemoAccounts, saveDemoAccounts } from './account-storage.mjs?v=user-app-64';
-import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-64';
+import { renderHomeDashboard } from './home-dashboard.mjs?v=user-app-72';
 import { renderMonitorDetails } from './monitor-dashboard.mjs?v=user-app-64';
 import { readUserEdition, writeUserEdition } from './user-edition.mjs?v=user-app-64';
 import { renderEditionSettings, renderProProfileShortcut, renderSettingsShortcut } from './user-edition-view.mjs?v=user-app-64';
-import { renderUserProDashboard } from './user-pro-dashboard.mjs?v=user-app-64';
+import { mountProCoop3D, renderUserProDashboard, updateProCoopDashboard } from './user-pro-dashboard.mjs?v=user-app-75';
 import { getTimeTheme, normalizeThemePreference } from './time-theme.mjs?v=user-app-64';
 import { attachScrollReveal } from './scroll-reveal.mjs?v=user-app-64';
 import { attachFeatureEntryCards, shouldPlayFeatureEntry } from './feature-entry.mjs?v=user-app-64';
@@ -26,6 +26,7 @@ import { attachFeatureEntryCards, shouldPlayFeatureEntry } from './feature-entry
 const app = document.querySelector('#app');
 const liveAnnouncer = document.querySelector('#live-announcer');
 let scrollRevealCleanup = () => {};
+let proCoop3DCleanup = () => {};
 let lastRenderedPageId = null;
 const ACCOUNT_STORAGE_KEY = 'kandang-user-accounts-v1';
 const persistentAccountStorage = getBrowserStorage('localStorage');
@@ -36,7 +37,10 @@ let accounts = loadDemoAccounts(persistentAccountStorage, {
   legacyKey: ACCOUNT_STORAGE_KEY,
 });
 const THEME_PREFERENCE_STORAGE_KEY = 'smart-poultry-theme-preference-v1';
+const PRO_COOP_PERIOD_LABELS = Object.freeze({ siang: 'Siang', sore: 'Sore', malam: 'Malam' });
 let themePreference = readSavedThemePreference();
+let proCoopPeriodPreference = 'auto';
+let proCoopMotionPreference = 'auto';
 let userEdition = readUserEdition(persistentAccountStorage);
 
 const pages = [
@@ -187,6 +191,7 @@ function applyTimeTheme(date = new Date()) {
     const toggleModeLabel = toggle.querySelector('.theme-mode-label-short');
     if (toggleModeLabel) toggleModeLabel.textContent = isDark ? 'Gelap' : 'Terang';
   }
+  syncProCoopReadout(date, theme);
   return theme;
 }
 
@@ -237,6 +242,51 @@ function navLink(page, activePage, mobile = false) {
   return `<a class="nav-link${active ? ' is-active' : ''}" href="#/${page.id}" data-page="${page.id}"${active ? ' aria-current="page"' : ''}>${icon(page.icon)}<span>${label}</span></a>`;
 }
 
+function getProCoopVisualState(date = new Date(), theme = getTimeTheme(date, themePreference)) {
+  const period = proCoopPeriodPreference === 'auto' ? theme.period : proCoopPeriodPreference;
+  const activityLabel = period === 'malam'
+    ? 'Ayam beristirahat'
+    : state.controls.music
+      ? 'Ayam bergerak mengikuti irama'
+      : period === 'sore'
+        ? 'Ayam bergerak santai'
+        : 'Ayam bergerak alami';
+  return {
+    controls: state.controls,
+    period,
+    periodLabel: PRO_COOP_PERIOD_LABELS[period],
+    periodPreference: proCoopPeriodPreference,
+    motionPreference: proCoopMotionPreference,
+    clock: theme.clock,
+    datetime: date.toISOString(),
+    activityLabel,
+  };
+}
+
+function syncProCoopReadout(date, theme) {
+  const visual = getProCoopVisualState(date, theme);
+  const clock = document.querySelector('#pro-coop-clock');
+  if (clock) {
+    clock.textContent = visual.clock;
+    clock.dateTime = visual.datetime;
+  }
+  const period = document.querySelector('#pro-coop-period');
+  if (period) period.textContent = visual.periodLabel;
+  const activity = document.querySelector('#pro-coop-activity');
+  if (activity) activity.textContent = visual.activityLabel;
+}
+
+function updateProCoopDashboardInPlace() {
+  const visual = getProCoopVisualState();
+  updateProCoopDashboard(document.querySelector('.user-pro-dashboard'), visual);
+  proCoop3DCleanup.update?.(state, {
+    period: visual.period,
+    periodPreference: visual.periodPreference,
+    motion: visual.motionPreference,
+  });
+  applyTimeTheme();
+}
+
 function renderHome() {
   const model = getHomeDashboardModel(state);
   const monitorDetails = renderMonitorDetails({
@@ -267,7 +317,7 @@ function renderPro() {
     icon,
     sectionHeading,
     statePill,
-  });
+  }, getProCoopVisualState());
 }
 
 function renderControls() {
@@ -507,7 +557,7 @@ function renderNavigation(activePage, mobile = false, navigationPages = pages) {
 
 const PRO_VISUAL_STYLESHEETS = [
   { id: 'user-pro-admin-visual-stylesheet', href: './src/admin/styles.css?v=20261164' },
-  { id: 'user-pro-visual-overrides', href: './src/user-pro.css?v=user-app-63' },
+  { id: 'user-pro-visual-overrides', href: './src/user-pro.css?v=user-app-73' },
 ];
 
 function syncProVisualStyles(enabled) {
@@ -577,6 +627,8 @@ function renderProAppShell(pageId, page) {
 }
 
 function renderApp() {
+  proCoop3DCleanup();
+  proCoop3DCleanup = () => {};
   scrollRevealCleanup();
   scrollRevealCleanup = () => {};
   syncProVisualStyles(userEdition === 'pro' && state.isAuthenticated);
@@ -614,6 +666,14 @@ function renderApp() {
   }
   if (userEdition === 'pro') {
     app.innerHTML = renderProAppShell(pageId, page);
+    if (pageId === 'pro') {
+      const sceneControls = getProCoopVisualState();
+      proCoop3DCleanup = mountProCoop3D(document.querySelector('#pro-coop-3d'), state, {
+        period: sceneControls.period,
+        periodPreference: sceneControls.periodPreference,
+        motion: sceneControls.motionPreference,
+      });
+    }
     applyTimeTheme();
     return;
   }
@@ -837,8 +897,30 @@ app.addEventListener('submit', async (event) => {
   }
 });
 
+app.addEventListener('change', (event) => {
+  const gentleMotion = event.target.closest('[data-action="toggle-coop-motion"]');
+  if (!gentleMotion) return;
+  proCoopMotionPreference = gentleMotion.checked ? 'gentle' : 'auto';
+  if (userEdition === 'pro' && document.querySelector('#pro-coop-3d')) updateProCoopDashboardInPlace();
+  else renderApp();
+  showToast(gentleMotion.checked ? 'Gerakan lembut diaktifkan.' : 'Gerakan mengikuti preferensi perangkat.');
+});
+
 app.addEventListener('click', async (event) => {
   if (event.target.closest('[data-page]')) return;
+  const periodButton = event.target.closest('[data-action="set-coop-period"]');
+  if (periodButton) {
+    const selectedPeriod = periodButton.dataset.period;
+    if (selectedPeriod === 'auto' || Object.hasOwn(PRO_COOP_PERIOD_LABELS, selectedPeriod)) {
+      proCoopPeriodPreference = selectedPeriod;
+      if (userEdition === 'pro' && document.querySelector('#pro-coop-3d')) updateProCoopDashboardInPlace();
+      else renderApp();
+      showToast(selectedPeriod === 'auto'
+        ? 'Mode waktu mengikuti jam perangkat.'
+        : `Mode waktu visual diatur ke ${PRO_COOP_PERIOD_LABELS[selectedPeriod]}.`);
+    }
+    return;
+  }
   const editionButton = event.target.closest('[data-action="select-edition"]');
   if (editionButton) {
     userEdition = editionButton.dataset.edition === 'pro' ? 'pro' : 'lite';
@@ -886,7 +968,8 @@ app.addEventListener('click', async (event) => {
   const controlButton = event.target.closest('[data-action="toggle-control"]');
   if (controlButton) {
     state = toggleControl(state, controlButton.dataset.key);
-    renderApp();
+    if (userEdition === 'pro' && document.querySelector('#pro-coop-3d')) updateProCoopDashboardInPlace();
+    else renderApp();
     showToast('Status perangkat diperbarui.');
     return;
   }
