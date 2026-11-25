@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ambil Telur — Smart Poultry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./src/eggs.css?v=eggs-21">
+</head>
+<body>
+
+<header class="bar">
+  <a class="back" href="./landing.html">← Kembali</a>
+  <div class="title">
+    <b>Ambil Telur</b>
+    <span>Klik telur di dalam box untuk mengambilnya</span>
+  </div>
+  <div class="counter">
+    <span class="c-label">Di box</span>
+    <b id="count-in">9</b>
+    <span class="c-sep">·</span>
+    <span class="c-label">Terambil</span>
+    <b id="count-taken">0</b>
+  </div>
+</header>
+
+<main class="stage-wrap">
+  <div class="stage" id="stage" role="application" aria-label="Area interaktif kandang telur">
+
+    <!-- dataran / meja -->
+    <div class="ground" aria-hidden="true"></div>
+
+    <!-- BOX: 3 lapisan — belakang, telur, pinggir depan -->
+    <div class="box" id="box">
+      <img class="box-layer box-back" src="./src/assets/eggs/box-back-trim.webp" alt="" draggable="false" aria-hidden="true">
+      <div class="box-eggs" id="box-eggs"></div>
+      <img class="box-layer box-front" src="./src/assets/eggs/box-front-trim.webp" alt="Box berisi telur" draggable="false">
+    </div>
+
+    <!-- telur di dataran -->
+    <div class="floor-eggs" id="floor-eggs"></div>
+
+    <!-- telur yang sedang digenggam (mengikuti kursor) -->
+    <img class="held-egg" id="held-egg" src="./src/assets/eggs/egg.webp" alt="" draggable="false" aria-hidden="true">
+
+    <!-- petunjuk -->
+    <p class="hint" id="hint">Arahkan kursor ke box, lalu klik telur untuk mengambilnya.</p>
+  </div>
+</main>
+
+<!-- aset tersembunyi untuk preload -->
+<div class="preload" aria-hidden="true">
+  <img src="./src/assets/eggs/egg-trim.webp" alt="">
+  <img src="./src/assets/eggs/cracked-trim.webp" alt="">
+  <img src="./src/assets/eggs/box-back-trim.webp" alt="">
+  <img src="./src/assets/eggs/box-front-trim.webp" alt="">
+  <img src="./src/assets/eggs/hand.webp" alt="">
+  <img src="./src/assets/eggs/hand gripping transparent.webp" alt="">
+</div>
+
+<script type="module" src="./src/eggs.mjs?v=eggs-21"></script>
+</body>
+</html>

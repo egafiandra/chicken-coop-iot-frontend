@@ -74,15 +74,17 @@ test('landing hanya memakai warna dari palet resmi', async () => {
   // turunan netral/gelap + warna ilustrasi SVG (hero, tema, overlay)
   // turunan netral/gelap + warna UI konsol & ilustrasi
   // turunan kanvas gelap + UI konsol control-room
+  // turunan kanvas gelap + UI konsol control-room
   const extraAllowed = new Set([
-    '#00552A', '#041C0F', '#071410', '#0B1D16', '#0B1F14', '#0F2419',
-    '#0F2A1B', '#12241A', '#142E20', '#162B1F', '#1A3A28', '#1E3A2A',
-    '#241A08', '#2A4433', '#2C5440', '#445E4C', '#463A20', '#5A7361',
-    '#5E4A22', '#6E5930', '#7D8C7B', '#7E9C89', '#8A4A00', '#9AA79B',
-    '#9DBBA8', '#A8E58C', '#C3CFC4', '#C4DCCB', '#CFC7B2', '#D2BE91',
-    '#DFE5DC', '#E6A08A', '#E6D5B0', '#E7EBE4', '#E8CE9B', '#E9EDE6',
-    '#EBEFE8', '#EFE4CB', '#EFF2EC', '#F0E5CB', '#F2FBF4', '#F4E8D0',
-    '#F4F6F2', '#F8F0DE', '#F8F9F6', '#FBF3E2', '#FFC53F', '#FFFDF7',
+    '#00552A', '#041C0F', '#071410', '#0B1D16', '#0B1F14', '#0C1710',
+    '#0F2419', '#0F2A1B', '#12241A', '#142E20', '#16281E', '#162B1F',
+    '#1A3A28', '#1E3A2A', '#241A08', '#2A4433', '#2C5440', '#445E4C',
+    '#463A20', '#5A7361', '#5E4A22', '#6E5930', '#7D8C7B', '#7E9C89',
+    '#8A4A00', '#9AA79B', '#9DBBA8', '#A8E58C', '#C3CFC4', '#C4DCCB',
+    '#CFC7B2', '#D2BE91', '#DFE5DC', '#E6A08A', '#E6D5B0', '#E7EBE4',
+    '#E8CE9B', '#E9EDE6', '#EBEFE8', '#EFE4CB', '#EFF2EC', '#F0E5CB',
+    '#F2FBF4', '#F4E8D0', '#F4F6F2', '#F8F0DE', '#F8F9F6', '#FBF3E2',
+    '#FFC53F', '#FFFDF7',
   ]);
 
   const hexes = [...css.matchAll(/#[0-9a-fA-F]{6}/g)].map((m) => m[0].toUpperCase());

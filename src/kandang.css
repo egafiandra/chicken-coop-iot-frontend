@@ -1,0 +1,297 @@
+/* Kandang ayam interaktif — lampu, musik, dan tidur malam. */
+
+:root {
+  --bg: #0D1A14;
+  --bg-2: #16281E;
+  --surface: #1C3426;
+  --line: #2A4433;
+  --text: #F2FBF4;
+  --text-2: #B9D8C3;
+  --muted: #7E9C89;
+  --gold: #FFB515;
+  --fresh: #55B82A;
+  --on-gold: #0F2A1B;
+  --ease: cubic-bezier(.22, .61, .36, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  color: var(--text);
+  background: radial-gradient(ellipse at 50% 0%, var(--bg-2), var(--bg) 72%);
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- bar atas ---------- */
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px clamp(14px, 3vw, 26px);
+  border-bottom: 1px solid var(--line);
+  background: rgba(13, 26, 20, .82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.back {
+  flex: 0 0 auto;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: border-color 160ms var(--ease), color 160ms var(--ease);
+}
+.back:hover { border-color: var(--fresh); color: var(--text); }
+
+.title { display: grid; gap: 1px; min-width: 0; }
+.title b { font-size: 14px; font-weight: 800; letter-spacing: -.3px; }
+.title span { color: var(--muted); font-size: 11px; }
+
+.clock {
+  margin-left: auto;
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- panggung ---------- */
+
+.stage-wrap {
+  display: grid;
+  place-items: center;
+  height: calc(100% - 61px);
+  padding: clamp(10px, 2vw, 22px);
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  aspect-ratio: 1 / 1;
+  max-height: 100%;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(ellipse at 50% 115%, rgba(85, 184, 42, .10), transparent 62%),
+    linear-gradient(180deg, #17291F, #0B1610);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .04);
+  overflow: hidden;
+  transition: background 600ms var(--ease);
+}
+
+/* malam: panggung lebih gelap */
+.stage.is-night {
+  background:
+    radial-gradient(ellipse at 50% 115%, rgba(60, 90, 140, .12), transparent 62%),
+    linear-gradient(180deg, #0A1220, #060B12);
+}
+
+/* ---------- kandang ---------- */
+
+.coop {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  width: 54%;
+  transform: translate(-50%, -50%);
+  aspect-ratio: 900 / 843;
+}
+
+.layer {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* kandang: lapisan paling atas, menimpa ayam */
+.coop-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 22px 34px rgba(0, 0, 0, .45));
+}
+
+/* ayam: di belakang jeruji, duduk di lantai tiap tingkat */
+.chicken {
+  width: 17%;
+  left: 68%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: opacity 320ms var(--ease), transform 320ms var(--ease);
+}
+.chicken--bottom { top: 76%; }
+
+/* telur: 2 per tingkat, di kanan ayam */
+.egg {
+  width: 7%;
+  height: auto;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .45));
+}
+.egg--top-1    { left: 71%; top: 46%; }
+.egg--top-2    { left: 78.5%; top: 46%; }
+.egg--bottom-1 { left: 71%; top: 74%; }
+.egg--bottom-2 { left: 78.5%; top: 74%; }
+
+/* not musik: hanya tampil saat musik nyala */
+.note {
+  width: 7%;
+  height: auto;
+  opacity: 0;
+  transition: opacity 340ms var(--ease);
+  pointer-events: none;
+}
+.note.is-on { opacity: 1; }
+.note--1 { left: 54%; top: 30%; animation: note-float 3.2s ease-in-out infinite; }
+.note--2 { left: 88%; top: 24%; animation: note-float 3.8s ease-in-out infinite .4s; }
+.note--3 { left: 90%; top: 48%; animation: note-float 3.5s ease-in-out infinite .8s; }
+.note--4 { left: 58%; top: 66%; animation: note-float 3.9s ease-in-out infinite .2s; }
+.note--5 { left: 88%; top: 74%; animation: note-float 3.3s ease-in-out infinite .6s; }
+
+@keyframes note-float {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50%      { transform: translateY(-12px) rotate(4deg); }
+}
+
+/* ayam mengangguk pelan saat senang */
+.chicken.is-happy { animation: bob 900ms ease-in-out infinite; }
+@keyframes bob {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%      { transform: translate(-50%, -52%) scale(1.04); }
+}
+
+/* ayam tidur: sedikit turun */
+.chicken.is-sleeping { transform: translate(-50%, -46%); }
+
+/* ---------- lampu ---------- */
+
+.lamp {
+  width: 10%;
+  height: auto;
+  left: 50%;
+  top: 14%;
+  transform: translate(-50%, 0);
+  object-fit: contain;
+  transition: opacity 240ms var(--ease);
+}
+
+.lamp-glow {
+  position: absolute;
+  left: 50%;
+  top: 16%;
+  width: 62%;
+  aspect-ratio: 1;
+  transform: translateX(-50%) scale(.6);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 213, 120, .55) 0%, rgba(255, 190, 80, .22) 38%, transparent 68%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 520ms var(--ease), transform 520ms var(--ease);
+}
+.lamp-glow.is-on {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+  animation: glow-breathe 4s ease-in-out infinite;
+}
+@keyframes glow-breathe {
+  0%, 100% { opacity: .85; }
+  50%      { opacity: 1; }
+}
+
+/* ---------- zzz ---------- */
+
+.zzz {
+  width: 9%;
+  height: auto;
+  left: 26%;
+  top: 38%;
+  opacity: 0;
+  transition: opacity 400ms var(--ease);
+}
+.zzz--bottom { top: 66%; }
+.zzz.is-on { opacity: 1; animation: zzz-float 3.4s ease-in-out infinite; }
+@keyframes zzz-float {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+  50%      { transform: translateY(-10px) scale(1.08); opacity: .75; }
+}
+
+/* ---------- panel tombol (menempel di tiang kiri) ---------- */
+
+.panel {
+  position: absolute;
+  left: 13%;
+  top: 52%;
+  width: 9%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+}
+
+.panel-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .45));
+}
+
+/* dua zona klik transparan di atas gambar */
+.panel-hit {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.panel-hit--music { top: 6%; height: 44%; }
+.panel-hit--lamp  { top: 50%; height: 44%; }
+.panel-hit:focus-visible { outline: 2.5px solid var(--gold); outline-offset: 2px; border-radius: 8px; }
+
+/* ---------- hint ---------- */
+
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: 1%;
+  transform: translateX(-50%);
+  margin: 0;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  text-align: center;
+}
+
+/* ---------- responsif ---------- */
+
+@media (max-width: 520px) {
+  .title span { display: none; }
+  .stage { aspect-ratio: 3 / 4; }
+  .coop { width: 84%; top: 38%; }
+  .chicken { width: 14%; }
+  .lamp { width: 17%; }
+  .panel-btn { width: 64px; }
+  .hint { font-size: 9.5px; white-space: normal; max-width: 90%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

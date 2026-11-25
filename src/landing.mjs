@@ -349,3 +349,228 @@ initCounters();
 initFaq();
 initReveal();
 initActiveNav();
+
+/* ---------- mini game telur (hero kiri) ---------- */
+
+const MINI = {
+  egg: './src/assets/eggs/egg-trim.webp',
+  cracked: './src/assets/eggs/cracked-trim.webp',
+  hand: './src/assets/eggs/hand.webp',
+  grip: './src/assets/eggs/hand gripping transparent.webp',
+};
+
+/* 9 telur: 3 baris, sedikit bertumpuk */
+const MINI_LAYOUT = [
+  { x: 24, y: 66, s: 1.00 }, { x: 44, y: 63, s: .93 }, { x: 64, y: 66, s: 1.06 },
+  { x: 34, y: 48, s: .90 }, { x: 54, y: 45, s: 1.02 }, { x: 74, y: 48, s: .95 },
+  { x: 28, y: 31, s: .88 }, { x: 48, y: 29, s: .97 }, { x: 66, y: 32, s: .91 },
+];
+
+const GROUND = 0.82;        // garis dataran (porsi tinggi panggung)
+const CRACK_AT = 0.30;      // jarak jatuh yang membuat telur pecah
+
+function initMiniEggGame() {
+  const stage = document.querySelector('#mini-stage');
+  const wrap = document.querySelector('#mini-eggs');
+  const floor = document.querySelector('#mini-floor');
+  if (!stage || !wrap) return;
+
+  // kursor + telur yang dipegang
+  const cursor = document.createElement('div');
+  cursor.className = 'mini-cursor';
+  cursor.innerHTML = '<img alt="" draggable="false">';
+  stage.appendChild(cursor);
+  const cursorImg = cursor.querySelector('img');
+
+  const held = document.createElement('img');
+  held.className = 'mini-held';
+  held.src = MINI.egg;
+  held.alt = '';
+  held.draggable = false;
+  stage.appendChild(held);
+
+  const st = { holding: null, px: 0.5, py: 0.5 };
+  let remaining = 0;
+
+  const setCursor = (src) => {
+    if (cursorImg.getAttribute('src') !== src) cursorImg.src = src;
+  };
+
+  const rel = (ev) => {
+    const r = stage.getBoundingClientRect();
+    return { x: (ev.clientX - r.left) / r.width, y: (ev.clientY - r.top) / r.height };
+  };
+
+  const eggAt = (ev) => {
+    const el = document.elementFromPoint(ev.clientX, ev.clientY);
+    const slot = el?.closest('.mini-egg');
+    return slot && !slot.classList.contains('is-gone') ? slot : null;
+  };
+
+  const spawn = () => {
+    wrap.innerHTML = '';
+    remaining = MINI_LAYOUT.length;
+    MINI_LAYOUT.forEach((p, i) => {
+      const el = document.createElement('div');
+      el.className = 'mini-egg';
+      el.style.left = `${p.x}%`;
+      el.style.top = `${p.y}%`;
+      el.style.zIndex = String(10 + i);
+      el.style.setProperty('--s', String(p.s));
+      el.innerHTML = `<img src="${MINI.egg}" alt="Telur ${i + 1}" draggable="false">`;
+      wrap.appendChild(el);
+    });
+  };
+
+  const drop = (x, y) => {
+    const landY = Math.max(y, GROUND);
+    // pecah bila jatuh dari ketinggian: jarak titik lepas -> dataran
+    const broke = landY - y > CRACK_AT;
+
+    // selalu mulai sebagai telur utuh; pecah hanya SETELAH mendarat
+    const fe = document.createElement('div');
+    fe.className = 'mini-floor-egg';
+    fe.style.left = `${Math.min(94, Math.max(6, x * 100))}%`;
+    fe.style.setProperty('--from', `${y * 100}%`);
+    fe.style.setProperty('--to', `${landY * 100}%`);
+    fe.style.top = `${landY * 100}%`;
+    fe.style.setProperty('--rot', `${Math.random() * 16 - 8}deg`);
+
+    const img = document.createElement('img');
+    img.src = MINI.egg;
+    img.alt = '';
+    img.draggable = false;
+    fe.appendChild(img);
+    floor.appendChild(fe);
+
+    if (!broke) return;
+
+    // setelah animasi jatuh selesai, baru berubah jadi telur pecah
+    fe.addEventListener('animationend', () => {
+      fe.classList.add('is-cracked');
+      img.src = MINI.cracked;
+    }, { once: true });
+  };
+
+  stage.addEventListener('pointermove', (ev) => {
+    const p = rel(ev);
+    st.px = p.x; st.py = p.y;
+
+    const r = stage.getBoundingClientRect();
+    cursor.style.transform = `translate(${ev.clientX - r.left}px, ${ev.clientY - r.top}px) translate(-28%, -18%)`;
+    cursor.classList.add('is-visible');
+
+    if (st.holding) {
+      held.style.left = `${p.x * 100}%`;
+      held.style.top = `${p.y * 100}%`;
+      setCursor(MINI.grip);
+      return;
+    }
+
+    const over = eggAt(ev);
+    document.querySelectorAll('.mini-egg.is-hot').forEach((e) => e.classList.remove('is-hot'));
+    if (over) over.classList.add('is-hot');
+    setCursor(over ? MINI.grip : MINI.hand);
+  });
+
+  stage.addEventListener('pointerleave', () => {
+    cursor.classList.remove('is-visible');
+    document.querySelectorAll('.mini-egg.is-hot').forEach((e) => e.classList.remove('is-hot'));
+  });
+
+  stage.addEventListener('pointerdown', (ev) => {
+    const p = rel(ev);
+    st.px = p.x; st.py = p.y;
+
+    const slot = eggAt(ev);
+    if (!slot) {
+      setCursor(MINI.grip);
+      return;
+    }
+
+    slot.classList.add('is-gone');
+    remaining -= 1;
+
+    st.holding = { slot };
+    held.style.left = `${p.x * 100}%`;
+    held.style.top = `${p.y * 100}%`;
+    held.classList.add('is-visible');
+    setCursor(MINI.grip);
+  });
+
+  window.addEventListener('pointerup', (ev) => {
+    if (!st.holding) return;
+    const p = rel(ev);
+    st.holding = null;
+    held.classList.remove('is-visible');
+    drop(p.x, p.y);
+    setCursor(MINI.hand);
+
+    if (remaining <= 0) {
+      window.setTimeout(() => { spawn(); floor.innerHTML = ''; }, 900);
+    }
+  });
+
+  spawn();
+}
+
+/* ---------- mini kandang (hero kanan) ---------- */
+
+const MC = {
+  base: './src/assets/kandang-ayam/clean',
+  morning: 'chicken-morning.png',
+  afternoon: 'chicken-afternoon.png',
+  happy: 'chicken-happy.png',
+  sleep: 'chicken-sleep.png',
+  lampOn: 'lamp-on.png',
+  lampOff: 'lamp-off.png',
+  panel: 'panel.png',
+  panelLamp: 'panel-lamp.png',
+  panelMusic: 'panel-music.png',
+  panelBoth: 'panel-both.png',
+};
+
+function initMiniCoop() {
+  const root = document.querySelector('#mini-coop');
+  if (!root) return;
+
+  const lamp = root.querySelector('#mc-lamp');
+  const glow = root.querySelector('#mc-glow');
+  const panelImg = root.querySelector('#mc-panel-img');
+  const btnLamp = root.querySelector('#mc-btn-lamp');
+  const btnMusic = root.querySelector('#mc-btn-music');
+  const chickens = [root.querySelector('#mc-top'), root.querySelector('#mc-bottom')];
+  const notes = [...root.querySelectorAll('.mc-note')];
+  const zzz = [...root.querySelectorAll('.mc-zzz')];
+
+  const st = { lamp: false, music: false };
+
+  const hour = new Date().getHours();
+  const night = hour >= 18 || hour < 6;
+
+  const render = () => {
+    lamp.src = `${MC.base}/${st.lamp ? MC.lampOn : MC.lampOff}`;
+    glow.classList.toggle('is-on', st.lamp);
+
+    const chick = night ? MC.sleep : st.music ? MC.happy : st.lamp ? MC.morning : MC.afternoon;
+    chickens.forEach((c) => {
+      const src = `${MC.base}/${chick}`;
+      if (c.getAttribute('src') !== src) c.src = src;
+      c.classList.toggle('is-happy', !night && st.music);
+    });
+
+    notes.forEach((n) => n.classList.toggle('is-on', st.music && !night));
+    zzz.forEach((z) => z.classList.toggle('is-on', night));
+
+    panelImg.src = `${MC.base}/${st.music && st.lamp ? MC.panelBoth : st.music ? MC.panelMusic : st.lamp ? MC.panelLamp : MC.panel}`;
+    btnLamp.setAttribute('aria-pressed', String(st.lamp));
+    btnMusic.setAttribute('aria-pressed', String(st.music));
+  };
+
+  btnLamp.addEventListener('click', () => { st.lamp = !st.lamp; render(); });
+  btnMusic.addEventListener('click', () => { st.music = !st.music; render(); });
+  render();
+}
+
+initMiniEggGame();
+initMiniCoop();

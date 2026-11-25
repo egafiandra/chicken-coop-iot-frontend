@@ -1,0 +1,311 @@
+/* ==========================================================================
+   Halaman "Ambil Telur" — interaktif seperti game.
+   Kursor kustom, telur bisa diambil, dan pecah bila jatuh dari ketinggian.
+   ========================================================================== */
+
+:root {
+  --bg: #0E1A14;
+  --bg-2: #14261C;
+  --surface: #1A3024;
+  --text: #F2FBF4;
+  --text-2: #B9D8C3;
+  --muted: #7E9C89;
+  --line: #26402F;
+  --gold: #FFB515;
+  --fresh: #55B82A;
+  --on-gold: #0F2A1B;
+  --ease: cubic-bezier(.22, .61, .36, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  color: var(--text);
+  background: radial-gradient(ellipse at 50% 0%, var(--bg-2), var(--bg) 70%);
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- bar atas ---------- */
+
+.bar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px clamp(14px, 3vw, 26px);
+  border-bottom: 1px solid var(--line);
+  background: rgba(14, 26, 20, .82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.back {
+  flex: 0 0 auto;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: border-color 160ms var(--ease), color 160ms var(--ease);
+}
+.back:hover { border-color: var(--fresh); color: var(--text); }
+
+.title { display: grid; gap: 1px; min-width: 0; }
+.title b { font-size: 14px; font-weight: 800; letter-spacing: -.3px; }
+.title span { color: var(--muted); font-size: 11px; }
+
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-variant-numeric: tabular-nums;
+}
+.c-label { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.counter b { color: var(--text); font-size: 15px; font-weight: 800; }
+.c-sep { color: var(--line); }
+
+/* ---------- panggung ---------- */
+
+.stage-wrap {
+  display: grid;
+  place-items: center;
+  height: calc(100% - 61px);
+  padding: clamp(10px, 2vw, 22px);
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 1080px;
+  aspect-ratio: 16 / 10;
+  max-height: 100%;
+  border-radius: 22px;
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(85, 184, 42, .10), transparent 62%),
+    linear-gradient(180deg, #16281E, #0C1710);
+  border: 1px solid var(--line);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .04);
+  overflow: hidden;
+  cursor: none;           /* kursor kustom menggantikan kursor asli */
+  user-select: none;
+  touch-action: none;
+}
+
+/* dataran (meja) */
+.ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 26%;
+  background: linear-gradient(180deg, rgba(197, 185, 139, .16), rgba(197, 185, 139, .05));
+  border-top: 1px solid rgba(197, 185, 139, .22);
+}
+.ground::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(90deg, rgba(197,185,139,.06) 0 1px, transparent 1px 42px);
+}
+
+/* ---------- box (3 lapisan) ---------- */
+
+.box {
+  position: absolute;
+  left: 50%;
+  bottom: 13%;
+  width: 62%;
+  transform: translateX(-50%);
+  /* H = 0.3414W (baki) + 0.4121W (rim) - 0.55*0.4121W = 0.5266W */
+  aspect-ratio: 1000 / 527;
+}
+
+.box-layer {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 22px 34px rgba(0, 0, 0, .45));
+}
+
+/* baki belakang: acuan ukuran & posisi */
+.box-back { top: 0; z-index: 1; }
+
+/* rim depan: digeser turun agar menyambung tanpa celah (overlap 55%) */
+.box-front {
+  top: 21.76%;              /* (0.3412 - 0.55*0.4121)/0.5266 */
+  z-index: 3;               /* di atas telur: rim menutupi bagian bawah telur */
+  filter: drop-shadow(0 18px 26px rgba(0, 0, 0, .38));
+}
+
+/* telur: di antara dua lapisan */
+.box-eggs {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+}
+
+.egg-slot {
+  position: absolute;
+  width: 15%;
+  aspect-ratio: 271 / 320;
+  transform: translate(-50%, -50%) scale(var(--s, 1));
+  cursor: none;
+  transition: transform 160ms var(--ease), filter 160ms var(--ease);
+  will-change: transform;
+}
+.egg-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .35));
+}
+
+/* telur bereaksi saat kursor di atasnya */
+.egg-slot.is-hot { transform: translate(-50%, -50%) scale(calc(var(--s, 1) * 1.09)); }
+.egg-slot.is-hot img { filter: drop-shadow(0 6px 12px rgba(255, 181, 21, .45)) brightness(1.06); }
+
+/* telur terangkat (diambil) */
+.egg-slot.is-lifted { opacity: 0; transform: translate(-50%, -50%) scale(.4); }
+
+/* ---------- telur di dataran ---------- */
+
+.floor-eggs { position: absolute; inset: 0; pointer-events: none; }
+.floor-egg.is-cracked, .floor-egg.is-falling { pointer-events: none; }
+
+.floor-egg {
+  position: absolute;
+  width: var(--w, 5.6%);
+  aspect-ratio: 271 / 320;
+  transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .45));
+  will-change: top, transform;
+}
+.floor-egg img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.floor-egg:not(.is-cracked):not(.is-falling) { pointer-events: auto; cursor: none; transition: transform 160ms var(--ease), filter 160ms var(--ease); }
+.floor-egg.is-hot { transform: translate(-50%, -50%) rotate(var(--rot, 0deg)) scale(1.1); filter: drop-shadow(0 10px 18px rgba(255, 181, 21, .5)) brightness(1.05); }
+
+/* jatuh: turun ke garis dataran dengan percepatan gravitasi */
+.floor-egg.is-falling {
+  animation: fall 620ms cubic-bezier(.45, 0, .85, .55) forwards;
+}
+@keyframes fall {
+  0%   { top: var(--from, 0%); transform: translate(-50%, -50%) rotate(var(--rot, 0deg)) scale(1); }
+  70%  { transform: translate(-50%, -50%) rotate(calc(var(--rot, 0deg) + 26deg)) scale(1.02); }
+  88%  { transform: translate(-50%, -50%) rotate(calc(var(--rot, 0deg) + 34deg)) scale(.94, 1.06); }
+  100% { top: var(--land); transform: translate(-50%, -50%) rotate(var(--rot, 0deg)) scale(1); }
+}
+
+/* mendarat */
+.floor-egg.is-landed { animation: land-pop 240ms var(--ease) both; }
+@keyframes land-pop {
+  0%   { transform: translate(-50%, -50%) rotate(var(--rot, 0deg)) scale(1.1, .9); }
+  100% { transform: translate(-50%, -50%) rotate(var(--rot, 0deg)) scale(1); }
+}
+
+/* telur pecah: bentuk melebar */
+.floor-egg.is-cracked {
+  width: var(--w, 9%);
+  aspect-ratio: 320 / 204;
+}
+
+/* ---------- telur digenggam ---------- */
+
+.held-egg {
+  position: absolute;
+  width: 7%;
+  aspect-ratio: 271 / 320;
+  transform: translate(-50%, -60%);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 15;
+  filter: drop-shadow(0 12px 20px rgba(0, 0, 0, .5));
+  transition: opacity 120ms var(--ease);
+}
+.held-egg.is-visible { opacity: 1; }
+
+/* ---------- kursor kustom ---------- */
+
+.cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 92px;
+  height: 96px;
+  pointer-events: none;
+  z-index: 30;
+  transform: translate(-28%, -18%);
+  transition: width 130ms var(--ease), height 130ms var(--ease), opacity 130ms var(--ease);
+  opacity: 0;
+  will-change: transform;
+}
+.cursor.is-visible { opacity: 1; }
+.cursor img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 10px rgba(0,0,0,.4)); }
+
+/* ---------- petunjuk ---------- */
+
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 7px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(14, 26, 20, .78);
+  backdrop-filter: blur(10px);
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 220ms var(--ease);
+}
+.hint.is-faded { opacity: 0; }
+
+/* ---------- preload ---------- */
+
+.preload {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- responsif ---------- */
+
+@media (max-width: 720px) {
+  .bar { gap: 10px; padding: 10px 12px; }
+  .title span { display: none; }
+  .box { width: 84%; bottom: 16%; }
+  .cursor { width: 64px; height: 68px; }
+  .held-egg { width: 10%; }
+  .floor-egg { width: 8%; }
+  .hint { font-size: 10px; padding: 6px 12px; max-width: 92%; white-space: normal; text-align: center; }
+  .stage { aspect-ratio: 4 / 5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

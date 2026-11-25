@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kandang Interaktif — Smart Poultry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./src/kandang.css?v=kandang-28">
+</head>
+<body>
+
+<header class="bar">
+  <a class="back" href="./landing.html">← Kembali</a>
+  <div class="title">
+    <b>Kandang Interaktif</b>
+    <span>Coba nyalakan lampu atau musiknya</span>
+  </div>
+  <div class="clock" id="clock">--:--</div>
+</header>
+
+<main class="stage-wrap">
+  <div class="stage" id="stage">
+
+    <!-- kandang + ayam + lampu -->
+    <div class="coop" id="coop">
+      <!-- ayam + telur + efek, semuanya di belakang kandang -->
+      <img class="layer chicken chicken--top" id="chicken-top"
+           src="./src/assets/kandang-ayam/clean/chicken-morning.png" alt="" draggable="false">
+      <img class="layer egg egg--top-1" src="./src/assets/eggs/egg-trim.webp" alt="" draggable="false">
+      <img class="layer egg egg--top-2" src="./src/assets/eggs/egg-trim.webp" alt="" draggable="false">
+
+      <img class="layer chicken chicken--bottom" id="chicken-bottom"
+           src="./src/assets/kandang-ayam/clean/chicken-morning.png" alt="" draggable="false">
+      <img class="layer egg egg--bottom-1" src="./src/assets/eggs/egg-trim.webp" alt="" draggable="false">
+      <img class="layer egg egg--bottom-2" src="./src/assets/eggs/egg-trim.webp" alt="" draggable="false">
+
+      <!-- not musik: muncul saat musik nyala -->
+      <img class="layer note note--1" src="./src/assets/kandang-ayam/clean/note-1.png" alt="" aria-hidden="true" draggable="false">
+      <img class="layer note note--2" src="./src/assets/kandang-ayam/clean/note-2.png" alt="" aria-hidden="true" draggable="false">
+      <img class="layer note note--3" src="./src/assets/kandang-ayam/clean/note-3.png" alt="" aria-hidden="true" draggable="false">
+      <img class="layer note note--4" src="./src/assets/kandang-ayam/clean/note-4.png" alt="" aria-hidden="true" draggable="false">
+      <img class="layer note note--5" src="./src/assets/kandang-ayam/clean/note-5.png" alt="" aria-hidden="true" draggable="false">
+
+      <!-- zzz: muncul saat tidur -->
+      <img class="layer zzz zzz--top" id="zzz-top" src="./src/assets/kandang-ayam/clean/zzz.png" alt="" aria-hidden="true" draggable="false">
+      <img class="layer zzz zzz--bottom" id="zzz-bottom" src="./src/assets/kandang-ayam/clean/zzz.png" alt="" aria-hidden="true" draggable="false">
+
+      <img class="layer coop-bg" src="./src/assets/kandang-ayam/clean/coop.png" alt="Kandang ayam" draggable="false">
+
+      <!-- lampu di depan kandang -->
+      <img class="layer lamp" id="lamp"
+           src="./src/assets/kandang-ayam/clean/lamp-off.png" alt="" draggable="false">
+      <div class="lamp-glow" id="lamp-glow" aria-hidden="true"></div>
+
+      <!-- panel tombol: menempel di tiang kiri kandang -->
+      <div class="panel" id="panel">
+        <img class="panel-img" id="panel-img" src="./src/assets/kandang-ayam/clean/panel.png" alt="" draggable="false">
+        <button class="panel-hit panel-hit--music" id="btn-music" type="button" aria-pressed="false" aria-label="Putar musik"></button>
+        <button class="panel-hit panel-hit--lamp" id="btn-lamp" type="button" aria-pressed="false" aria-label="Nyalakan lampu"></button>
+      </div>
+    </div>
+
+    <p class="hint" id="hint">Lampu mati · musik mati · ayam sedang santai</p>
+  </div>
+</main>
+
+<audio id="music" loop preload="none">
+  <source src="./src/assets/kandang-ayam/clean/coop-music.mp3" type="audio/mpeg">
+</audio>
+
+<script type="module" src="./src/kandang.mjs?v=kandang-28"></script>
+</body>
+</html>
